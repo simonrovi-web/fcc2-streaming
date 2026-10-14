@@ -109,6 +109,7 @@ function applyLive(d){if(!d||!d.ts||d.ts<LAST)return;LAST=d.ts;var m=d[PANEL],bi
  if(d.theme)applyTheme(d.theme);fitAll();
  if(big&&PANEL!=='marcador'&&document.getAnimations)document.getAnimations().forEach(function(a){try{a.cancel();a.play()}catch(e){}});
  if(d.clock&&window.onClock&&PANEL==='marcador')window.onClock(d.clock);
+ if(d.layout&&window.onLayout&&PANEL==='marcador')window.onLayout(d.layout);
  if(d.show&&PANEL in d.show){var v=!!d.show[PANEL];document.documentElement.style.transition='opacity .4s';document.documentElement.style.opacity=v?1:0}}
 window.addEventListener('fcc2',function(e){applyLive(e.detail)});
 try{new BroadcastChannel('fcc2').onmessage=function(e){applyLive(e.data)}}catch(e){}
@@ -239,29 +240,31 @@ P['FCC2_Auspiciador'] = page('FCC 2 Auspiciador', '''
 
 # ---------- OVERLAYS (fondo transparente) ----------
 P['FCC2_Overlay_Marcador'] = page('FCC 2 Marcador', '''
-.bug{position:absolute;left:60px;bottom:60px;display:flex;align-items:stretch;filter:drop-shadow(0 14px 34px rgba(0,0,0,.7));animation:inL .6s ease both}
-.lg{width:170px;background:linear-gradient(#141414,#050505);display:flex;align-items:center;justify-content:center;border-right:4px solid var(--red)}
-.lg img{width:150px}
-.names{display:flex;flex-direction:column;width:600px}
-.top{background:linear-gradient(90deg,var(--red),var(--red-dk));font-family:"Bebas";font-size:26px;letter-spacing:6px;padding:5px 18px 1px;color:#fff;white-space:nowrap;overflow:hidden}
-.fr{display:flex;align-items:center;height:66px;background:rgba(10,10,10,.94);border-top:1px solid rgba(255,255,255,.07)}
-.chip{width:14px;align-self:stretch;background:var(--ca)}
+.bug{position:absolute;left:60px;bottom:60px;display:flex;align-items:stretch;filter:drop-shadow(0 14px 34px rgba(0,0,0,.75));transform-origin:left bottom;transition:transform .35s ease}
+.bug.pos-bc{left:50%;transform-origin:center bottom}.bug.pos-br{left:auto;right:60px;transform-origin:right bottom}
+.bug.pos-tl{bottom:auto;top:50px;transform-origin:left top}.bug.pos-tc{bottom:auto;top:50px;left:50%;transform-origin:center top}
+.lg{width:200px;background:linear-gradient(#161616,#050505);display:flex;align-items:center;justify-content:center;border-right:5px solid var(--red)}
+.lg img{width:180px}
+.names{display:flex;flex-direction:column;width:700px}
+.top{background:linear-gradient(90deg,var(--red),var(--red-dk));font-family:"Bebas";font-size:34px;line-height:1.15;letter-spacing:7px;padding:4px 20px 0;color:#fff;white-space:nowrap;overflow:hidden;text-shadow:0 2px 4px rgba(0,0,0,.4)}
+.fr{display:flex;align-items:center;height:84px;background:rgba(6,6,6,.96);border-top:2px solid rgba(255,255,255,.10)}
+.chip{width:20px;align-self:stretch;background:var(--ca)}
 .chip.b{background:var(--cb)}
-.nm{flex:1;font-family:"Bebas";font-size:50px;line-height:1.15;padding:4px 18px 0;white-space:nowrap;overflow:hidden;color:#fff;min-width:0}
-.rec{font-size:20px;color:#bdbdbd;padding-right:18px;letter-spacing:1px;white-space:nowrap}
-.clk{width:240px;background:#050505;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;border-left:1px solid rgba(255,255,255,.08)}
-.clk .rd{font-family:"Bebas";font-size:28px;letter-spacing:5px;color:#b5b5b5;line-height:1}
+.nm{flex:1;font-family:"Bebas";font-size:66px;line-height:1.15;padding:4px 20px 0;letter-spacing:1px;white-space:nowrap;overflow:hidden;color:#fff;min-width:0;text-shadow:0 2px 6px rgba(0,0,0,.6)}
+.rec{font-family:"Bebas";font-size:34px;color:#d8d8d8;padding:4px 20px 0;letter-spacing:2px;white-space:nowrap}
+.clk{width:290px;background:#030303;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;border-left:2px solid rgba(255,255,255,.10)}
+.clk .rd{font-family:"Bebas";font-size:36px;letter-spacing:5px;color:#c8c8c8;line-height:1}
 .clk .rd b{color:#fff;font-weight:400}
-.clk .tm{font-family:"Bebas";font-size:92px;line-height:.88;color:#fff;font-variant-numeric:tabular-nums}
+.clk .tm{font-family:"Bebas";font-size:124px;line-height:.9;color:#fff;font-variant-numeric:tabular-nums;text-shadow:0 2px 10px rgba(0,0,0,.6)}
 .clk .tm.low{color:var(--red2);animation:pulse 1s steps(1) infinite}
-.clk .st{position:absolute;top:8px;right:10px;font-size:13px;letter-spacing:3px;color:var(--warn,#f5b301);display:none}
-.clk .pb{position:absolute;left:0;bottom:0;height:7px;background:linear-gradient(90deg,var(--red-dk),var(--red2));box-shadow:0 0 12px var(--red2)}
+.clk .st{position:absolute;top:8px;right:12px;font-family:"Bebas";font-size:20px;letter-spacing:3px;color:#f5b301;display:none}
+.clk .pb{position:absolute;left:0;bottom:0;height:9px;background:linear-gradient(90deg,var(--red-dk),var(--red2));box-shadow:0 0 14px var(--red2)}
 .help{position:absolute;top:20px;left:20px;font-size:18px;background:rgba(0,0,0,.85);padding:10px 16px;display:none;line-height:1.5}
 ''', f'''<div class="bug" id="bug">
 <div class="lg"><img src="{LOGOA}"></div>
 <div class="names"><div class="top" data-k="sub">MMA · CATEGORÍA</div>
-<div class="fr"><div class="chip"></div><div class="nm" data-k="rojo" data-fit="w" data-max="50" data-min="24">PELEADOR ROJO</div><div class="rec" data-k="rrec"></div></div>
-<div class="fr"><div class="chip b"></div><div class="nm" data-k="azul" data-fit="w" data-max="50" data-min="24">PELEADOR AZUL</div><div class="rec" data-k="brec"></div></div></div>
+<div class="fr"><div class="chip"></div><div class="nm" data-k="rojo" data-fit="w" data-max="66" data-min="34">PELEADOR ROJO</div><div class="rec" data-k="rrec"></div></div>
+<div class="fr"><div class="chip b"></div><div class="nm" data-k="azul" data-fit="w" data-max="66" data-min="34">PELEADOR AZUL</div><div class="rec" data-k="brec"></div></div></div>
 <div class="clk"><div class="st" id="st">PAUSA</div><div class="rd">ROUND <b id="rd">1</b><span id="tot"> / 3</span></div><div class="tm" id="tm">3:00</div><div class="pb" id="pb"></div></div>
 </div>
 <div class="help" id="help">ESPACIO iniciar/pausar · R reiniciar · ← → round · + − 10 s · H ayuda · (lo normal es manejarlo desde CONTROL_EN_VIVO)</div>''', '''
@@ -270,6 +273,8 @@ var C={round:1,total:3,len:RL,rem:RL,running:false,at:Date.now()};
 try{var sc=JSON.parse(localStorage.getItem('fcc2-clock-local')||'null');if(sc)C=sc}catch(e){}
 function rem(){return C.running?Math.max(0,C.rem-(Date.now()-C.at)/1000):C.rem}
 function setC(o){var r=rem();for(var k in o)C[k]=o[k];if(!('rem' in o))C.rem=r;C.at=Date.now();try{localStorage.setItem('fcc2-clock-local',JSON.stringify(C))}catch(e){}}
+window.onLayout=function(l){var g=document.getElementById('bug');if(!g||!l)return;g.className='bug pos-'+(l.pos||'bl');var sc=+l.scale||1;g.style.transform=(/c$/.test(l.pos||'')?'translateX(-50%) ':'')+'scale('+sc+')';try{localStorage.setItem('fcc2-layout',JSON.stringify(l))}catch(e){}};
+try{window.onLayout(JSON.parse(localStorage.getItem('fcc2-layout')||'null'))}catch(e){}
 window.onClock=function(c){C={round:c.round,total:c.total||3,len:c.len,rem:c.rem,running:c.running,at:Date.now()};try{localStorage.setItem('fcc2-clock-local',JSON.stringify(C))}catch(e){}};
 function draw(){var r=rem();if(C.running&&r<=0){C.running=false;C.rem=0}var s=Math.ceil(r);
  tm.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');tm.classList.toggle('low',s<=10&&s>0);

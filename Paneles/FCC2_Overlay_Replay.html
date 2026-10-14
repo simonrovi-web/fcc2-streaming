@@ -55,6 +55,7 @@ function applyLive(d){if(!d||!d.ts||d.ts<LAST)return;LAST=d.ts;var m=d[PANEL],bi
  if(d.theme)applyTheme(d.theme);fitAll();
  if(big&&PANEL!=='marcador'&&document.getAnimations)document.getAnimations().forEach(function(a){try{a.cancel();a.play()}catch(e){}});
  if(d.clock&&window.onClock&&PANEL==='marcador')window.onClock(d.clock);
+ if(d.layout&&window.onLayout&&PANEL==='marcador')window.onLayout(d.layout);
  if(d.show&&PANEL in d.show){var v=!!d.show[PANEL];document.documentElement.style.transition='opacity .4s';document.documentElement.style.opacity=v?1:0}}
 window.addEventListener('fcc2',function(e){applyLive(e.detail)});
 try{new BroadcastChannel('fcc2').onmessage=function(e){applyLive(e.data)}}catch(e){}
