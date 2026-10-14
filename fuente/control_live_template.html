@@ -78,6 +78,8 @@ kbd{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#000;b
 .pv{aspect-ratio:16/9;background:#000;border:1px solid var(--line);position:relative;display:flex;align-items:center;justify-content:center}
 .pv img{width:100%;height:100%;object-fit:contain;position:absolute;inset:0}
 .pv span{color:var(--mute);font-size:14px}
+.cp{height:42px;padding:3px;cursor:pointer}
+.sw-c{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:6px;border:1px solid rgba(255,255,255,.3)}
 details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1px}
 </style></head>
 <body>
@@ -138,12 +140,12 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
   <section class="card">
     <h2>COMBATE ACTUAL <span class="sp"><button id="bswap" title="Intercambiar esquinas">⇄ ESQUINAS</button></span></h2>
     <div class="grid2">
-      <div class="corner r"><div class="t">ESQUINA ROJA</div>
+      <div class="corner r"><div class="t lbl-a">ESQUINA ROJA</div>
         <div><label>NOMBRE</label><input id="r_nombre" class="live" placeholder="Nombre Apellido"></div>
         <div><label>APODO · ACADEMIA</label><input id="r_apodo" class="live"></div>
         <div class="row"><div class="f"><label>RÉCORD</label><input id="r_record" class="live"></div><div class="f"><label>PESO</label><input id="r_peso" class="live"></div><div class="f"><label>EDAD</label><input id="r_edad" class="live"></div></div>
       </div>
-      <div class="corner b"><div class="t">ESQUINA AZUL</div>
+      <div class="corner b"><div class="t lbl-b">ESQUINA AZUL</div>
         <div><label>NOMBRE</label><input id="b_nombre" class="live" placeholder="Nombre Apellido"></div>
         <div><label>APODO · ACADEMIA</label><input id="b_apodo" class="live"></div>
         <div class="row"><div class="f"><label>RÉCORD</label><input id="b_record" class="live"></div><div class="f"><label>PESO</label><input id="b_peso" class="live"></div><div class="f"><label>EDAD</label><input id="b_edad" class="live"></div></div>
@@ -163,7 +165,7 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
   <!-- CARTELERA -->
   <section class="card">
     <h2>CARTELERA <span class="sp"><button id="bprev">◀ ANTERIOR</button><button class="pri" id="bnext">SIGUIENTE ▶</button></span></h2>
-    <div class="fl"><table><thead><tr><th>#</th><th>ESQUINA ROJA</th><th>ESQUINA AZUL</th><th>DISC.</th><th></th></tr></thead><tbody id="fl"></tbody></table></div>
+    <div class="fl"><table><thead><tr><th>#</th><th class="lbl-a">ESQUINA ROJA</th><th class="lbl-b">ESQUINA AZUL</th><th>DISC.</th><th></th></tr></thead><tbody id="fl"></tbody></table></div>
     <details><summary>Pegar cartelera completa (una pelea por línea)</summary>
       <p class="hint" style="margin:6px 0">Formato: <kbd>Rojo vs Azul | MMA | 70 kg · 3x3</kbd> (disciplina y categoría opcionales)</p>
       <textarea id="paste" rows="6" placeholder="Juan Pérez vs Diego Soto | MMA | 70 KG · 3 ROUNDS X 3 MIN"></textarea>
@@ -171,10 +173,26 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
     </details>
   </section>
 
+  <!-- COLORES -->
+  <section class="card">
+    <h2>COLORES Y ESQUINAS <span class="sp"><button id="threset">RESTABLECER</button></span></h2>
+    <div class="row">
+      <div class="f"><label>NOMBRE ESQUINA 1</label><input id="lbl_a" value="ESQUINA ROJA"></div>
+      <div class="f"><label>NOMBRE ESQUINA 2</label><input id="lbl_b" value="ESQUINA AZUL"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>COLOR ESQUINA 1</label><input type="color" id="col_a" value="#e3121b" class="cp"></div>
+      <div class="f"><label>COLOR ESQUINA 2</label><input type="color" id="col_b" value="#1f5fff" class="cp"></div>
+      <div class="f"><label>COLOR PRINCIPAL</label><input type="color" id="col_m" value="#e3121b" class="cp"></div>
+    </div>
+    <div><label>ESTILOS RÁPIDOS</label><div class="scenes" id="presets"></div></div>
+    <p class="hint">Los cambios se ven al instante en todos los gráficos (marcador, VS, ganador, pantallas y overlays).</p>
+  </section>
+
   <!-- GANADOR -->
   <section class="card">
     <h2>RESULTADO</h2>
-    <div class="row"><button class="redb big" id="wr">GANA ROJO</button><button class="blue big" id="wb">GANA AZUL</button><button class="big" id="wd">EMPATE</button></div>
+    <div class="row"><button class="redb big" id="wr">GANA <span class="lbl-a">ESQUINA ROJA</span></button><button class="blue big" id="wb">GANA <span class="lbl-b">ESQUINA AZUL</span></button><button class="big" id="wd">EMPATE</button></div>
     <div class="row">
       <div class="f" style="flex:2"><label>GANADOR</label><input id="g_nombre"></div>
       <div class="f"><label>ESQUINA</label><input id="g_esquina"></div>
@@ -236,7 +254,7 @@ function utf8(s){return unescape(encodeURIComponent(s))}
 var S=ls('fcc2-ctl')||{};
 S.clock=S.clock||{round:1,len:180,rem:180,running:false,at:Date.now()};
 S.fights=S.fights||Array.from({length:27},function(_,i){return{r:'',b:'',d:'MMA',c:''}});
-S.cur=S.cur||0;S.show=S.show||{marcador:true,lt:false};S.ltp=S.ltp||[];
+S.cur=S.cur||0;S.theme=S.theme||{main:'#e3121b',a:'#e3121b',b:'#1f5fff'};S.lbl=S.lbl||{a:'ESQUINA ROJA',b:'ESQUINA AZUL'};S.show=S.show||{marcador:true,lt:false};S.ltp=S.ltp||[];
 var FIELDS=['r_nombre','r_apodo','r_record','r_peso','r_edad','b_nombre','b_apodo','b_record','b_peso','b_edad','disciplina','categoria','numero'];
 S.f=S.f||{};
 function save(){ls('fcc2-ctl',S)}
@@ -251,7 +269,8 @@ function msg(){var f=S.f,c=S.clock,n=f.numero||1;
   marcador:{rojo:U(f.r_nombre)||'PELEADOR ROJO',azul:U(f.b_nombre)||'PELEADOR AZUL',sub:sub,rrec:U(f.r_record),brec:U(f.b_record)},
   vs:{r_nombre:U(f.r_nombre)||'NOMBRE APELLIDO',r_apodo:U(f.r_apodo),r_record:U(f.r_record)||'—',r_peso:U(f.r_peso)||'—',r_edad:U(f.r_edad)||'—',
       b_nombre:U(f.b_nombre)||'NOMBRE APELLIDO',b_apodo:U(f.b_apodo),b_record:U(f.b_record)||'—',b_peso:U(f.b_peso)||'—',b_edad:U(f.b_edad)||'—',
-      disciplina:U(f.disciplina),categoria:U(f.categoria),numero:'COMBATE '+n+' DE '+S.fights.length},
+      disciplina:U(f.disciplina),categoria:U(f.categoria),numero:'COMBATE '+n+' DE '+S.fights.length,r_corner:U(S.lbl.a),b_corner:U(S.lbl.b)},
+  theme:S.theme,
   ganador:S.g||undefined,
   lt:S.lt||undefined,
   replay:S.rp?{texto:U(S.rp)}:undefined,
@@ -345,12 +364,12 @@ setInterval(function(){var f=S.fights[S.cur];if(!f)return;f.x=f.x||{};['apodo','
 $('bnext').onclick=function(){loadFight(S.cur+1)};$('bprev').onclick=function(){loadFight(S.cur-1)};
 $('badd').onclick=function(){S.fights.push({r:'',b:'',d:'MMA',c:''});save();renderFights()};
 $('bpaste').onclick=function(){var L=$('paste').value.split(/\n/).map(function(l){return l.trim()}).filter(Boolean);if(!L.length)return;
- S.fights=L.map(function(l){var p=l.split('|').map(function(x){return x.trim()}),v=p[0].split(/\s+vs\.?\s+/i);return{r:v[0]||'',b:v[1]||'',d:U(p[1]||'MMA'),c:p[2]||''}});
+ S.fights=L.map(function(l){var p=l.split('|').map(function(x){return x.trim()}),v=p[0].replace(/\s+/g,' ').split(/\s+(?:vs\.?|v\/s|versus|contra|x)\s+|\s+[-–—]\s+/i);return{r:(v[0]||'').trim(),b:(v[1]||'').trim(),d:U(p[1]||'MMA'),c:p[2]||''}});
  S.cur=0;save();renderFights();toast(S.fights.length+' combates cargados')};
 
 // ---------- resultado ----------
 function win(c){var f=S.f;var el=S.clock.len-remain();
- $('g_nombre').value=c==='r'?U(f.r_nombre):c==='b'?U(f.b_nombre):'EMPATE';$('g_esquina').value=c==='r'?'ESQUINA ROJA':c==='b'?'ESQUINA AZUL':U(f.r_nombre)+' · '+U(f.b_nombre);
+ $('g_nombre').value=c==='r'?U(f.r_nombre):c==='b'?U(f.b_nombre):'EMPATE';$('g_esquina').value=c==='r'?U(S.lbl.a):c==='b'?U(S.lbl.b):U(f.r_nombre)+' · '+U(f.b_nombre);
  $('g_round').value='ROUND '+S.clock.round;$('g_tiempo').value=fmt(el);if(c==='d')$('g_metodo').value='EMPATE'}
 $('wr').onclick=function(){win('r')};$('wb').onclick=function(){win('b')};$('wd').onclick=function(){win('d')};
 $('bwin').onclick=function(){S.g={nombre:U($('g_nombre').value),esquina:U($('g_esquina').value),metodo:U($('g_metodo').value),round:U($('g_round').value),tiempo:U($('g_tiempo').value),disciplina:U(S.f.disciplina)};
@@ -437,5 +456,18 @@ setInterval(async function(){if(!WS.ok||!$('pvon').checked||Date.now()<PVHOLD||d
  var r=await reqP('GetSourceScreenshot',{sourceName:SC.cur,imageFormat:'jpg',imageWidth:640,imageCompressionQuality:65});
  if(r.requestStatus&&r.requestStatus.result){$('pv').src=r.responseData.imageData;$('pvmsg').textContent='';$('pvname').textContent='AL AIRE: '+SC.cur}},1200);
 $('tot').value=S.clock.total||3;$('tot').onchange=function(){setClock({total:+this.value})};
-loadFields();renderFights();renderLtp();renderAir();push();runDiag();
+
+// ---------- colores y nombres de esquina ----------
+var PRESETS=[{n:'FCC rojo',main:'#e3121b',a:'#e3121b',b:'#1f5fff'},{n:'Dorado',main:'#d4a017',a:'#e3121b',b:'#1f5fff'},{n:'Verde',main:'#16a34a',a:'#e3121b',b:'#1f5fff'},{n:'Morado',main:'#7c3aed',a:'#e11d48',b:'#2563eb'},{n:'Naranja',main:'#f97316',a:'#dc2626',b:'#0ea5e9'},{n:'Blanco/negro',main:'#9ca3af',a:'#f3f4f6',b:'#374151'}];
+function renderTheme(){$('col_m').value=S.theme.main;$('col_a').value=S.theme.a;$('col_b').value=S.theme.b;$('lbl_a').value=S.lbl.a;$('lbl_b').value=S.lbl.b;
+ document.querySelectorAll('.lbl-a').forEach(function(e){e.textContent=U(S.lbl.a)||'ESQUINA 1'});document.querySelectorAll('.lbl-b').forEach(function(e){e.textContent=U(S.lbl.b)||'ESQUINA 2'});
+ var st=document.documentElement.style;st.setProperty('--red',S.theme.main);st.setProperty('--red2',S.theme.main);
+ document.querySelectorAll('.corner.r').forEach(function(e){e.style.borderColor=S.theme.a});document.querySelectorAll('.corner.b').forEach(function(e){e.style.borderColor=S.theme.b});
+ $('wr').style.background=S.theme.a;$('wr').style.borderColor=S.theme.a;$('wb').style.background=S.theme.b;$('wb').style.borderColor=S.theme.b}
+$('presets').innerHTML=PRESETS.map(function(p,i){return '<button data-pre="'+i+'"><span class="sw-c" style="background:'+p.main+'"></span>'+p.n+'</button>'}).join('');
+$('presets').addEventListener('click',function(e){var b=e.target.closest('[data-pre]');if(!b)return;var p=PRESETS[+b.dataset.pre];S.theme={main:p.main,a:p.a,b:p.b};save();renderTheme();push()});
+['col_m','col_a','col_b'].forEach(function(id){$(id).addEventListener('input',function(){S.theme={main:$('col_m').value,a:$('col_a').value,b:$('col_b').value};save();renderTheme();clearTimeout(deb);deb=setTimeout(push,120)})});
+['lbl_a','lbl_b'].forEach(function(id){$(id).addEventListener('input',function(){S.lbl={a:$('lbl_a').value,b:$('lbl_b').value};save();renderTheme();clearTimeout(deb);deb=setTimeout(push,250)})});
+$('threset').onclick=function(){S.theme={main:'#e3121b',a:'#e3121b',b:'#1f5fff'};S.lbl={a:'ESQUINA ROJA',b:'ESQUINA AZUL'};save();renderTheme();push()};
+renderTheme();loadFields();renderFights();renderLtp();renderAir();push();runDiag();
 </script></body></html>
