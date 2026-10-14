@@ -21,3 +21,10 @@ Gráficos, transiciones y control en vivo para la transmisión de **FCC 2**
 4. Pulsa **INSTALAR GRÁFICOS EN OBS** y luego **PROBAR**.
 
 Más detalles en `Paneles/LEEME.txt`.
+
+## Controlar desde otro PC
+
+1. En el PC de OBS: abre `CONTROL_EN_VIVO.html` y pulsa **INSTALAR GRÁFICOS EN OBS** (una sola vez).
+2. En OBS → Herramientas → Ajustes del servidor WebSocket → **Mostrar información de conexión**: anota la **IP** y la contraseña.
+3. En el otro PC (misma red Wi‑Fi/cable): abre `CONTROL_EN_VIVO.html`, escribe esa IP en lugar de `localhost`, la contraseña, y **CONECTAR**.
+4. Si no conecta: en el PC de OBS permite OBS en el **Firewall de Windows** (redes privadas) o el puerto **4455**.

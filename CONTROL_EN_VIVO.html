@@ -225,7 +225,7 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
 
   <section class="card wide">
     <h2>CÓMO CONECTAR</h2>
-    <p class="hint">1) En OBS: <b>Herramientas → Ajustes del servidor WebSocket</b> → marca <b>Habilitar servidor WebSocket</b> → <b>Mostrar información de conexión</b> y copia la contraseña. 2) Pégala arriba y pulsa <b>CONECTAR</b> (si OBS está en otro computador de la red, cambia <i>localhost</i> por la IP que muestra esa ventana). 3) Los gráficos FCC2 (VS, Ganador, Marcador, Lower third, Replay) que estén en tus escenas se actualizan al instante. Este panel recuerda todo aunque lo cierres.</p>
+    <p class="hint">1) En OBS: <b>Herramientas → Ajustes del servidor WebSocket</b> → marca <b>Habilitar servidor WebSocket</b> → <b>Mostrar información de conexión</b> y copia la contraseña. 2) Pégala arriba y pulsa <b>CONECTAR</b> (para controlar <b>desde otro PC</b> de la misma red: escribe arriba la <b>IP del PC de OBS</b> en vez de <i>localhost</i>; esa IP aparece en <b>Mostrar información de conexión</b>. Primero haz INSTALAR una vez en el PC de OBS). 3) Los gráficos FCC2 (VS, Ganador, Marcador, Lower third, Replay) que estén en tus escenas se actualizan al instante. Este panel recuerda todo aunque lo cierres.</p>
   </section>
 </main>
 <div class="toast" id="toast"></div>
@@ -400,9 +400,11 @@ var PLAN=[
  {scene:'AUSPICIADOR',src:[['FCC2 Auspiciador','FCC2_Auspiciador']]},
  {scene:'FINAL',src:[['FCC2 Final','FCC2_Final']]}];
 function li(cls,t,sm){return '<li class="'+cls+'">'+t+(sm?'<small>'+sm+'</small>':'')+'</li>'}
+function isRemote(){var h=($('host').value||'').trim().toLowerCase();return !(h===''||h==='localhost'||h==='127.0.0.1'||h==='::1')}
 function badPath(){var p=ctlPath();return /\/Temp\/|\.zip\//i.test(p)||!/\.html$/i.test(p)}
 async function runDiag(){var L=[];
- if(badPath())L.push(li('bad','Este control se abrió desde dentro del .zip','Descomprime FCC2_Kit.zip en una carpeta (ej. Documentos) y abre CONTROL_EN_VIVO.html desde ahí.'));
+ if(isRemote())L.push(li('ok','Controlando OBS en otro PC ('+esc($('host').value.trim())+')','La instalación de gráficos se hace una vez en el PC de OBS; desde aquí solo controlas.'));
+ else if(badPath())L.push(li('bad','Este control se abrió desde dentro del .zip','Descomprime FCC2_Kit.zip en una carpeta (ej. Documentos) y abre CONTROL_EN_VIVO.html desde ahí.'));
  else L.push(li('ok','Carpeta del kit','<span style="word-break:break-all">'+esc(panelDir())+'</span>'));
  if(!WS.ok){L.push(li('bad','OBS no está conectado','OBS → Herramientas → Ajustes del servidor WebSocket → Habilitar → copia la contraseña y pulsa CONECTAR.'));$('chk').innerHTML=L.join('');return}
  var v=await reqP('GetVersion',{});var vd=v.responseData||{};
@@ -415,17 +417,17 @@ async function runDiag(){var L=[];
   var lf=(se.local_file||se.url||'');var m=lf.match(/(FCC2_[A-Za-z_]+)\.html/);if(!m)continue;
   found[m[1]]=(found[m[1]]||[]).concat(inputs[i].inputName);
   var norm=lf.replace(/\\/g,'/').replace(/^file:\/\/\//,'');
-  if(norm.toLowerCase().indexOf(panelDir().toLowerCase())!==0)wrong.push(inputs[i].inputName)}
+  if(!isRemote()&&norm.toLowerCase().indexOf(panelDir().toLowerCase())!==0)wrong.push(inputs[i].inputName)}
  MARK=(found['FCC2_Overlay_Marcador']||['FCC2 Marcador'])[0];FCCIN=[].concat.apply([],Object.keys(found).map(function(k){return found[k]}));
  var need=['FCC2_Overlay_Marcador','FCC2_VS','FCC2_Ganador','FCC2_Overlay_LowerThird','FCC2_Overlay_Replay'];
  var miss=need.filter(function(k){return !found[k]});
- if(!Object.keys(found).length)L.push(li('bad','No hay gráficos FCC2 en esta colección de escenas','Pulsa INSTALAR GRÁFICOS EN OBS.'));
- else if(miss.length)L.push(li('warn','Faltan gráficos en OBS: '+miss.map(function(x){return x.replace('FCC2_','').replace('Overlay_','')}).join(', '),'Pulsa INSTALAR GRÁFICOS EN OBS para agregarlos.'));
+ if(!Object.keys(found).length)L.push(li('bad','No hay gráficos FCC2 en esta colección de escenas',(isRemote()?'Abre CONTROL_EN_VIVO.html en el PC de OBS y pulsa INSTALAR una vez.':'Pulsa INSTALAR GRÁFICOS EN OBS.')));
+ else if(miss.length)L.push(li('warn','Faltan gráficos en OBS: '+miss.map(function(x){return x.replace('FCC2_','').replace('Overlay_','')}).join(', '),(isRemote()?'Pulsa INSTALAR en el PC de OBS para agregarlos.':'Pulsa INSTALAR GRÁFICOS EN OBS para agregarlos.')));
  else L.push(li('ok','Gráficos en OBS: '+Object.keys(found).length+' encontrados'));
  if(wrong.length)L.push(li('bad','Fuentes con archivos antiguos o de otra carpeta: '+esc(wrong.join(', ')),'Pulsa INSTALAR GRÁFICOS EN OBS para corregir las rutas (estas no reciben el control en vivo).'));
  $('chk').innerHTML=L.join('');return {found:found,wrong:wrong,miss:miss}}
 $('bdiag').onclick=function(){runDiag()};
-$('binstall').onclick=async function(){if(!WS.ok)return toast('Conecta OBS primero');if(badPath())return toast('Descomprime el zip primero');
+$('binstall').onclick=async function(){if(!WS.ok)return toast('Conecta OBS primero');if(isRemote())return toast('INSTALAR se usa en el PC donde está OBS (una sola vez)');if(badPath())return toast('Descomprime el zip primero');
  var b=this;b.disabled=true;b.textContent='INSTALANDO…';
  try{var sl=await reqP('GetSceneList',{});var have=((sl.responseData||{}).scenes||[]).map(function(x){return x.sceneName});
   var il=await reqP('GetInputList',{});var all=((il.responseData||{}).inputs||[]);var inputs=all.map(function(x){return x.inputName});
