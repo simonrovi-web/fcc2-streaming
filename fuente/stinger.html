@@ -1,0 +1,65 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+__FONTS__
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden;background:transparent}
+.s{position:absolute;top:-300px;height:1680px;transform-origin:center}
+.logo{position:absolute;left:50%;top:50%;width:1000px;transform:translate(-50%,-50%)}
+.flash{position:absolute;inset:0;background:#fff}
+.txt{position:absolute;left:0;right:0;top:50%;text-align:center;font-family:"Bebas";color:#fff;letter-spacing:20px;white-space:nowrap}
+.bar{position:absolute;left:0;right:0;height:10px;background:#ff2a2a;box-shadow:0 0 30px #ff2a2a}
+</style></head>
+<body><div id="root"></div>
+<script>
+var LOGO='__LOGO__';
+var root=document.getElementById('root');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function ease(x){x=clamp(x);return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2}
+function eo(x){x=clamp(x);return 1-Math.pow(1-x,3)}
+function ei(x){x=clamp(x);return x*x*x}
+var MODE=new URLSearchParams(location.search).get('m')||'golpe';
+// Cada modo dibuja el frame del tiempo t (0..1)
+var DUR={golpe:1.2,replay:1.2,rapida:0.8};
+function slab(color,w,x,skew){return '<div class="s" style="left:'+x+'px;width:'+w+'px;background:'+color+';transform:skewX('+skew+'deg)"></div>'}
+function render(t){
+  var h='';
+  if(MODE==='golpe'||MODE==='replay'){
+    // 4 franjas entran desde la izquierda (0-0.4), salen hacia la derecha (0.6-1)
+    var cols=['#8a0a10','#e3121b','#0a0a0a','#141414'];
+    var W=[900,700,1400,1300],delay=[0,.04,.08,.12];
+    for(var i=0;i<4;i++){
+      var a=ease((t-delay[i])/0.36), b=ease((t-0.6-delay[i]*.6)/0.34);
+      var x=-W[i]-400 + a*(W[i]+400+ (i<2? -200+i*900 : 260*(i-2))) ;
+      if(i>=2) x=-W[i]-600 + a*(W[i]+600+ (i===2?-300:400));
+      x+= b*2900;
+      h+=slab(cols[i],W[i]+ (i>=2?600:0),x,-18);
+    }
+    // logo
+    var lin=eo((t-0.28)/0.16), lout=ei((t-0.66)/0.12);
+    var sc=1.6-0.6*lin + 0.4*lout, op=lin*(1-lout);
+    if(MODE==='golpe'){
+      h+='<img class="logo" src="'+LOGO+'" style="opacity:'+op+';transform:translate(-50%,-50%) scale('+sc+')">';
+    } else {
+      h+='<img class="logo" src="'+LOGO+'" style="width:620px;top:40%;opacity:'+op+';transform:translate(-50%,-50%) scale('+sc+')">';
+      var ty=eo((t-0.34)/0.16);
+      h+='<div class="txt" style="font-size:150px;margin-top:150px;opacity:'+(ty*(1-lout))+';transform:translateY(-50%) translateX('+((1-ty)*-200)+'px)">REPETICI<span>Ó</span>N</div>';
+      h+='<div class="bar" style="top:'+(540+250)+'px;transform:scaleX('+(ty*(1-lout))+')"></div>';
+    }
+    // destello rojo-blanco en el golpe
+    var f=Math.max(0,1-Math.abs(t-0.42)/0.05);
+    if(f>0)h+='<div class="flash" style="opacity:'+(f*0.55)+'"></div>';
+  } else if(MODE==='rapida'){
+    // logo atraviesa la cámara con fondo negro radial
+    var c=ease(t/0.4), o=ease((t-0.6)/0.4);
+    var r=c*1400*(1-o)+(o>0?0:0);
+    var R=(1-o)*c*1500;
+    h+='<div style="position:absolute;left:50%;top:50%;width:'+(R*2)+'px;height:'+(R*2)+'px;margin:-'+R+'px 0 0 -'+R+'px;border-radius:50%;background:radial-gradient(circle,#0a0a0a 60%,#e3121b 61%,#e3121b 64%,#0a0a0a 65%)"></div>';
+    var li=eo((t-0.2)/0.25), lo=ei((t-0.55)/0.2);
+    h+='<img class="logo" src="'+LOGO+'" style="width:820px;opacity:'+(li*(1-lo))+';transform:translate(-50%,-50%) scale('+(0.6+0.4*li+1.5*lo)+')">';
+  }
+  root.innerHTML=h;
+}
+window.render=render;window.DUR=DUR;window.MODE=MODE;
+render(0.45);
+</script></body></html>

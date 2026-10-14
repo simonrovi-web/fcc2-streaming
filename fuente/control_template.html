@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FCC 2 · Panel de control</title>
+<style>
+__FONTS__
+:root{--red:#e3121b;--red2:#ff2a2a;--ink:#f1f1f1;--mute:#9a9a9a;--line:rgba(255,255,255,.1);--card:#121212;--bg:#080808}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"Oswald",system-ui,sans-serif;min-height:100vh;
+ background-image:radial-gradient(900px 400px at 50% -100px,rgba(227,18,27,.25),transparent 70%)}
+header{display:flex;align-items:center;gap:24px;padding:28px 40px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+header img{height:84px}
+header h1{font-family:"Bebas";font-size:52px;letter-spacing:3px;line-height:1}
+header h1 em{font-style:normal;color:var(--red2)}
+header p{color:var(--mute);letter-spacing:2px;font-size:15px;margin-top:4px}
+.ev{margin-left:auto;text-align:right;font-size:15px;color:var(--mute);letter-spacing:1px;line-height:1.5}
+.ev b{color:var(--ink);font-family:"Bebas";font-size:30px;letter-spacing:2px;font-weight:400}
+.ev .cd{color:var(--red2);font-family:"Bebas";font-size:26px;letter-spacing:2px}
+nav{display:flex;gap:10px;padding:18px 40px 0;flex-wrap:wrap}
+nav a{color:var(--ink);text-decoration:none;font-family:"Bebas";font-size:22px;letter-spacing:2px;padding:6px 16px 3px;border:1px solid var(--line)}
+nav a:hover{border-color:var(--red)}
+main{padding:10px 40px 60px}
+h2{font-family:"Bebas";font-size:38px;letter-spacing:4px;margin:34px 0 4px;display:flex;align-items:center;gap:14px}
+h2::before{content:"";width:10px;height:30px;background:var(--red2);transform:skewX(-14deg)}
+.lead{color:var(--mute);font-size:15px;letter-spacing:1px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px}
+.card{background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column}
+.card:hover{border-color:rgba(227,18,27,.6)}
+.th{position:relative;aspect-ratio:16/9;background:#000;overflow:hidden;cursor:pointer}
+.th.chk{background:repeating-conic-gradient(#2a2a2a 0 25%,#1c1c1c 0 50%) 0 0/24px 24px}
+.th img,.th video{width:100%;height:100%;object-fit:cover;display:block}
+.th .badge{position:absolute;top:10px;left:10px;font-family:"Bebas";font-size:17px;letter-spacing:2px;background:var(--red);padding:3px 10px 1px}
+.bd{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.nm{font-family:"Bebas";font-size:30px;letter-spacing:2px;line-height:1}
+.ds{font-size:15px;color:#cfcfcf;line-height:1.4}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.meta span{font-size:13px;letter-spacing:1px;color:var(--mute);border:1px solid var(--line);padding:2px 8px}
+.meta span b{color:var(--ink);font-weight:600}
+.fn{font-size:13px;color:var(--mute);font-family:ui-monospace,Consolas,monospace;word-break:break-all}
+.opt{display:flex;align-items:center;gap:8px;font-size:14px;color:#cfcfcf}
+.opt input{width:64px;background:#000;border:1px solid var(--line);color:var(--ink);padding:5px 8px;font:inherit}
+.btns{display:flex;gap:8px;margin-top:auto;padding-top:6px}
+button{flex:1;font-family:"Bebas";font-size:20px;letter-spacing:2px;padding:9px 10px 6px;border:1px solid var(--line);background:#1b1b1b;color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--red2)}
+button.pri{background:var(--red);border-color:var(--red)}
+button.pri:hover{background:var(--red2)}
+.steps{background:var(--card);border:1px solid var(--line);padding:20px 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.steps h3{font-family:"Bebas";font-size:26px;letter-spacing:2px;color:var(--red2);margin-bottom:6px}
+.steps p,.steps li{font-size:15px;color:#cfcfcf;line-height:1.55}
+.steps ol{padding-left:18px}
+kbd{font-family:ui-monospace,Consolas,monospace;font-size:13px;background:#000;border:1px solid var(--line);padding:1px 6px}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(120px);background:var(--red);color:#fff;font-family:"Bebas";font-size:22px;letter-spacing:2px;padding:10px 24px 7px;transition:transform .25s;z-index:9;max-width:90vw;text-align:center}
+.toast.on{transform:translateX(-50%)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:8;padding:30px}
+.modal.on{display:flex}
+.modal .box{width:min(1600px,100%);aspect-ratio:16/9;position:relative;background:repeating-conic-gradient(#2a2a2a 0 25%,#1c1c1c 0 50%) 0 0/24px 24px;overflow:hidden}
+.modal iframe{position:absolute;left:0;top:0;width:1920px;height:1080px;border:0;transform-origin:0 0;background:transparent}
+.modal video{width:100%;height:100%}
+.modal .x{position:absolute;top:18px;right:24px;font-family:"Bebas";font-size:24px;letter-spacing:2px;color:#fff;cursor:pointer;background:none;border:1px solid var(--line);flex:none}
+@media (max-width:640px){header,nav,main{padding-left:16px;padding-right:16px}.ev{margin-left:0;text-align:left}}
+</style></head>
+<body>
+<header>
+  <img src="__LOGO__" alt="FCC">
+  <div><h1>PANEL DE CONTROL <em>FCC 2</em></h1><p>GRÁFICOS Y TRANSICIONES PARA LA TRANSMISIÓN EN OBS</p></div>
+  <div class="ev"><b>SÁBADO 17 OCT · 13:00</b><br>Black House · General Jofré 254, Santiago Centro<br><span class="cd" id="cd"></span></div>
+</header>
+<nav><a href="#pantallas">Pantallas completas</a><a href="#overlays">Overlays</a><a href="#transiciones">Transiciones</a><a href="#guia">Cómo usar</a></nav>
+<main>
+  <h2 id="pantallas">PANTALLAS COMPLETAS</h2>
+  <p class="lead">Ocupan toda la pantalla. Fuente <b>Navegador</b> → Archivo local → 1920 × 1080.</p>
+  <div class="grid" id="g-full"></div>
+
+  <h2 id="overlays">OVERLAYS</h2>
+  <p class="lead">Fondo transparente: van <b>encima</b> de la cámara en la misma escena. Fuente <b>Navegador</b> → 1920 × 1080.</p>
+  <div class="grid" id="g-ov"></div>
+
+  <h2 id="transiciones">TRANSICIONES (STINGER)</h2>
+  <p class="lead">Transiciones de escena → <b>+</b> → Stinger → elige el .webm → Tipo de punto: Tiempo (ms).</p>
+  <div class="grid" id="g-tr"></div>
+
+  <h2 id="guia">CÓMO USAR</h2>
+  <div class="steps">
+    <div><h3>Agregar un panel</h3><ol><li>Pulsa <b>Copiar ruta</b> en la tarjeta.</li><li>En OBS: Fuentes → + → <b>Navegador</b>.</li><li>Marca <b>Archivo local</b>, pega la ruta en el selector y pon 1920 × 1080.</li></ol></div>
+    <div><h3>Editar textos</h3><p>En OBS, clic derecho sobre la fuente → <b>Interactuar</b>. Haz clic en cualquier nombre o dato, escribe y presiona <kbd>Enter</kbd>. Queda guardado.</p></div>
+    <div><h3>Marcador</h3><p>En <b>Interactuar</b>: <kbd>Espacio</kbd> iniciar/pausar · <kbd>R</kbd> reiniciar · <kbd>←</kbd> <kbd>→</kbd> round · <kbd>+</kbd> <kbd>−</kbd> 10 s · <kbd>H</kbd> ayuda.</p></div>
+    <div><h3>Opciones con minutos</h3><p>Para Pausa y Marcador cambia los minutos y pulsa <b>Copiar URL</b>. En OBS desmarca <b>Archivo local</b> y pega la URL en el campo <b>URL</b>.</p></div>
+  </div>
+</main>
+<div class="modal" id="modal"><div class="box" id="box"></div><button class="x" onclick="closeM()">CERRAR ✕</button></div>
+<div class="toast" id="toast"></div>
+<script>
+var P='Paneles/',T='Transiciones/';
+var FULL=[
+ {f:'FCC2_Inicio',n:'Inicio',d:'Cuenta regresiva hasta el sábado 13:00. Al llegar a cero dice "Comenzamos en instantes".',sc:'INICIO'},
+ {f:'FCC2_Pausa',n:'Pausa',d:'"Volvemos en breve" entre bloques o por problemas técnicos. Cuenta regresiva opcional.',sc:'PAUSA',min:5},
+ {f:'FCC2_VS',n:'VS · Presentación',d:'Esquina roja vs azul: nombre, apodo, récord, peso, edad, disciplina y número de combate.',sc:'ESTUDIO / VS',edit:1},
+ {f:'FCC2_Ganador',n:'Ganador',d:'Resultado del combate: ganador, esquina, método, round y tiempo.',sc:'GANADOR',edit:1},
+ {f:'FCC2_Auspiciador',n:'Auspiciador',d:'Slide de Di Pipino con redes y WhatsApp. Ideal entre combates.',sc:'AUSPICIADOR'},
+ {f:'FCC2_Final',n:'Final',d:'Cierre de la transmisión con invitación a YouTube e Instagram.',sc:'FINAL'}];
+var OV=[
+ {f:'FCC2_Overlay_Marcador',n:'Marcador',d:'Nombres, round y reloj controlable. Arriba de la cámara del combate.',sc:'ESTUDIO',min:3,edit:1},
+ {f:'FCC2_Overlay_Replay',n:'Replay',d:'Marco rojo + "REPETICIÓN" para la escena de repeticiones.',sc:'REPLAY',edit:1},
+ {f:'FCC2_Overlay_LowerThird',n:'Lower third',d:'Nombre y cargo de comentaristas, réferis o invitados.',sc:'ESTUDIO',edit:1}];
+var TR=[
+ {f:'FCC2_Transicion_Golpe',n:'Golpe',d:'Barras diagonales + logo con destello. Transición general.',ms:600,dur:'1,2 s'},
+ {f:'FCC2_Transicion_Replay',n:'Replay',d:'Igual que Golpe con "REPETICIÓN". Anúlala en la escena REPLAY.',ms:600,dur:'1,2 s'},
+ {f:'FCC2_Transicion_Rapida',n:'Rápida',d:'Círculo + logo. Para cortes rápidos.',ms:400,dur:'0,8 s'}];
+
+var base=decodeURI(location.href.replace(/[#?].*$/,'').replace(/[^\/]*$/,''));
+function winPath(rel){var u=base+rel;if(u.indexOf('file:///')===0){u=u.slice(8);if(/^[A-Za-z]:/.test(u))u=u.replace(/\//g,'\\');}return u}
+function fileUrl(rel,q){return encodeURI(base+rel)+(q||'')}
+function toast(t){var e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('on')},2200)}
+function copy(t,msg){function ok(){toast(msg||'Copiado')}
+ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(ok,fb)}else fb();
+ function fb(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');ok()}catch(e){prompt('Copia esto:',t)}a.remove()}}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+
+function card(x,kind){
+ var isTr=kind==='tr',rel=(isTr?T:P)+x.f+(isTr?'.webm':'.html'),thumb=(isTr?T+x.f+'.jpg':P+x.f+'.png');
+ var meta=isTr?'<span>Punto: <b>'+x.ms+' ms</b></span><span>Duración: <b>'+x.dur+'</b></span><span>Con sonido</span>'
+  :'<span>Escena: <b>'+x.sc+'</b></span><span><b>1920 × 1080</b></span>'+(x.edit?'<span>Textos editables</span>':'');
+ var opt=x.min!=null?'<div class="opt">Minutos <input type="number" min="0" step="0.5" value="'+x.min+'" id="m-'+x.f+'"> <span style="color:var(--mute)">'+(x.f.indexOf('Pausa')>0?'(0 = sin reloj)':'por round')+'</span></div>':'';
+ var btns=isTr?'<button class="pri" data-a="copy" data-r="'+rel+'">COPIAR RUTA</button><button data-a="ms" data-v="'+x.ms+'">COPIAR '+x.ms+' MS</button>'
+  :'<button class="pri" data-a="copy" data-r="'+rel+'">COPIAR RUTA</button>'+(x.min!=null?'<button data-a="url" data-r="'+rel+'" data-f="'+x.f+'">COPIAR URL</button>':'')+'<button data-a="open" data-r="'+rel+'" data-f="'+x.f+'">ABRIR</button>';
+ return '<div class="card"><div class="th'+(kind==='ov'?' chk':'')+'" data-a="view" data-r="'+rel+'" data-k="'+kind+'" data-f="'+x.f+'">'+
+  (isTr?'<video src="'+thumb.replace('.jpg','.webm')+'" poster="'+thumb+'" muted loop playsinline autoplay></video>':'<img loading="lazy" src="'+thumb+'" alt="">')+
+  '<div class="badge">'+(isTr?'STINGER':kind==='ov'?'OVERLAY':'PANTALLA')+'</div></div>'+
+  '<div class="bd"><div class="nm">'+esc(x.n)+'</div><div class="ds">'+esc(x.d)+'</div><div class="meta">'+meta+'</div>'+opt+
+  '<div class="fn">'+esc(rel)+'</div><div class="btns">'+btns+'</div></div></div>';
+}
+document.getElementById('g-full').innerHTML=FULL.map(function(x){return card(x,'full')}).join('');
+document.getElementById('g-ov').innerHTML=OV.map(function(x){return card(x,'ov')}).join('');
+document.getElementById('g-tr').innerHTML=TR.map(function(x){return card(x,'tr')}).join('');
+
+function q(f){var i=document.getElementById('m-'+f);return i?'?min='+(parseFloat(i.value)||0):''}
+document.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.dataset.a,r=b.dataset.r;
+ if(a==='copy')copy(winPath(r),'Ruta copiada · pégala en OBS');
+ else if(a==='ms')copy(b.dataset.v,'Copiado: '+b.dataset.v+' ms');
+ else if(a==='url')copy(fileUrl(r,q(b.dataset.f)),'URL copiada · pégala en el campo URL de OBS');
+ else if(a==='open')window.open(fileUrl(r,q(b.dataset.f)),'_blank');
+ else if(a==='view')view(r,b.dataset.k,b.dataset.f);});
+function fit(){var box=document.getElementById('box'),f=box.querySelector('iframe');if(f)f.style.transform='scale('+box.clientWidth/1920+')'}
+function view(r,k,f){var box=document.getElementById('box');
+ box.innerHTML=k==='tr'?'<video src="'+r+'" controls autoplay loop></video>':'<iframe src="'+fileUrl(r,q(f))+'"></iframe>';
+ document.getElementById('modal').classList.add('on');fit();}
+function closeM(){document.getElementById('modal').classList.remove('on');document.getElementById('box').innerHTML=''}
+window.addEventListener('resize',fit);
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeM()});
+document.getElementById('modal').addEventListener('click',function(e){if(e.target.id==='modal')closeM()});
+
+var target=new Date('2026-10-17T13:00:00-03:00').getTime();
+(function cd(){var d=Math.floor((target-Date.now())/1000),el=document.getElementById('cd');
+ if(d<=0){el.textContent='¡EN VIVO HOY!'}else{var D=Math.floor(d/86400),H=Math.floor(d%86400/3600),M=Math.floor(d%3600/60);
+ el.textContent='FALTAN '+(D?D+' D · ':'')+H+' H · '+M+' MIN'}setTimeout(cd,20000)})();
+</script></body></html>

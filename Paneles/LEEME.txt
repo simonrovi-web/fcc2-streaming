@@ -1,0 +1,38 @@
+PANELES FCC 2 - CÓMO USARLOS EN OBS
+====================================
+Todos miden 1920x1080. Logo y tipografías van incluidos (funcionan sin internet).
+
+AGREGAR UN PANEL
+  Fuentes > + > Navegador > marcar "Archivo local" > elegir el .html > Ancho 1920, Alto 1080.
+  (Los .png son versiones fijas: Fuentes > + > Imagen.)
+
+EDITAR TEXTOS (nombres, récord, método, etc.)
+  Clic derecho sobre la fuente > "Interactuar" > clic sobre el texto, escribir y Enter.
+  Queda guardado aunque cierres OBS.
+
+PANELES DE PANTALLA COMPLETA
+  FCC2_Inicio       Cuenta regresiva al 17 oct 13:00.
+  FCC2_Pausa        "Volvemos en breve". Para cuenta regresiva de N minutos: desmarca
+                    "Archivo local" y en URL pon: file:///C:/ruta/FCC2_Pausa.html?min=5
+  FCC2_VS           Presentación de combate (esquina roja vs azul).
+  FCC2_Ganador      Resultado del combate.
+  FCC2_Auspiciador  Slide de Di Pipino.
+  FCC2_Final        Cierre de la transmisión.
+
+OVERLAYS (fondo transparente, van ENCIMA de la cámara)
+  FCC2_Overlay_Marcador     Nombres + round + reloj. Controles en "Interactuar":
+                            ESPACIO iniciar/pausar · R reiniciar · flechas cambiar round
+                            + / - ajustar 10 s · H mostrar ayuda.
+                            Rounds de otra duración: ?min=5 en la URL.
+  FCC2_Overlay_Replay       Marco rojo + "REPETICIÓN" para la escena REPLAY.
+  FCC2_Overlay_LowerThird   Nombre y cargo de comentaristas o invitados.
+
+CONTROL EN VIVO (CONTROL_EN_VIVO.html, en la carpeta principal)
+  1. DESCOMPRIME el zip en una carpeta fija (ej. Documentos\FCC2_Kit). No lo abras desde dentro del zip.
+  2. En OBS abre tu colección de escenas FCC.
+  3. OBS > Herramientas > Ajustes del servidor WebSocket > Habilitar servidor WebSocket >
+     Mostrar información de conexión > copia la contraseña.
+  4. Abre CONTROL_EN_VIVO.html en Chrome, pega la contraseña y pulsa CONECTAR.
+  5. Pulsa INSTALAR GRÁFICOS EN OBS: crea las escenas y pone todos los gráficos en OBS.
+  6. Pulsa PROBAR: en la vista del control debes ver el marcador con tus nombres y el reloj.
+  La lista "CONFIGURAR OBS" te dice en verde/rojo qué está bien y qué falta.

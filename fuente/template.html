@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>FCC 2 Inicio</title>
+<style>
+@font-face{font-family:"Bebas";src:url(data:font/woff2;base64,__BEBAS__) format("woff2");}
+@font-face{font-family:"Oswald";font-weight:400;src:url(data:font/woff2;base64,__OSW4__) format("woff2");}
+@font-face{font-family:"Oswald";font-weight:600;src:url(data:font/woff2;base64,__OSW6__) format("woff2");}
+:root{--red:#e3121b;--red2:#ff2a2a;--ink:#f3f3f3;--mute:#9a9a9a;--bg:#060606;}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"Oswald",sans-serif}
+.stage{position:relative;width:1920px;height:1080px;overflow:hidden;
+  background:
+   radial-gradient(900px 520px at 50% 34%, rgba(227,18,27,.28), transparent 70%),
+   radial-gradient(700px 420px at 0% 100%, rgba(227,18,27,.22), transparent 70%),
+   radial-gradient(700px 420px at 100% 100%, rgba(227,18,27,.22), transparent 70%),
+   linear-gradient(#0b0b0b,#030303);}
+.grid{position:absolute;inset:0;opacity:.07;
+  background:repeating-linear-gradient(45deg,#fff 0 1px,transparent 1px 34px),repeating-linear-gradient(-45deg,#fff 0 1px,transparent 1px 34px);
+  -webkit-mask:radial-gradient(ellipse at 50% 40%,transparent 30%,#000 80%);mask:radial-gradient(ellipse at 50% 40%,transparent 30%,#000 80%)}
+.beam{position:absolute;top:-200px;width:520px;height:1300px;background:linear-gradient(rgba(255,255,255,.10),transparent 70%);filter:blur(30px);transform-origin:top center}
+.beam.l{left:120px;transform:rotate(-22deg);animation:sway 9s ease-in-out infinite}
+.beam.r{right:120px;transform:rotate(22deg);animation:sway2 9s ease-in-out infinite}
+@keyframes sway{50%{transform:rotate(-14deg)}}
+@keyframes sway2{50%{transform:rotate(14deg)}}
+canvas{position:absolute;inset:0}
+.vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.75));pointer-events:none}
+
+.logo{position:absolute;left:50%;top:28px;width:900px;transform:translateX(-50%);animation:breathe 6s ease-in-out infinite;mix-blend-mode:lighten}
+@keyframes breathe{50%{transform:translateX(-50%) scale(1.025)}}
+
+.date{position:absolute;top:56px;right:64px;border:3px solid var(--red);padding:14px 22px 12px;text-align:center;background:rgba(0,0,0,.55)}
+.date b{display:block;font-family:"Bebas";font-size:84px;line-height:.85;color:var(--red2)}
+.date span{display:block;font-family:"Bebas";font-size:44px;line-height:1;letter-spacing:2px}
+.date i{display:block;font-style:normal;font-family:"Bebas";font-size:40px;line-height:1;color:var(--red2)}
+
+.tag{position:absolute;top:66px;left:64px;display:flex;align-items:center;gap:14px;font-family:"Bebas";font-size:40px;letter-spacing:3px}
+.tag .dot{width:16px;height:16px;border-radius:50%;background:var(--red2);box-shadow:0 0 14px var(--red2);animation:pulse 1.4s ease-in-out infinite}
+.tag small{display:block;font-family:"Oswald";font-size:20px;letter-spacing:4px;color:var(--mute)}
+@keyframes pulse{50%{opacity:.25}}
+
+.center{position:absolute;left:0;right:0;top:612px;text-align:center}
+.kicker{display:inline-block;font-family:"Bebas";font-size:46px;letter-spacing:10px;padding:4px 36px 0;background:var(--red);transform:skew(-12deg);box-shadow:0 0 30px rgba(227,18,27,.5)}
+.kicker>span{display:inline-block;transform:skew(12deg)}
+.count{margin-top:18px;display:flex;justify-content:center;align-items:flex-start;gap:18px;font-family:"Bebas"}
+.unit{min-width:170px}
+.unit .n{font-size:150px;line-height:.9;text-shadow:0 0 30px rgba(255,42,42,.35)}
+.unit .l{font-family:"Oswald";font-size:18px;letter-spacing:6px;color:var(--mute);margin-top:4px}
+.sep{font-size:130px;line-height:.95;color:var(--red2);animation:pulse 1s steps(1) infinite}
+.soon{display:none;font-family:"Bebas";font-size:140px;line-height:1;margin-top:18px;letter-spacing:6px;animation:pulse 1.2s ease-in-out infinite}
+.disc{margin-top:22px;font-family:"Bebas";font-size:38px;letter-spacing:8px;color:#ddd}
+.disc em{font-style:normal;color:var(--red2);margin:0 18px}
+
+.bar{position:absolute;left:0;right:0;bottom:0;height:104px;display:flex;align-items:stretch;background:linear-gradient(90deg,rgba(0,0,0,.92),rgba(18,0,0,.92));border-top:3px solid var(--red)}
+.cell{flex:1;display:flex;align-items:center;gap:18px;padding:0 34px;border-right:1px solid rgba(255,255,255,.12)}
+.cell:last-child{border-right:0}
+.cell svg{flex:none;width:44px;height:44px;stroke:var(--red2);fill:none;stroke-width:2}
+.cell .t{font-family:"Bebas";font-size:34px;line-height:1;letter-spacing:1px}
+.cell .s{font-size:18px;color:var(--mute);letter-spacing:1px;margin-top:3px}
+.cell.sp{flex:1.1;background:rgba(227,18,27,.12)}
+.cell.sp .t{color:var(--red2);font-size:40px}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="beam l"></div><div class="beam r"></div>
+  <div class="grid"></div>
+  <canvas id="fx" width="1920" height="1080"></canvas>
+
+  <div class="tag"><div class="dot"></div><div>TRANSMISIÓN OFICIAL<small>FCC 2 · PASSLINE</small></div></div>
+  <div class="date"><b>17</b><span>OCT</span><i>2026</i></div>
+
+  <img class="logo" src="data:image/png;base64,__LOGO__" alt="FCC Fighting Championship Chile">
+
+  <div class="center">
+    <div class="kicker"><span>LA TRANSMISIÓN COMIENZA EN</span></div>
+    <div class="count" id="count">
+      <div class="unit" id="du" style="display:none"><div class="n" id="d">0</div><div class="l">DÍAS</div></div>
+      <div class="sep" id="ds" style="display:none">:</div>
+      <div class="unit"><div class="n" id="h">00</div><div class="l">HORAS</div></div>
+      <div class="sep">:</div>
+      <div class="unit"><div class="n" id="m">00</div><div class="l">MINUTOS</div></div>
+      <div class="sep">:</div>
+      <div class="unit"><div class="n" id="s">00</div><div class="l">SEGUNDOS</div></div>
+    </div>
+    <div class="soon" id="soon">COMENZAMOS EN INSTANTES</div>
+    <div class="disc">NOGI<em>●</em>BOXEO<em>●</em>KICKBOXING<em>●</em>MMA</div>
+  </div>
+
+  <div class="vig"></div>
+  <div class="bar">
+    <div class="cell"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><div><div class="t">17 DE OCTUBRE 2026</div><div class="s">INICIO TRANSMISIÓN 13:00 HRS</div></div></div>
+    <div class="cell" style="flex:1.35"><svg viewBox="0 0 24 24"><path d="M12 22s7-7.2 7-12.5A7 7 0 0 0 5 9.5C5 14.8 12 22 12 22z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div><div class="t">BLACK HOUSE</div><div class="s">GENERAL JOFRÉ 254 · SANTIAGO CENTRO</div></div></div>
+    <div class="cell"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5z"/></svg><div><div class="t">27 COMBATES</div><div class="s">EN VIVO DESDE CUALQUIER DISPOSITIVO</div></div></div>
+    <div class="cell sp"><div><div class="s">AUSPICIADOR OFICIAL</div><div class="t">DI PIPINO PIZZA</div></div></div>
+  </div>
+</div>
+<script>
+// Cuenta regresiva: 17 oct 2026, 13:00 hora de Chile (UTC-3). Se puede cambiar con ?t=2026-10-17T13:00:00-03:00
+var q=new URLSearchParams(location.search);
+var target=new Date(q.get('t')||'2026-10-17T13:00:00-03:00').getTime();
+function pad(n){return String(n).padStart(2,'0')}
+function tick(){
+  var d=Math.max(0,Math.floor((target-Date.now())/1000));
+  if(d<=0){document.getElementById('count').style.display='none';document.getElementById('soon').style.display='block';return;}
+  var dd=Math.floor(d/86400),h=Math.floor(d%86400/3600);
+  document.getElementById('du').style.display=document.getElementById('ds').style.display=dd>0?'':'none';
+  document.getElementById('d').textContent=pad(dd);
+  document.getElementById('h').textContent=pad(h);
+  document.getElementById('m').textContent=pad(Math.floor(d%3600/60));
+  document.getElementById('s').textContent=pad(d%60);
+}
+tick();setInterval(tick,250);
+
+// Chispas
+var c=document.getElementById('fx'),x=c.getContext('2d'),P=[];
+for(var i=0;i<70;i++)P.push(spawn(true));
+function spawn(any){return{x:Math.random()*1920,y:any?Math.random()*1080:1090,v:.3+Math.random()*1.1,r:.6+Math.random()*2.2,a:.2+Math.random()*.6,w:Math.random()*6.28}}
+function loop(){
+  x.clearRect(0,0,1920,1080);
+  for(var i=0;i<P.length;i++){var p=P[i];p.y-=p.v;p.w+=.02;p.x+=Math.sin(p.w)*.4;
+    if(p.y<-10)P[i]=p=spawn(false);
+    x.beginPath();x.fillStyle='rgba(255,'+(40+(p.r*20|0))+',30,'+p.a+')';x.shadowColor='#ff2a2a';x.shadowBlur=8;x.arc(p.x,p.y,p.r,0,6.28);x.fill();}
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>

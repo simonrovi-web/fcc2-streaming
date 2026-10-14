@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FCC 2 · Control en vivo</title>
+<style>
+__FONTS__
+:root{--red:#e3121b;--red2:#ff2a2a;--blue:#2f6bff;--ink:#f1f1f1;--mute:#9a9a9a;--line:rgba(255,255,255,.12);--card:#121212;--bg:#080808;--ok:#2ecc71;--warn:#f5b301}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"Oswald",system-ui,sans-serif;font-size:15px;min-height:100vh}
+header{display:flex;align-items:center;gap:16px;padding:12px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap;position:sticky;top:0;background:rgba(8,8,8,.96);z-index:5}
+header img{height:46px}
+header h1{font-family:"Bebas";font-size:32px;letter-spacing:2px;line-height:1}
+header h1 em{font-style:normal;color:var(--red2)}
+.conn{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dot{width:12px;height:12px;border-radius:50%;background:#555;flex:none}
+.dot.ok{background:var(--ok);box-shadow:0 0 10px var(--ok)}.dot.wait{background:var(--warn)}.dot.err{background:var(--red2)}
+#cstat{font-size:14px;color:var(--mute);min-width:140px}
+input,select,textarea{background:#000;border:1px solid var(--line);color:var(--ink);font:inherit;padding:7px 9px;width:100%;min-width:0}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--red2)}
+.conn input{width:auto}
+button{font-family:"Bebas";font-size:19px;letter-spacing:1.5px;padding:8px 12px 5px;border:1px solid var(--line);background:#1d1d1d;color:var(--ink);cursor:pointer;white-space:nowrap}
+button:hover{border-color:var(--red2)}
+button.pri{background:var(--red);border-color:var(--red)}button.pri:hover{background:var(--red2)}
+button.blue{background:#163a9a;border-color:#2f6bff}button.redb{background:#7d0a10;border-color:var(--red)}
+button.on{background:var(--ok);border-color:var(--ok);color:#000}
+main{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:14px;padding:14px 18px 40px}
+.card{background:var(--card);border:1px solid var(--line);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.card h2{font-family:"Bebas";font-size:26px;letter-spacing:3px;display:flex;align-items:center;gap:10px}
+.card h2::before{content:"";width:7px;height:22px;background:var(--red2);transform:skewX(-14deg)}
+.card h2 .sp{margin-left:auto;display:flex;gap:6px}
+.card h2 .sp button{font-size:15px;padding:5px 9px 3px}
+.wide{grid-column:1/-1}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1}
+.row>button{flex:0 0 auto}
+label{font-size:12px;letter-spacing:2px;color:var(--mute);display:block;margin-bottom:3px}
+.f{flex:1;min-width:90px}
+.clock{display:flex;align-items:center;justify-content:center;gap:22px;background:#000;border:1px solid var(--line);padding:8px}
+.clock .rd{font-family:"Bebas";font-size:30px;letter-spacing:3px;color:var(--mute);text-align:center;line-height:1}
+.clock .rd b{display:block;font-size:56px;color:var(--ink);font-weight:400}
+.clock .tm{font-family:"Bebas";font-size:120px;line-height:.9;letter-spacing:2px;min-width:290px;text-align:center}
+.clock .tm.low{color:var(--red2)}.clock .tm.run{text-shadow:0 0 20px rgba(46,204,113,.35)}
+.big{font-size:26px;padding:12px 10px 8px}
+.corner{border-left:5px solid var(--red);padding-left:10px;display:flex;flex-direction:column;gap:8px}
+.corner.b{border-color:var(--blue)}
+.corner .t{font-family:"Bebas";font-size:20px;letter-spacing:3px}
+.corner.r .t{color:var(--red2)}.corner.b .t{color:#6f97ff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.grid2{grid-template-columns:1fr}.clock .tm{font-size:84px;min-width:0}}
+.sw{display:flex;align-items:center;gap:8px;font-size:14px;color:#cfcfcf;cursor:pointer;user-select:none}
+.sw input{width:auto}
+table{width:100%;border-collapse:collapse}
+td,th{border-bottom:1px solid var(--line);padding:4px 4px;text-align:left;font-weight:400}
+th{font-size:12px;letter-spacing:2px;color:var(--mute)}
+td input{padding:4px 6px;border-color:transparent;background:transparent}
+td input:hover{border-color:var(--line)}
+tr.cur td{background:rgba(227,18,27,.15)}
+td.n{width:30px;color:var(--mute);font-family:"Bebas";font-size:18px}
+td.rn input{color:#ff8a8a}td.bn input{color:#9cb6ff}
+td button{font-size:15px;padding:4px 8px 2px}
+.fl{max-height:430px;overflow:auto;border:1px solid var(--line)}
+.scenes{display:flex;flex-wrap:wrap;gap:8px}
+.scenes button.cur{background:var(--red);border-color:var(--red)}
+.scenes button.prev{border-color:var(--ok);color:var(--ok)}
+.hint{font-size:13px;color:var(--mute);line-height:1.5}
+kbd{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#000;border:1px solid var(--line);padding:0 5px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(100px);background:var(--red);font-family:"Bebas";font-size:20px;letter-spacing:2px;padding:8px 20px 5px;transition:transform .2s;z-index:9}
+.toast.on{transform:translateX(-50%)}
+.onair{font-family:"Bebas";letter-spacing:2px;font-size:16px;padding:2px 8px 0;border:1px solid var(--line);color:var(--mute)}
+.onair.v{background:var(--red);border-color:var(--red);color:#fff}
+.setup{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}
+@media (max-width:900px){.setup{grid-template-columns:1fr}}
+.chk{list-style:none;display:flex;flex-direction:column;gap:6px}
+.chk li{padding:7px 10px 7px 34px;background:#0b0b0b;border:1px solid var(--line);position:relative;font-size:15px;line-height:1.35}
+.chk li::before{position:absolute;left:10px;top:7px;font-weight:600}
+.chk li.ok::before{content:"✓";color:var(--ok)}.chk li.bad::before{content:"✕";color:var(--red2)}.chk li.warn::before{content:"!";color:var(--warn)}.chk li.pend::before{content:"…";color:var(--mute)}
+.chk li small{display:block;color:var(--mute);font-size:13px}
+.pvh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px}
+.pv{aspect-ratio:16/9;background:#000;border:1px solid var(--line);position:relative;display:flex;align-items:center;justify-content:center}
+.pv img{width:100%;height:100%;object-fit:contain;position:absolute;inset:0}
+.pv span{color:var(--mute);font-size:14px}
+details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1px}
+</style></head>
+<body>
+<header>
+  <img src="__LOGO__" alt="FCC">
+  <h1>CONTROL EN VIVO <em>FCC 2</em></h1>
+  <div class="conn">
+    <span class="dot" id="cdot"></span><span id="cstat">OBS sin conectar</span>
+    <input id="host" value="localhost" size="10" title="Equipo donde corre OBS">
+    <input id="port" value="4455" size="5" title="Puerto">
+    <input id="pass" type="password" placeholder="Contraseña WebSocket" size="18">
+    <button class="pri" id="bconn">CONECTAR</button>
+  </div>
+</header>
+<main>
+  <section class="card wide" id="setupcard">
+    <h2>CONFIGURAR OBS <span class="sp"><button id="bdiag">REVISAR</button></span></h2>
+    <div class="setup">
+      <div>
+        <ul class="chk" id="chk"><li class="pend">Conecta OBS arriba para revisar la instalación.</li></ul>
+        <div class="row" style="margin-top:10px">
+          <button class="pri big" id="binstall">⚙ INSTALAR GRÁFICOS EN OBS</button>
+          <button class="big" id="breload">↻ RECARGAR GRÁFICOS</button>
+          <button class="big" id="btest">✓ PROBAR</button>
+        </div>
+        <p class="hint" style="margin-top:8px"><b>INSTALAR</b> crea (si faltan) las escenas INICIO, ESTUDIO, VS, GANADOR, REPLAY, PAUSA, AUSPICIADOR y FINAL en la colección de escenas que tengas abierta, y pone cada gráfico FCC2 apuntando a esta carpeta. Si ya existen, solo corrige las rutas. No borra nada.</p>
+      </div>
+      <div>
+        <div class="pvh"><label class="sw"><input type="checkbox" id="pvon" checked> Ver lo que sale al aire (programa)</label><span id="pvname" class="hint"></span></div>
+        <div class="pv"><img id="pv" alt=""><span id="pvmsg">Sin vista previa</span></div>
+      </div>
+    </div>
+  </section>
+  <!-- RELOJ -->
+  <section class="card">
+    <h2>RELOJ <span class="sp"><span class="onair v" id="air-marcador">MARCADOR EN PANTALLA</span></span></h2>
+    <div class="clock"><div class="rd">ROUND<b id="crd">1</b></div><div class="tm" id="ctm">3:00</div></div>
+    <div class="row">
+      <button class="pri big" id="bstart" style="flex:2">▶ INICIAR</button>
+      <button class="big" id="breset" style="flex:1">↺ REINICIAR</button>
+    </div>
+    <div class="row">
+      <button id="bm10">−10 S</button><button id="bm1">−1 S</button><button id="bp1">+1 S</button><button id="bp10">+10 S</button>
+      <button id="brm">ROUND −</button><button class="pri" id="brp">ROUND +</button>
+    </div>
+    <div class="row">
+      <div class="f"><label>DURACIÓN DEL ROUND</label><select id="len"><option value="60">1:00</option><option value="120">2:00</option><option value="180" selected>3:00</option><option value="300">5:00</option></select></div>
+      <div class="f"><label>ROUNDS DEL COMBATE</label><select id="tot"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></div>
+      <div class="f"><label>FIJAR TIEMPO (M:SS)</label><div class="row"><input id="setT" placeholder="2:15"><button id="bset">FIJAR</button></div></div>
+    </div>
+    <div class="row">
+      <button id="tg-marcador">OCULTAR MARCADOR</button>
+    </div>
+    <p class="hint">Atajos (con esta ventana activa y fuera de un campo de texto): <kbd>Espacio</kbd> iniciar/pausar · <kbd>R</kbd> reiniciar · <kbd>↑</kbd><kbd>↓</kbd> round · <kbd>←</kbd><kbd>→</kbd> ±10 s</p>
+  </section>
+
+  <!-- COMBATE -->
+  <section class="card">
+    <h2>COMBATE ACTUAL <span class="sp"><button id="bswap" title="Intercambiar esquinas">⇄ ESQUINAS</button></span></h2>
+    <div class="grid2">
+      <div class="corner r"><div class="t">ESQUINA ROJA</div>
+        <div><label>NOMBRE</label><input id="r_nombre" class="live" placeholder="Nombre Apellido"></div>
+        <div><label>APODO · ACADEMIA</label><input id="r_apodo" class="live"></div>
+        <div class="row"><div class="f"><label>RÉCORD</label><input id="r_record" class="live"></div><div class="f"><label>PESO</label><input id="r_peso" class="live"></div><div class="f"><label>EDAD</label><input id="r_edad" class="live"></div></div>
+      </div>
+      <div class="corner b"><div class="t">ESQUINA AZUL</div>
+        <div><label>NOMBRE</label><input id="b_nombre" class="live" placeholder="Nombre Apellido"></div>
+        <div><label>APODO · ACADEMIA</label><input id="b_apodo" class="live"></div>
+        <div class="row"><div class="f"><label>RÉCORD</label><input id="b_record" class="live"></div><div class="f"><label>PESO</label><input id="b_peso" class="live"></div><div class="f"><label>EDAD</label><input id="b_edad" class="live"></div></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="f"><label>DISCIPLINA</label><select id="disciplina" class="live"><option>MMA</option><option>KICKBOXING</option><option>BOXEO</option><option>NOGI</option></select></div>
+      <div class="f" style="flex:2"><label>CATEGORÍA / FORMATO</label><input id="categoria" class="live" placeholder="70 KG · 3 ROUNDS X 3 MIN"></div>
+      <div class="f"><label>Nº COMBATE</label><input id="numero" class="live" type="number" min="1" max="99" value="1"></div>
+    </div>
+    <div class="row">
+      <label class="sw"><input type="checkbox" id="autolive" checked> Actualizar al aire mientras escribo</label>
+      <button class="pri" id="bsend">ENVIAR AL AIRE</button>
+    </div>
+  </section>
+
+  <!-- CARTELERA -->
+  <section class="card">
+    <h2>CARTELERA <span class="sp"><button id="bprev">◀ ANTERIOR</button><button class="pri" id="bnext">SIGUIENTE ▶</button></span></h2>
+    <div class="fl"><table><thead><tr><th>#</th><th>ESQUINA ROJA</th><th>ESQUINA AZUL</th><th>DISC.</th><th></th></tr></thead><tbody id="fl"></tbody></table></div>
+    <details><summary>Pegar cartelera completa (una pelea por línea)</summary>
+      <p class="hint" style="margin:6px 0">Formato: <kbd>Rojo vs Azul | MMA | 70 kg · 3x3</kbd> (disciplina y categoría opcionales)</p>
+      <textarea id="paste" rows="6" placeholder="Juan Pérez vs Diego Soto | MMA | 70 KG · 3 ROUNDS X 3 MIN"></textarea>
+      <div class="row" style="margin-top:6px"><button class="pri" id="bpaste">CARGAR CARTELERA</button><button id="badd">+ AGREGAR FILA</button></div>
+    </details>
+  </section>
+
+  <!-- GANADOR -->
+  <section class="card">
+    <h2>RESULTADO</h2>
+    <div class="row"><button class="redb big" id="wr">GANA ROJO</button><button class="blue big" id="wb">GANA AZUL</button><button class="big" id="wd">EMPATE</button></div>
+    <div class="row">
+      <div class="f" style="flex:2"><label>GANADOR</label><input id="g_nombre"></div>
+      <div class="f"><label>ESQUINA</label><input id="g_esquina"></div>
+    </div>
+    <div class="row">
+      <div class="f" style="flex:2"><label>MÉTODO</label><select id="g_metodo"><option>KO</option><option>TKO</option><option>SUMISIÓN</option><option>DECISIÓN UNÁNIME</option><option>DECISIÓN DIVIDIDA</option><option>DECISIÓN MAYORITARIA</option><option>DESCALIFICACIÓN</option><option>EMPATE</option></select></div>
+      <div class="f"><label>ROUND</label><input id="g_round"></div>
+      <div class="f"><label>TIEMPO</label><input id="g_tiempo"></div>
+    </div>
+    <div class="row"><button class="pri" id="bwin">ENVIAR RESULTADO AL PANEL GANADOR</button></div>
+    <p class="hint">"Gana rojo/azul" completa nombre, esquina, round y tiempo transcurrido desde el reloj.</p>
+  </section>
+
+  <!-- LOWER THIRD -->
+  <section class="card">
+    <h2>LOWER THIRD <span class="sp"><span class="onair" id="air-lt">OCULTO</span></span></h2>
+    <div class="row"><div class="f" style="flex:2"><label>NOMBRE</label><input id="lt_nombre" placeholder="Nombre Apellido"></div><div class="f"><label>CARGO</label><input id="lt_cargo" placeholder="Comentarista"></div></div>
+    <div class="row"><button class="pri" id="blt">MOSTRAR</button><button id="blth">OCULTAR</button><button id="bltsave">GUARDAR COMO ATAJO</button></div>
+    <div class="scenes" id="ltp"></div>
+    <div class="row"><div class="f"><label>TEXTO DEL REPLAY</label><input id="rp_texto" value="REPETICIÓN"></div><button id="brp2">ENVIAR</button></div>
+  </section>
+
+  <!-- ESCENAS -->
+  <section class="card">
+    <h2>ESCENAS DE OBS <span class="sp"><label class="sw" style="margin:0"><input type="checkbox" id="toprev"> A vista previa</label></span></h2>
+    <div class="scenes" id="scenes"><span class="hint">Conecta OBS para ver tus escenas aquí.</span></div>
+    <div class="row"><button class="pri" id="btrans">TRANSICIÓN (MODO ESTUDIO)</button></div>
+    <p class="hint">Clic en una escena = la pone al aire. Con "A vista previa" marcado (Modo Estudio) la manda a la vista previa y luego usas TRANSICIÓN.</p>
+  </section>
+
+  <section class="card wide">
+    <h2>CÓMO CONECTAR</h2>
+    <p class="hint">1) En OBS: <b>Herramientas → Ajustes del servidor WebSocket</b> → marca <b>Habilitar servidor WebSocket</b> → <b>Mostrar información de conexión</b> y copia la contraseña. 2) Pégala arriba y pulsa <b>CONECTAR</b> (si OBS está en otro computador de la red, cambia <i>localhost</i> por la IP que muestra esa ventana). 3) Los gráficos FCC2 (VS, Ganador, Marcador, Lower third, Replay) que estén en tus escenas se actualizan al instante. Este panel recuerda todo aunque lo cierres.</p>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+// ---------- utilidades ----------
+function $(i){return document.getElementById(i)}
+function toast(t){var e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('on')},1800)}
+function ls(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
+function U(s){return (s||'').toString().trim().toUpperCase()}
+function fmt(s){s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+
+// SHA-256 (para la contraseña de OBS WebSocket; funciona también sin crypto.subtle)
+function sha256(ascii){function r(v,a){return(v>>>a)|(v<<(32-a))}var mp=Math.pow,mw=mp(2,32),res='',w=[],abl=ascii.length*8,h=sha256.h=sha256.h||[],k=sha256.k=sha256.k||[],pl=k.length,ic={};
+ for(var c=2;pl<64;c++){if(!ic[c]){for(var i=0;i<313;i+=c)ic[i]=c;h[pl]=(mp(c,.5)*mw)|0;k[pl++]=(mp(c,1/3)*mw)|0}}
+ h=h.slice(0,8);ascii+='\x80';while(ascii.length%64-56)ascii+='\x00';
+ for(i=0;i<ascii.length;i++){var j=ascii.charCodeAt(i);w[i>>2]|=j<<((3-i)%4)*8}w[w.length]=((abl/mw)|0);w[w.length]=abl;
+ for(j=0;j<w.length;){var W=w.slice(j,j+=16),oh=h;h=h.slice(0,8);
+  for(i=0;i<64;i++){var w15=W[i-15],w2=W[i-2],a=h[0],e=h[4];
+   var t1=h[7]+(r(e,6)^r(e,11)^r(e,25))+((e&h[5])^((~e)&h[6]))+k[i]+(W[i]=(i<16)?W[i]:(W[i-16]+(r(w15,7)^r(w15,18)^(w15>>>3))+W[i-7]+(r(w2,17)^r(w2,19)^(w2>>>10)))|0);
+   var t2=(r(a,2)^r(a,13)^r(a,22))+((a&h[1])^(a&h[2])^(h[1]&h[2]));h=[(t1+t2)|0].concat(h);h[4]=(h[4]+t1)|0}
+  for(i=0;i<8;i++)h[i]=(h[i]+oh[i])|0}
+ var bytes='';for(i=0;i<8;i++)for(j=3;j+1;j--)bytes+=String.fromCharCode((h[i]>>(j*8))&255);return btoa(bytes)}
+function utf8(s){return unescape(encodeURIComponent(s))}
+
+// ---------- estado ----------
+var S=ls('fcc2-ctl')||{};
+S.clock=S.clock||{round:1,len:180,rem:180,running:false,at:Date.now()};
+S.fights=S.fights||Array.from({length:27},function(_,i){return{r:'',b:'',d:'MMA',c:''}});
+S.cur=S.cur||0;S.show=S.show||{marcador:true,lt:false};S.ltp=S.ltp||[];
+var FIELDS=['r_nombre','r_apodo','r_record','r_peso','r_edad','b_nombre','b_apodo','b_record','b_peso','b_edad','disciplina','categoria','numero'];
+S.f=S.f||{};
+function save(){ls('fcc2-ctl',S)}
+function remain(){var c=S.clock;return c.running?Math.max(0,c.rem-(Date.now()-c.at)/1000):c.rem}
+function setClock(o){var r=remain();for(var k in o)S.clock[k]=o[k];if(!('rem' in o))S.clock.rem=r;S.clock.at=Date.now();save();push()}
+
+// ---------- mensaje a los gráficos ----------
+function msg(){var f=S.f,c=S.clock,n=f.numero||1;
+ var sub=U(f.disciplina)+(f.categoria?' · '+U(f.categoria):'');
+ return{ts:Date.now(),
+  clock:{round:c.round,total:c.total||3,len:c.len,rem:remain(),running:c.running},
+  marcador:{rojo:U(f.r_nombre)||'PELEADOR ROJO',azul:U(f.b_nombre)||'PELEADOR AZUL',sub:sub,rrec:U(f.r_record),brec:U(f.b_record)},
+  vs:{r_nombre:U(f.r_nombre)||'NOMBRE APELLIDO',r_apodo:U(f.r_apodo),r_record:U(f.r_record)||'—',r_peso:U(f.r_peso)||'—',r_edad:U(f.r_edad)||'—',
+      b_nombre:U(f.b_nombre)||'NOMBRE APELLIDO',b_apodo:U(f.b_apodo),b_record:U(f.b_record)||'—',b_peso:U(f.b_peso)||'—',b_edad:U(f.b_edad)||'—',
+      disciplina:U(f.disciplina),categoria:U(f.categoria),numero:'COMBATE '+n+' DE '+S.fights.length},
+  ganador:S.g||undefined,
+  lt:S.lt||undefined,
+  replay:S.rp?{texto:U(S.rp)}:undefined,
+  show:{marcador:!!S.show.marcador,lt:!!S.show.lt}}}
+var bc=null;try{bc=new BroadcastChannel('fcc2')}catch(e){}
+function push(){var m=msg();
+ try{localStorage.setItem('fcc2-live',JSON.stringify(m))}catch(e){}
+ if(bc)try{bc.postMessage(m)}catch(e){}
+ if(WS.ok)req('CallVendorRequest',{vendorName:'obs-browser',requestType:'emit_event',requestData:{event_name:'fcc2',event_data:m}});
+ renderAir()}
+
+// ---------- OBS WebSocket v5 ----------
+var WS={s:null,ok:false,id:0,cb:{},retry:null,want:false};
+function cstat(t,cls){$('cstat').textContent=t;$('cdot').className='dot '+(cls||'')}
+function connect(){WS.want=true;var conf={host:$('host').value.trim()||'localhost',port:$('port').value.trim()||'4455',pass:$('pass').value};ls('fcc2-ws',conf);
+ try{if(WS.s)WS.s.close()}catch(e){}
+ cstat('Conectando…','wait');var s;try{s=new WebSocket('ws://'+conf.host+':'+conf.port)}catch(e){cstat('Dirección inválida','err');return}
+ WS.s=s;
+ s.onmessage=function(ev){var m=JSON.parse(ev.data);
+  if(m.op===0){var d={rpcVersion:1,eventSubscriptions:4};var a=m.d.authentication;
+   if(a){if(!conf.pass){cstat('Falta la contraseña','err');s.close();return}d.authentication=sha256(sha256(utf8(conf.pass)+a.salt)+a.challenge)}
+   s.send(JSON.stringify({op:1,d:d}))}
+  else if(m.op===2){WS.ok=true;cstat('Conectado a OBS','ok');toast('Conectado a OBS');loadScenes();push();runDiag()}
+  else if(m.op===7){var f=WS.cb[m.d.requestId];if(f){delete WS.cb[m.d.requestId];f(m.d)}}
+  else if(m.op===5){var t=m.d.eventType;if(t==='CurrentProgramSceneChanged'||t==='SceneListChanged'||t==='CurrentPreviewSceneChanged'||t==='StudioModeStateChanged')loadScenes()}};
+ s.onclose=function(e){var was=WS.ok;WS.ok=false;
+  if(e.code===4009)cstat('Contraseña incorrecta','err');else cstat(was?'Conexión perdida · reintentando':'No se pudo conectar · reintentando','err');
+  if(WS.want&&e.code!==4009){clearTimeout(WS.retry);WS.retry=setTimeout(connect,3000)}};
+}
+function req(type,data,cb){if(!WS.ok)return;var id='r'+(++WS.id);if(cb)WS.cb[id]=cb;WS.s.send(JSON.stringify({op:6,d:{requestType:type,requestId:id,requestData:data||{}}}))}
+var SC={list:[],cur:'',prev:''};
+function loadScenes(){req('GetSceneList',{},function(d){var r=d.responseData||{};SC.list=(r.scenes||[]).slice().sort(function(a,b){return b.sceneIndex-a.sceneIndex}).map(function(x){return x.sceneName});
+ SC.cur=r.currentProgramSceneName||'';SC.prev=r.currentPreviewSceneName||'';renderScenes()})}
+function renderScenes(){var h=SC.list.map(function(n){return '<button data-scene="'+n.replace(/"/g,'&quot;')+'" class="'+(n===SC.cur?'cur':n===SC.prev?'prev':'')+'">'+n.replace(/</g,'&lt;')+'</button>'}).join('');
+ $('scenes').innerHTML=h||'<span class="hint">Conecta OBS para ver tus escenas aquí.</span>'}
+$('scenes').addEventListener('click',function(e){var b=e.target.closest('[data-scene]');if(!b)return;var n=b.dataset.scene;
+ if($('toprev').checked)req('SetCurrentPreviewScene',{sceneName:n},function(d){if(!d.requestStatus.result)toast('Activa el Modo Estudio');loadScenes()});
+ else req('SetCurrentProgramScene',{sceneName:n},function(){loadScenes()})});
+$('btrans').onclick=function(){if(!WS.ok)return toast('Conecta OBS primero');req('TriggerStudioModeTransition',{},function(d){if(!d.requestStatus.result)toast('El Modo Estudio no está activo');loadScenes()})};
+$('bconn').onclick=connect;
+(function(){var c=ls('fcc2-ws');if(c){$('host').value=c.host;$('port').value=c.port;$('pass').value=c.pass||'';if(c.pass!==undefined)setTimeout(connect,300)}})();
+
+// ---------- reloj ----------
+function drawClock(){var c=S.clock,r=remain();if(c.running&&r<=0){c.running=false;c.rem=0;c.at=Date.now();save();push();toast('FIN DEL ROUND '+c.round)}
+ $('ctm').textContent=fmt(r);$('ctm').className='tm'+(Math.ceil(r)<=10?' low':'')+(c.running?' run':'');$('crd').textContent=c.round;
+ $('bstart').textContent=c.running?'❚❚ PAUSAR':'▶ INICIAR';$('bstart').className=c.running?'big':'pri big';requestAnimationFrame(drawClock)}
+requestAnimationFrame(drawClock);
+$('len').value=S.clock.len;
+$('bstart').onclick=function(){setClock({running:!S.clock.running})};
+$('breset').onclick=function(){setClock({running:false,rem:S.clock.len})};
+$('bm10').onclick=function(){setClock({rem:Math.max(0,remain()-10)})};$('bp10').onclick=function(){setClock({rem:remain()+10})};
+$('bm1').onclick=function(){setClock({rem:Math.max(0,remain()-1)})};$('bp1').onclick=function(){setClock({rem:remain()+1})};
+$('brp').onclick=function(){setClock({round:S.clock.round+1,running:false,rem:S.clock.len})};
+$('brm').onclick=function(){setClock({round:Math.max(1,S.clock.round-1)})};
+$('len').onchange=function(){var v=+this.value;setClock({len:v,rem:S.clock.running?remain():v})};
+$('bset').onclick=function(){var m=$('setT').value.trim().match(/^(\d+)(?::(\d{1,2}))?$/);if(!m)return toast('Formato M:SS');var v=m[2]!=null?(+m[1])*60+(+m[2]):+m[1];setClock({rem:v});$('setT').value=''};
+document.addEventListener('keydown',function(e){var t=e.target.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;
+ if(e.key===' '){e.preventDefault();$('bstart').click()}else if(e.key==='r'||e.key==='R')$('breset').click();
+ else if(e.key==='ArrowUp'){e.preventDefault();$('brp').click()}else if(e.key==='ArrowDown'){e.preventDefault();$('brm').click()}
+ else if(e.key==='ArrowLeft')$('bm10').click();else if(e.key==='ArrowRight')$('bp10').click()});
+setInterval(function(){if(S.clock.running)push()},1000);   // mantiene sincronizados los gráficos
+setInterval(push,5000);
+
+// ---------- visibilidad ----------
+function renderAir(){var m=S.show.marcador;$('air-marcador').textContent=m?'MARCADOR EN PANTALLA':'MARCADOR OCULTO';$('air-marcador').className='onair'+(m?' v':'');
+ $('tg-marcador').textContent=m?'OCULTAR MARCADOR':'MOSTRAR MARCADOR';
+ $('air-lt').textContent=S.show.lt?'EN PANTALLA':'OCULTO';$('air-lt').className='onair'+(S.show.lt?' v':'')}
+$('tg-marcador').onclick=function(){S.show.marcador=!S.show.marcador;save();push()};
+
+// ---------- combate ----------
+function loadFields(){FIELDS.forEach(function(k){if(S.f[k]!=null)$(k).value=S.f[k]})}
+function readFields(){FIELDS.forEach(function(k){S.f[k]=$(k).value})}
+var deb=null;
+document.querySelectorAll('.live').forEach(function(el){el.addEventListener('input',function(){readFields();save();if($('autolive').checked){clearTimeout(deb);deb=setTimeout(push,250)}});
+ el.addEventListener('change',function(){readFields();save();if($('autolive').checked)push()})});
+$('bsend').onclick=function(){readFields();save();push();toast('Enviado al aire')};
+$('bswap').onclick=function(){readFields();['nombre','apodo','record','peso','edad'].forEach(function(k){var t=S.f['r_'+k];S.f['r_'+k]=S.f['b_'+k];S.f['b_'+k]=t});loadFields();save();push()};
+
+// ---------- cartelera ----------
+function renderFights(){$('fl').innerHTML=S.fights.map(function(f,i){return '<tr class="'+(i===S.cur?'cur':'')+'"><td class="n">'+(i+1)+'</td><td class="rn"><input data-i="'+i+'" data-k="r" value="'+esc(f.r)+'" placeholder="Rojo"></td><td class="bn"><input data-i="'+i+'" data-k="b" value="'+esc(f.b)+'" placeholder="Azul"></td><td><input data-i="'+i+'" data-k="d" value="'+esc(f.d)+'" style="width:90px"></td><td><button data-load="'+i+'">'+(i===S.cur?'AL AIRE':'CARGAR')+'</button></td></tr>'}).join('')}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+$('fl').addEventListener('input',function(e){var t=e.target;if(t.dataset.i==null)return;S.fights[+t.dataset.i][t.dataset.k]=t.value;save()});
+$('fl').addEventListener('click',function(e){var b=e.target.closest('[data-load]');if(b)loadFight(+b.dataset.load)});
+function loadFight(i){if(i<0||i>=S.fights.length)return;var f=S.fights[i];S.cur=i;
+ S.f.r_nombre=f.r;S.f.b_nombre=f.b;['apodo','record','peso','edad'].forEach(function(k){S.f['r_'+k]=(f.x&&f.x['r_'+k])||'';S.f['b_'+k]=(f.x&&f.x['b_'+k])||''});
+ if(f.d)S.f.disciplina=U(f.d);S.f.categoria=f.c||S.f.categoria||'';S.f.numero=i+1;
+ S.clock={round:1,total:S.clock.total||3,len:S.clock.len,rem:S.clock.len,running:false,at:Date.now()};S.g=undefined;
+ loadFields();renderFights();save();push();toast('Combate '+(i+1)+' cargado')}
+// guarda los datos extra del combate actual en la cartelera
+setInterval(function(){var f=S.fights[S.cur];if(!f)return;f.x=f.x||{};['apodo','record','peso','edad'].forEach(function(k){f.x['r_'+k]=S.f['r_'+k];f.x['b_'+k]=S.f['b_'+k]});save()},3000);
+$('bnext').onclick=function(){loadFight(S.cur+1)};$('bprev').onclick=function(){loadFight(S.cur-1)};
+$('badd').onclick=function(){S.fights.push({r:'',b:'',d:'MMA',c:''});save();renderFights()};
+$('bpaste').onclick=function(){var L=$('paste').value.split(/\n/).map(function(l){return l.trim()}).filter(Boolean);if(!L.length)return;
+ S.fights=L.map(function(l){var p=l.split('|').map(function(x){return x.trim()}),v=p[0].split(/\s+vs\.?\s+/i);return{r:v[0]||'',b:v[1]||'',d:U(p[1]||'MMA'),c:p[2]||''}});
+ S.cur=0;save();renderFights();toast(S.fights.length+' combates cargados')};
+
+// ---------- resultado ----------
+function win(c){var f=S.f;var el=S.clock.len-remain();
+ $('g_nombre').value=c==='r'?U(f.r_nombre):c==='b'?U(f.b_nombre):'EMPATE';$('g_esquina').value=c==='r'?'ESQUINA ROJA':c==='b'?'ESQUINA AZUL':U(f.r_nombre)+' · '+U(f.b_nombre);
+ $('g_round').value='ROUND '+S.clock.round;$('g_tiempo').value=fmt(el);if(c==='d')$('g_metodo').value='EMPATE'}
+$('wr').onclick=function(){win('r')};$('wb').onclick=function(){win('b')};$('wd').onclick=function(){win('d')};
+$('bwin').onclick=function(){S.g={nombre:U($('g_nombre').value),esquina:U($('g_esquina').value),metodo:U($('g_metodo').value),round:U($('g_round').value),tiempo:U($('g_tiempo').value),disciplina:U(S.f.disciplina)};
+ if(!S.g.nombre)return toast('Elige el ganador');save();push();toast('Resultado enviado')};
+
+// ---------- lower third y replay ----------
+$('blt').onclick=function(){S.lt={nombre:U($('lt_nombre').value)||'NOMBRE APELLIDO',cargo:U($('lt_cargo').value)};S.show.lt=true;save();push()};
+$('blth').onclick=function(){S.show.lt=false;save();push()};
+$('bltsave').onclick=function(){var n=$('lt_nombre').value.trim();if(!n)return;S.ltp.push({n:n,c:$('lt_cargo').value.trim()});save();renderLtp()};
+function renderLtp(){$('ltp').innerHTML=S.ltp.map(function(p,i){return '<button data-lt="'+i+'" title="Clic derecho para borrar">'+esc(p.n)+(p.c?' · '+esc(p.c):'')+'</button>'}).join('')}
+$('ltp').addEventListener('click',function(e){var b=e.target.closest('[data-lt]');if(!b)return;var p=S.ltp[+b.dataset.lt];$('lt_nombre').value=p.n;$('lt_cargo').value=p.c;$('blt').click()});
+$('ltp').addEventListener('contextmenu',function(e){var b=e.target.closest('[data-lt]');if(!b)return;e.preventDefault();S.ltp.splice(+b.dataset.lt,1);save();renderLtp()});
+$('brp2').onclick=function(){S.rp=$('rp_texto').value;save();push();toast('Texto de replay enviado')};
+if(S.rp)$('rp_texto').value=S.rp;
+
+
+// ---------- instalación, diagnóstico y vista de OBS ----------
+function reqP(t,d){return new Promise(function(res){if(!WS.ok)return res({requestStatus:{result:false,comment:'sin conexión'}});req(t,d,res)})}
+function ctlPath(){var p=decodeURIComponent(location.pathname);if(/^\/[A-Za-z]:/.test(p))p=p.slice(1);return p}
+function panelDir(){return ctlPath().replace(/[^\/]*$/,'')+'Paneles/'}
+var PLAN=[
+ {scene:'INICIO',src:[['FCC2 Inicio','FCC2_Inicio']]},
+ {scene:'ESTUDIO',src:[['FCC2 Marcador','FCC2_Overlay_Marcador'],['FCC2 Lower Third','FCC2_Overlay_LowerThird']]},
+ {scene:'VS',src:[['FCC2 VS','FCC2_VS']]},
+ {scene:'GANADOR',src:[['FCC2 Ganador','FCC2_Ganador']]},
+ {scene:'REPLAY',src:[['FCC2 Replay','FCC2_Overlay_Replay']]},
+ {scene:'PAUSA',src:[['FCC2 Pausa','FCC2_Pausa']]},
+ {scene:'AUSPICIADOR',src:[['FCC2 Auspiciador','FCC2_Auspiciador']]},
+ {scene:'FINAL',src:[['FCC2 Final','FCC2_Final']]}];
+function li(cls,t,sm){return '<li class="'+cls+'">'+t+(sm?'<small>'+sm+'</small>':'')+'</li>'}
+function badPath(){var p=ctlPath();return /\/Temp\/|\.zip\//i.test(p)||!/\.html$/i.test(p)}
+async function runDiag(){var L=[];
+ if(badPath())L.push(li('bad','Este control se abrió desde dentro del .zip','Descomprime FCC2_Kit.zip en una carpeta (ej. Documentos) y abre CONTROL_EN_VIVO.html desde ahí.'));
+ else L.push(li('ok','Carpeta del kit','<span style="word-break:break-all">'+esc(panelDir())+'</span>'));
+ if(!WS.ok){L.push(li('bad','OBS no está conectado','OBS → Herramientas → Ajustes del servidor WebSocket → Habilitar → copia la contraseña y pulsa CONECTAR.'));$('chk').innerHTML=L.join('');return}
+ var v=await reqP('GetVersion',{});var vd=v.responseData||{};
+ L.push(li('ok','Conectado a OBS '+(vd.obsVersion||'')+' · WebSocket '+(vd.obsWebSocketVersion||'')));
+ var t=await reqP('CallVendorRequest',{vendorName:'obs-browser',requestType:'emit_event',requestData:{event_name:'fcc2',event_data:msg()}});
+ L.push(t.requestStatus&&t.requestStatus.result?li('ok','OBS acepta enviar datos a los gráficos'):li('bad','OBS no acepta enviar datos a los gráficos',esc((t.requestStatus&&t.requestStatus.comment)||'')+' — actualiza OBS a la versión 30 o superior.'));
+ var il=await reqP('GetInputList',{});var inputs=((il.responseData||{}).inputs||[]).filter(function(x){return /browser_source/.test(x.inputKind)});
+ var found={},wrong=[];
+ for(var i=0;i<inputs.length;i++){var st=await reqP('GetInputSettings',{inputName:inputs[i].inputName});var se=(st.responseData||{}).inputSettings||{};
+  var lf=(se.local_file||se.url||'');var m=lf.match(/(FCC2_[A-Za-z_]+)\.html/);if(!m)continue;
+  found[m[1]]=(found[m[1]]||[]).concat(inputs[i].inputName);
+  var norm=lf.replace(/\\/g,'/').replace(/^file:\/\/\//,'');
+  if(norm.toLowerCase().indexOf(panelDir().toLowerCase())!==0)wrong.push(inputs[i].inputName)}
+ MARK=(found['FCC2_Overlay_Marcador']||['FCC2 Marcador'])[0];FCCIN=[].concat.apply([],Object.keys(found).map(function(k){return found[k]}));
+ var need=['FCC2_Overlay_Marcador','FCC2_VS','FCC2_Ganador','FCC2_Overlay_LowerThird','FCC2_Overlay_Replay'];
+ var miss=need.filter(function(k){return !found[k]});
+ if(!Object.keys(found).length)L.push(li('bad','No hay gráficos FCC2 en esta colección de escenas','Pulsa INSTALAR GRÁFICOS EN OBS.'));
+ else if(miss.length)L.push(li('warn','Faltan gráficos en OBS: '+miss.map(function(x){return x.replace('FCC2_','').replace('Overlay_','')}).join(', '),'Pulsa INSTALAR GRÁFICOS EN OBS para agregarlos.'));
+ else L.push(li('ok','Gráficos en OBS: '+Object.keys(found).length+' encontrados'));
+ if(wrong.length)L.push(li('bad','Fuentes con archivos antiguos o de otra carpeta: '+esc(wrong.join(', ')),'Pulsa INSTALAR GRÁFICOS EN OBS para corregir las rutas (estas no reciben el control en vivo).'));
+ $('chk').innerHTML=L.join('');return {found:found,wrong:wrong,miss:miss}}
+$('bdiag').onclick=function(){runDiag()};
+$('binstall').onclick=async function(){if(!WS.ok)return toast('Conecta OBS primero');if(badPath())return toast('Descomprime el zip primero');
+ var b=this;b.disabled=true;b.textContent='INSTALANDO…';
+ try{var sl=await reqP('GetSceneList',{});var have=((sl.responseData||{}).scenes||[]).map(function(x){return x.sceneName});
+  var il=await reqP('GetInputList',{});var all=((il.responseData||{}).inputs||[]);var inputs=all.map(function(x){return x.inputName});
+  var exist={};for(var q=0;q<all.length;q++){if(!/browser_source/.test(all[q].inputKind))continue;
+   var se=(((await reqP('GetInputSettings',{inputName:all[q].inputName})).responseData||{}).inputSettings||{});var mm=(se.local_file||se.url||'').match(/(FCC2_[A-Za-z_]+)\.html/);if(mm&&!exist[mm[1]])exist[mm[1]]=all[q].inputName}
+  var made=0,fixed=0;
+  for(var i=0;i<PLAN.length;i++){var P=PLAN[i];
+   if(have.indexOf(P.scene)<0){await reqP('CreateScene',{sceneName:P.scene});have.push(P.scene);made++}
+   var items=(((await reqP('GetSceneItemList',{sceneName:P.scene})).responseData||{}).sceneItems||[]).map(function(x){return x.sourceName});
+   for(var j=0;j<P.src.length;j++){var nm=exist[P.src[j][1]]||P.src[j][0],file=panelDir()+P.src[j][1]+'.html';
+    var set={is_local_file:true,local_file:file,width:1920,height:1080,shutdown:false,restart_when_active:false,reroute_audio:false};
+    if(inputs.indexOf(nm)>=0){await reqP('SetInputSettings',{inputName:nm,inputSettings:set,overlay:true});fixed++;
+     if(items.indexOf(nm)<0)await reqP('CreateSceneItem',{sceneName:P.scene,sourceName:nm})}
+    else{var r=await reqP('CreateInput',{sceneName:P.scene,inputName:nm,inputKind:'browser_source',inputSettings:set,sceneItemEnabled:true});
+     if(!(r.requestStatus&&r.requestStatus.result))toast('Error creando '+nm+': '+((r.requestStatus||{}).comment||''));inputs.push(nm);made++}}}
+  await reloadAll();push();toast('Listo: '+made+' elementos creados, '+fixed+' actualizados');loadScenes();await runDiag()}
+ finally{b.disabled=false;b.textContent='⚙ INSTALAR GRÁFICOS EN OBS'}};
+async function reloadAll(){var il=await reqP('GetInputList',{});var inputs=((il.responseData||{}).inputs||[]).filter(function(x){return /browser_source/.test(x.inputKind)});
+ for(var i=0;i<inputs.length;i++){if(/^FCC2 /.test(inputs[i].inputName)||FCCIN.indexOf(inputs[i].inputName)>=0)await reqP('PressInputPropertiesButton',{inputName:inputs[i].inputName,propertyName:'refreshnocache'})}
+ setTimeout(push,1500)}
+$('breload').onclick=async function(){if(!WS.ok)return toast('Conecta OBS primero');await reloadAll();toast('Gráficos recargados')};
+$('btest').onclick=async function(){if(!WS.ok)return toast('Conecta OBS primero');push();
+ var r=await reqP('GetSourceScreenshot',{sourceName:MARK,imageFormat:'jpg',imageWidth:640,imageCompressionQuality:75});
+ if(r.requestStatus&&r.requestStatus.result){PVHOLD=Date.now()+5000;$('pv').src=r.responseData.imageData;$('pvmsg').textContent='';$('pvname').textContent='Prueba: así ve OBS el MARCADOR ahora';toast('Mira la vista: el marcador debe mostrar tus nombres y reloj')}
+ else toast('No encontré el marcador en OBS: pulsa INSTALAR')};
+var PVHOLD=0;var MARK='FCC2 Marcador',FCCIN=[];
+setInterval(async function(){if(!WS.ok||!$('pvon').checked||Date.now()<PVHOLD||document.hidden)return;if(!SC.cur)return;
+ var r=await reqP('GetSourceScreenshot',{sourceName:SC.cur,imageFormat:'jpg',imageWidth:640,imageCompressionQuality:65});
+ if(r.requestStatus&&r.requestStatus.result){$('pv').src=r.responseData.imageData;$('pvmsg').textContent='';$('pvname').textContent='AL AIRE: '+SC.cur}},1200);
+$('tot').value=S.clock.total||3;$('tot').onchange=function(){setClock({total:+this.value})};
+loadFields();renderFights();renderLtp();renderAir();push();runDiag();
+</script></body></html>
