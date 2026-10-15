@@ -175,7 +175,7 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
     <details><summary>Pegar cartelera completa (una pelea por línea)</summary>
       <p class="hint" style="margin:6px 0">Formato: <kbd>Rojo (Gimnasio) vs Azul (Gimnasio) | MMA | 70 kg · 3x3</kbd> (disciplina y categoría opcionales)</p>
       <textarea id="paste" rows="6" placeholder="Juan Pérez vs Diego Soto | MMA | 70 KG · 3 ROUNDS X 3 MIN"></textarea>
-      <div class="row" style="margin-top:6px"><button class="pri" id="bpaste">CARGAR CARTELERA</button><button id="boficial">↺ CARTELERA OFICIAL FCC 2</button><button id="badd">+ AGREGAR FILA</button></div>
+      <div class="row" style="margin-top:6px"><button class="pri" id="bpaste">CARGAR CARTELERA</button><button id="boficial">↺ CARTELERA OFICIAL FCC 2</button><button id="bswapall">⇄ INVERTIR ESQUINAS (TODA LA CARTELERA)</button><button id="badd">+ AGREGAR FILA</button></div>
     </details>
   </section>
 
@@ -414,6 +414,7 @@ function loadFight(i){if(i<0||i>=S.fights.length)return;var f=S.fights[i];S.cur=
 // guarda los datos extra del combate actual en la cartelera
 setInterval(function(){var f=S.fights[S.cur];if(!f)return;f.x=f.x||{};['apodo','gym','record','peso','edad'].forEach(function(k){f.x['r_'+k]=S.f['r_'+k];f.x['b_'+k]=S.f['b_'+k]});save()},3000);
 $('bnext').onclick=function(){loadFight(S.cur+1)};$('bprev').onclick=function(){loadFight(S.cur-1)};
+$('bswapall').onclick=function(){S.fights.forEach(function(f){var t=f.r;f.r=f.b;f.b=t;if(f.x){var g=f.x.r_gym;f.x.r_gym=f.x.b_gym;f.x.b_gym=g}});save();renderFights();loadFight(S.cur);toast('Esquinas invertidas en los 27 combates')};
 $('boficial').onclick=function(){loadOficial();toast('Cartelera oficial FCC 2 cargada (27 combates)')};
 $('badd').onclick=function(){S.fights.push({r:'',b:'',d:'MMA',c:''});save();renderFights()};
 $('bpaste').onclick=function(){var L=$('paste').value.split(/\n/).map(function(l){return l.trim()}).filter(Boolean);if(!L.length)return;
@@ -589,6 +590,6 @@ $('rb_speed').value=String(S.rb.speed);$('rb_len').value=String(S.rb.len);$('rb_
 ['rb_speed','rb_len','rb_back'].forEach(function(id){$(id).onchange=function(){S.rb={speed:+$('rb_speed').value,len:+$('rb_len').value,back:$('rb_back').checked};save()}});
 document.addEventListener('keydown',function(e){var t=e.target.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;if(e.key==='p'||e.key==='P')$('rb_play').click();else if(e.key==='m'||e.key==='M')$('rb_save').click()});
 renderHL();
-if(!S.fights.some(function(f){return (f.r||'').trim()}))setTimeout(loadOficial,50);
+if(S.cartV!=='fcc2-oficial-1'||!S.fights.some(function(f){return (f.r||'').trim()})){S.cartV='fcc2-oficial-1';setTimeout(function(){loadOficial();toast('Cartelera oficial FCC 2 cargada')},50)}
 renderMo();renderTheme();loadFields();renderFights();renderLtp();renderAir();push();runDiag();
 </script></body></html>
