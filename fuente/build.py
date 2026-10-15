@@ -240,32 +240,59 @@ P['FCC2_Auspiciador'] = page('FCC 2 Auspiciador', '''
 
 # ---------- OVERLAYS (fondo transparente) ----------
 P['FCC2_Overlay_Marcador'] = page('FCC 2 Marcador', '''
-.bug{position:absolute;left:60px;bottom:60px;display:flex;align-items:stretch;filter:drop-shadow(0 14px 34px rgba(0,0,0,.75));transform-origin:left bottom;transition:transform .35s ease}
-.bug.pos-bc{left:50%;transform-origin:center bottom}.bug.pos-br{left:auto;right:60px;transform-origin:right bottom}
-.bug.pos-tl{bottom:auto;top:50px;transform-origin:left top}.bug.pos-tc{bottom:auto;top:50px;left:50%;transform-origin:center top}
-.lg{width:200px;background:linear-gradient(#161616,#050505);display:flex;align-items:center;justify-content:center;border-right:5px solid var(--red)}
-.lg img{width:180px}
-.names{display:flex;flex-direction:column;width:700px}
-.top{background:linear-gradient(90deg,var(--red),var(--red-dk));font-family:"Bebas";font-size:34px;line-height:1.15;letter-spacing:7px;padding:4px 20px 0;color:#fff;white-space:nowrap;overflow:hidden;text-shadow:0 2px 4px rgba(0,0,0,.4)}
-.fr{display:flex;align-items:center;height:84px;background:rgba(6,6,6,.96);border-top:2px solid rgba(255,255,255,.10)}
-.chip{width:20px;align-self:stretch;background:var(--ca)}
-.chip.b{background:var(--cb)}
-.nm{flex:1;font-family:"Bebas";font-size:66px;line-height:1.15;padding:4px 20px 0;letter-spacing:1px;white-space:nowrap;overflow:hidden;color:#fff;min-width:0;text-shadow:0 2px 6px rgba(0,0,0,.6)}
-.rec{font-family:"Bebas";font-size:34px;color:#d8d8d8;padding:4px 20px 0;letter-spacing:2px;white-space:nowrap}
-.clk{width:290px;background:#030303;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;border-left:2px solid rgba(255,255,255,.10)}
-.clk .rd{font-family:"Bebas";font-size:36px;letter-spacing:5px;color:#c8c8c8;line-height:1}
-.clk .rd b{color:#fff;font-weight:400}
-.clk .tm{font-family:"Bebas";font-size:124px;line-height:.9;color:#fff;font-variant-numeric:tabular-nums;text-shadow:0 2px 10px rgba(0,0,0,.6)}
-.clk .tm.low{color:var(--red2);animation:pulse 1s steps(1) infinite}
-.clk .st{position:absolute;top:8px;right:12px;font-family:"Bebas";font-size:20px;letter-spacing:3px;color:#f5b301;display:none}
-.clk .pb{position:absolute;left:0;bottom:0;height:9px;background:linear-gradient(90deg,var(--red-dk),var(--red2));box-shadow:0 0 14px var(--red2)}
-.help{position:absolute;top:20px;left:20px;font-size:18px;background:rgba(0,0,0,.85);padding:10px 16px;display:none;line-height:1.5}
-''', f'''<div class="bug" id="bug">
-<div class="lg"><img src="{LOGOA}"></div>
-<div class="names"><div class="top" data-k="sub">MMA · CATEGORÍA</div>
-<div class="fr"><div class="chip"></div><div class="nm" data-k="rojo" data-fit="w" data-max="66" data-min="34">PELEADOR ROJO</div><div class="rec" data-k="rrec"></div></div>
-<div class="fr"><div class="chip b"></div><div class="nm" data-k="azul" data-fit="w" data-max="66" data-min="34">PELEADOR AZUL</div><div class="rec" data-k="brec"></div></div></div>
-<div class="clk"><div class="st" id="st">PAUSA</div><div class="rd">ROUND <b id="rd">1</b><span id="tot"> / 3</span></div><div class="tm" id="tm">3:00</div><div class="pb" id="pb"></div></div>
+.hud{position:absolute;left:50%;top:30px;width:1840px;height:236px;transform:translateX(-50%);transform-origin:center top;transition:transform .35s ease,top .35s ease}
+.hud.pos-bc{top:auto;bottom:30px;transform-origin:center bottom}
+.hud.pos-bc .sub{top:-52px}.hud.pos-bc .st{top:-90px}
+/* ---- lados ---- */
+.side{position:absolute;top:34px;width:790px}
+.side.l{left:0}.side.r{right:0}
+.lbl{font-family:"Bebas";font-size:24px;letter-spacing:6px;color:#fff;opacity:.85;margin:0 26px 4px;text-shadow:0 2px 4px #000}
+.side.r .lbl{text-align:right}
+.bar{position:relative;height:54px;transform:skewX(-24deg);background:#050505;border:3px solid rgba(255,255,255,.85);box-shadow:0 0 0 3px #000,0 8px 24px rgba(0,0,0,.6)}
+.side.r .bar{transform:skewX(24deg)}
+.fill{position:absolute;top:3px;bottom:3px;left:3px;right:3px;overflow:hidden}
+.fill i{position:absolute;inset:0;display:block}
+.side.l .fill i{background:linear-gradient(180deg,rgba(255,255,255,.55) 0,rgba(255,255,255,.12) 38%,rgba(0,0,0,0) 40%),linear-gradient(90deg,var(--ca-dk),var(--ca) 60%,#fff 140%)}
+.side.r .fill i{background:linear-gradient(180deg,rgba(255,255,255,.55) 0,rgba(255,255,255,.12) 38%,rgba(0,0,0,0) 40%),linear-gradient(-90deg,var(--cb-dk),var(--cb) 60%,#fff 140%)}
+.fill b{position:absolute;top:0;bottom:0;width:120px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:shine 3.2s linear infinite}
+.side.r .fill b{animation-direction:reverse}
+@keyframes shine{from{left:-140px}to{left:110%}}
+.plate{display:flex;align-items:center;gap:16px;margin-top:10px;height:86px;transform:skewX(-24deg);background:linear-gradient(90deg,rgba(0,0,0,.92),rgba(0,0,0,.55));border-left:10px solid var(--ca);padding:0 26px 0 22px;width:610px}
+.side.r .plate{transform:skewX(24deg);margin-left:auto;flex-direction:row-reverse;border-left:0;border-right:10px solid var(--cb);background:linear-gradient(-90deg,rgba(0,0,0,.92),rgba(0,0,0,.55))}
+.plate>*{transform:skewX(24deg)}.side.r .plate>*{transform:skewX(-24deg)}
+.nm{flex:1;min-width:0;font-family:"Bebas";font-size:72px;line-height:1.15;padding-top:6px;white-space:nowrap;overflow:hidden;color:#fff;font-style:italic;letter-spacing:1px;text-shadow:3px 3px 0 #000,0 0 18px rgba(var(--ca-rgb),.8)}
+.side.r .nm{text-align:right;text-shadow:3px 3px 0 #000,0 0 18px rgba(var(--cb-rgb),.8)}
+.rec{font-family:"Bebas";font-size:34px;color:#fff;background:rgba(255,255,255,.12);padding:4px 12px 0;letter-spacing:2px;white-space:nowrap}
+.rec:empty{display:none}
+/* ---- centro ---- */
+.ctr{position:absolute;left:50%;top:0;width:290px;height:228px;transform:translateX(-50%)}
+.oct{position:absolute;inset:0;clip-path:polygon(22% 0,78% 0,100% 22%,100% 78%,78% 100%,22% 100%,0 78%,0 22%);background:linear-gradient(160deg,#fff,var(--red) 35%,var(--red-dk))}
+.oct.in{inset:6px;background:radial-gradient(circle at 50% 30%,#1c1c1c,#020202 75%)}
+.ctx{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ctx img{width:118px;margin-top:-14px}
+.tm{font-family:"Bebas";font-size:104px;line-height:.86;color:#fff;font-variant-numeric:tabular-nums;text-shadow:0 0 22px rgba(var(--red2-rgb),.55),3px 3px 0 #000}
+.tm.low{color:var(--red2);animation:pulse .8s steps(1) infinite}
+.rd{font-family:"Bebas";font-size:26px;line-height:1.1;letter-spacing:5px;color:#ddd;margin-top:4px}
+.pips{position:absolute;left:50%;bottom:-24px;transform:translateX(-50%);display:flex;gap:8px}
+.pips s{display:block;width:30px;height:12px;transform:skewX(-24deg);background:#111;border:2px solid rgba(255,255,255,.7)}
+.pips s.on{background:var(--red2);box-shadow:0 0 10px var(--red2)}
+.pips s.cur{background:#fff;animation:pulse 1.2s ease-in-out infinite}
+.pb{position:absolute;left:24%;right:24%;bottom:12px;height:5px;background:rgba(255,255,255,.12)}
+.pb i{display:block;height:100%;background:var(--red2);box-shadow:0 0 8px var(--red2)}
+.sub{position:absolute;left:50%;top:262px;transform:translateX(-50%) skewX(-20deg);background:var(--red);padding:4px 26px 1px;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.sub span{display:inline-block;transform:skewX(20deg);font-family:"Bebas";font-size:28px;letter-spacing:6px;color:#fff}
+.st{position:absolute;left:50%;top:-30px;transform:translateX(-50%);font-family:"Bebas";font-size:26px;letter-spacing:6px;color:#f5b301;display:none;text-shadow:0 2px 4px #000}
+.hud .side.l{animation:inL .6s ease both}.hud .side.r{animation:inR .6s ease both}.hud .ctr{animation:inUp .6s .15s ease both}
+.help{position:absolute;bottom:20px;left:20px;font-size:18px;background:rgba(0,0,0,.85);padding:10px 16px;display:none;line-height:1.5}
+''', f'''<div class="hud" id="bug">
+ <div class="side l"><div class="lbl" data-k="r_corner">ESQUINA ROJA</div><div class="bar"><div class="fill"><i></i><b></b></div></div>
+  <div class="plate"><div class="nm" data-k="rojo" data-fit="w" data-max="72" data-min="34">PELEADOR ROJO</div><div class="rec" data-k="rrec"></div></div></div>
+ <div class="side r"><div class="lbl" data-k="b_corner">ESQUINA AZUL</div><div class="bar"><div class="fill"><i></i><b></b></div></div>
+  <div class="plate"><div class="nm" data-k="azul" data-fit="w" data-max="72" data-min="34">PELEADOR AZUL</div><div class="rec" data-k="brec"></div></div></div>
+ <div class="ctr"><div class="st" id="st">PAUSA</div><div class="oct"></div><div class="oct in"></div>
+  <div class="ctx"><img src="{LOGOA}"><div class="tm" id="tm">3:00</div><div class="rd">ROUND <span id="rd">1</span><span id="tot"> / 3</span></div></div>
+  <div class="pb"><i id="pb"></i></div><div class="pips" id="pips"></div></div>
+ <div class="sub"><span data-k="sub">MMA · CATEGORÍA</span></div>
 </div>
 <div class="help" id="help">ESPACIO iniciar/pausar · R reiniciar · ← → round · + − 10 s · H ayuda · (lo normal es manejarlo desde CONTROL_EN_VIVO)</div>''', '''
 var RL=parseFloat(Q.get('min')||'3')*60,tm=document.getElementById('tm');
@@ -273,14 +300,17 @@ var C={round:1,total:3,len:RL,rem:RL,running:false,at:Date.now()};
 try{var sc=JSON.parse(localStorage.getItem('fcc2-clock-local')||'null');if(sc)C=sc}catch(e){}
 function rem(){return C.running?Math.max(0,C.rem-(Date.now()-C.at)/1000):C.rem}
 function setC(o){var r=rem();for(var k in o)C[k]=o[k];if(!('rem' in o))C.rem=r;C.at=Date.now();try{localStorage.setItem('fcc2-clock-local',JSON.stringify(C))}catch(e){}}
-window.onLayout=function(l){var g=document.getElementById('bug');if(!g||!l)return;g.className='bug pos-'+(l.pos||'bl');var sc=+l.scale||1;g.style.transform=(/c$/.test(l.pos||'')?'translateX(-50%) ':'')+'scale('+sc+')';try{localStorage.setItem('fcc2-layout',JSON.stringify(l))}catch(e){}};
+window.onLayout=function(l){var g=document.getElementById('bug');if(!g||!l)return;var pos=/^b/.test(l.pos||'')?'bc':'tc';
+ g.className='hud pos-'+pos;g.style.transform='translateX(-50%) scale('+(+l.scale||1)+')';try{localStorage.setItem('fcc2-layout',JSON.stringify(l))}catch(e){}};
 try{window.onLayout(JSON.parse(localStorage.getItem('fcc2-layout')||'null'))}catch(e){}
 window.onClock=function(c){C={round:c.round,total:c.total||3,len:c.len,rem:c.rem,running:c.running,at:Date.now()};try{localStorage.setItem('fcc2-clock-local',JSON.stringify(C))}catch(e){}};
+var lastP='';
 function draw(){var r=rem();if(C.running&&r<=0){C.running=false;C.rem=0}var s=Math.ceil(r);
  tm.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');tm.classList.toggle('low',s<=10&&s>0);
  document.getElementById('rd').textContent=C.round;document.getElementById('tot').textContent=C.total?' / '+C.total:'';
  document.getElementById('pb').style.width=(C.len?Math.max(0,Math.min(100,100*r/C.len)):0)+'%';
  document.getElementById('st').style.display=(!C.running&&r>0&&r<C.len)?'block':'none';
+ var key=C.round+'/'+C.total;if(key!==lastP){lastP=key;var h='';for(var i=1;i<=(C.total||3);i++)h+='<s class="'+(i<C.round?'on':i===C.round?'cur':'')+'"></s>';document.getElementById('pips').innerHTML=h}
  requestAnimationFrame(draw)}
 requestAnimationFrame(draw);
 document.addEventListener('keydown',function(e){if(document.activeElement&&document.activeElement.isContentEditable)return;
