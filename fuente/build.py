@@ -179,7 +179,7 @@ VSCSS = """
 .corner{font-family:"Bebas";font-size:30px;letter-spacing:8px;padding:5px 26px 1px;transform:skewX(-14deg);color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.45)}
 .corner.r{background:var(--ca)}.corner.b{background:var(--cb)}
 .corner span{display:inline-block;transform:skewX(14deg)}
-.name{font-family:"Bebas";font-size:124px;line-height:1;padding-top:.06em;letter-spacing:2px;width:640px;max-height:226px;overflow:hidden;overflow-wrap:break-word;font-style:italic;color:#fff;text-shadow:4px 4px 0 #000,0 10px 34px rgba(0,0,0,.7)}
+.name{font-family:"Bebas";font-size:124px;line-height:1;padding-top:.06em;letter-spacing:2px;width:640px;padding:0 .14em;box-sizing:border-box;max-height:226px;overflow:hidden;overflow-wrap:break-word;font-style:italic;color:#fff;text-shadow:4px 4px 0 #000,0 10px 34px rgba(0,0,0,.7)}
 .namebox{height:232px;width:640px;margin-top:12px;display:flex;align-items:center;justify-content:center}
 .gym{display:flex;align-items:center;gap:12px;margin-top:8px;padding:6px 26px 2px 18px;background:rgba(0,0,0,.6);transform:skewX(-14deg);max-width:620px}
 .gym>*{transform:skewX(14deg)}
@@ -282,8 +282,8 @@ P['FCC2_Overlay_Marcador'] = page('FCC 2 Marcador', '''
 .plate{display:flex;align-items:center;gap:16px;margin-top:10px;height:86px;transform:skewX(-24deg);background:linear-gradient(90deg,rgba(0,0,0,.92),rgba(0,0,0,.55));border-left:10px solid var(--ca);padding:0 26px 0 22px;width:610px}
 .side.r .plate{transform:skewX(24deg);margin-left:auto;flex-direction:row-reverse;border-left:0;border-right:10px solid var(--cb);background:linear-gradient(-90deg,rgba(0,0,0,.92),rgba(0,0,0,.55))}
 .plate>*{transform:skewX(24deg)}.side.r .plate>*{transform:skewX(-24deg)}
-.nm{flex:1;min-width:0;font-family:"Bebas";font-size:72px;line-height:1.15;padding-top:6px;white-space:nowrap;overflow:hidden;color:#fff;font-style:italic;letter-spacing:1px;text-shadow:3px 3px 0 #000,0 0 18px rgba(var(--ca-rgb),.8)}
-.side.r .nm{text-align:right;text-shadow:3px 3px 0 #000,0 0 18px rgba(var(--cb-rgb),.8)}
+.nm{flex:1;min-width:0;font-family:"Bebas";font-size:72px;line-height:1.15;padding-top:6px;padding-right:18px;white-space:nowrap;overflow:hidden;color:#fff;font-style:italic;letter-spacing:1px;text-shadow:3px 3px 0 #000,0 0 18px rgba(var(--ca-rgb),.8)}
+.side.r .nm{text-align:right;padding-right:26px;padding-left:4px;text-shadow:3px 3px 0 #000,0 0 18px rgba(var(--cb-rgb),.8)}
 .rec{font-family:"Bebas";font-size:34px;color:#fff;background:rgba(255,255,255,.12);padding:4px 12px 0;letter-spacing:2px;white-space:nowrap}
 .rec:empty{display:none}
 /* ---- centro ---- */
