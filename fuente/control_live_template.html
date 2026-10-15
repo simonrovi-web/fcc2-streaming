@@ -155,7 +155,24 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
     </div>
     <p class="hint">Atajos (con esta ventana activa y fuera de un campo de texto): <kbd>Espacio</kbd> iniciar/pausar · <kbd>R</kbd> reiniciar · <kbd>↑</kbd><kbd>↓</kbd> round · <kbd>←</kbd><kbd>→</kbd> ±10 s</p>
   </section>
-
+  <!-- REPETICIONES -->
+  <section class="card">
+    <h2>REPETICIONES <span class="sp"><span class="onair" id="rb-state">BÚFER APAGADO</span></span></h2>
+    <div class="row">
+      <button class="pri big" id="rb_play" style="flex:2">⏪ REPETIR AHORA</button>
+      <button class="big" id="rb_save">★ GUARDAR MOMENTO</button>
+    </div>
+    <div class="row">
+      <div class="f"><label>VELOCIDAD</label><select id="rb_speed"><option value="100">Normal</option><option value="75">75 %</option><option value="50" selected>Cámara lenta 50 %</option><option value="35">Súper lenta 35 %</option></select></div>
+      <div class="f"><label>DURACIÓN DEL BÚFER</label><select id="rb_len"><option value="10">10 s</option><option value="15">15 s</option><option value="20" selected>20 s</option><option value="30">30 s</option></select></div>
+      <button id="rb_start" style="align-self:flex-end">INICIAR BÚFER</button>
+    </div>
+    <label class="sw"><input type="checkbox" id="rb_back" checked> Al terminar, volver solo a la escena anterior</label>
+    <div><label>MEJORES MOMENTOS <span id="rb_count"></span></label>
+      <div class="fl" style="max-height:200px"><table><tbody id="rb_list"><tr><td class="hint">Aún no hay momentos guardados.</td></tr></tbody></table></div></div>
+    <div class="row"><button class="pri" id="rb_reel">▶ RESUMEN DEL COMBATE</button><button id="rb_reelall">▶ RESUMEN DE TODO</button><button id="rb_stop">■ DETENER</button></div>
+    <p class="hint">Atajos: <kbd>P</kbd> repetir ahora · <kbd>M</kbd> guardar momento. Requiere el búfer de repetición de OBS (se activa con INSTALAR o INICIAR BÚFER).</p>
+  </section>
   <!-- COMBATE -->
   <section class="card">
     <h2>COMBATE ACTUAL <span class="sp"><button id="bswap" title="Intercambiar esquinas">⇄ ESQUINAS</button></span></h2>
@@ -184,37 +201,6 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
       <button class="pri" id="bsend">ENVIAR AL AIRE</button>
     </div>
   </section>
-
-  <!-- CARTELERA -->
-  <section class="card span2">
-    <h2>CARTELERA <span class="sp"><button id="bprev">◀ ANTERIOR</button><button class="pri" id="bnext">SIGUIENTE ▶</button></span></h2>
-    <div class="fl"><table><thead><tr><th>#</th><th>HORA</th><th class="lbl-a">ESQUINA ROJA</th><th class="lbl-b">ESQUINA AZUL</th><th>DISC.</th><th></th></tr></thead><tbody id="fl"></tbody></table></div>
-    <details><summary>Pegar cartelera completa (una pelea por línea)</summary>
-      <p class="hint" style="margin:6px 0">Formato: <kbd>Rojo (Gimnasio) vs Azul (Gimnasio) | MMA | 70 kg · 3x3</kbd> (disciplina y categoría opcionales)</p>
-      <textarea id="paste" rows="6" placeholder="Juan Pérez vs Diego Soto | MMA | 70 KG · 3 ROUNDS X 3 MIN"></textarea>
-      <div class="row" style="margin-top:6px"><button class="pri" id="bpaste">CARGAR CARTELERA</button><button id="boficial">↺ CARTELERA OFICIAL FCC 2</button><button id="bswapall">⇄ INVERTIR ESQUINAS (TODA LA CARTELERA)</button><button id="badd">+ AGREGAR FILA</button></div>
-    </details>
-  </section>
-
-  <!-- REPETICIONES -->
-  <section class="card">
-    <h2>REPETICIONES <span class="sp"><span class="onair" id="rb-state">BÚFER APAGADO</span></span></h2>
-    <div class="row">
-      <button class="pri big" id="rb_play" style="flex:2">⏪ REPETIR AHORA</button>
-      <button class="big" id="rb_save">★ GUARDAR MOMENTO</button>
-    </div>
-    <div class="row">
-      <div class="f"><label>VELOCIDAD</label><select id="rb_speed"><option value="100">Normal</option><option value="75">75 %</option><option value="50" selected>Cámara lenta 50 %</option><option value="35">Súper lenta 35 %</option></select></div>
-      <div class="f"><label>DURACIÓN DEL BÚFER</label><select id="rb_len"><option value="10">10 s</option><option value="15">15 s</option><option value="20" selected>20 s</option><option value="30">30 s</option></select></div>
-      <button id="rb_start" style="align-self:flex-end">INICIAR BÚFER</button>
-    </div>
-    <label class="sw"><input type="checkbox" id="rb_back" checked> Al terminar, volver solo a la escena anterior</label>
-    <div><label>MEJORES MOMENTOS <span id="rb_count"></span></label>
-      <div class="fl" style="max-height:200px"><table><tbody id="rb_list"><tr><td class="hint">Aún no hay momentos guardados.</td></tr></tbody></table></div></div>
-    <div class="row"><button class="pri" id="rb_reel">▶ RESUMEN DEL COMBATE</button><button id="rb_reelall">▶ RESUMEN DE TODO</button><button id="rb_stop">■ DETENER</button></div>
-    <p class="hint">Atajos: <kbd>P</kbd> repetir ahora · <kbd>M</kbd> guardar momento. Requiere el búfer de repetición de OBS (se activa con INSTALAR o INICIAR BÚFER).</p>
-  </section>
-
   <!-- MOSCA -->
   <section class="card">
     <h2>MOSCA <span class="sp"><span class="onair" id="air-mosca">EN PANTALLA</span></span></h2>
@@ -235,23 +221,6 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
 BLACK HOUSE · SANTIAGO
 AUSPICIA DI PIPINO PIZZA</textarea></div>
   </section>
-
-  <!-- COLORES -->
-  <section class="card">
-    <h2>COLORES Y ESQUINAS <span class="sp"><button id="threset">RESTABLECER</button></span></h2>
-    <div class="row">
-      <div class="f"><label>NOMBRE ESQUINA 1</label><input id="lbl_a" value="ESQUINA ROJA"></div>
-      <div class="f"><label>NOMBRE ESQUINA 2</label><input id="lbl_b" value="ESQUINA AZUL"></div>
-    </div>
-    <div class="row">
-      <div class="f"><label>COLOR ESQUINA 1</label><input type="color" id="col_a" value="#e3121b" class="cp"></div>
-      <div class="f"><label>COLOR ESQUINA 2</label><input type="color" id="col_b" value="#1f5fff" class="cp"></div>
-      <div class="f"><label>COLOR PRINCIPAL</label><input type="color" id="col_m" value="#e3121b" class="cp"></div>
-    </div>
-    <div><label>ESTILOS RÁPIDOS</label><div class="scenes" id="presets"></div></div>
-    <p class="hint">Los cambios se ven al instante en todos los gráficos (marcador, VS, ganador, pantallas y overlays).</p>
-  </section>
-
   <!-- GANADOR -->
   <section class="card">
     <h2>RESULTADO</h2>
@@ -268,7 +237,6 @@ AUSPICIA DI PIPINO PIZZA</textarea></div>
     <div class="row"><button class="pri" id="bwin">ENVIAR RESULTADO AL PANEL GANADOR</button></div>
     <p class="hint">"Gana rojo/azul" completa nombre, esquina, round y tiempo transcurrido desde el reloj.</p>
   </section>
-
   <!-- LOWER THIRD -->
   <section class="card">
     <h2>LOWER THIRD <span class="sp"><span class="onair" id="air-lt">OCULTO</span></span></h2>
@@ -276,6 +244,31 @@ AUSPICIA DI PIPINO PIZZA</textarea></div>
     <div class="row"><button class="pri" id="blt">MOSTRAR</button><button id="blth">OCULTAR</button><button id="bltsave">GUARDAR COMO ATAJO</button></div>
     <div class="scenes" id="ltp"></div>
     <div class="row"><div class="f"><label>TEXTO DEL REPLAY</label><input id="rp_texto" value="REPETICIÓN"></div><button id="brp2">ENVIAR</button></div>
+  </section>
+  <!-- COLORES -->
+  <section class="card">
+    <h2>COLORES Y ESQUINAS <span class="sp"><button id="threset">RESTABLECER</button></span></h2>
+    <div class="row">
+      <div class="f"><label>NOMBRE ESQUINA 1</label><input id="lbl_a" value="ESQUINA ROJA"></div>
+      <div class="f"><label>NOMBRE ESQUINA 2</label><input id="lbl_b" value="ESQUINA AZUL"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>COLOR ESQUINA 1</label><input type="color" id="col_a" value="#e3121b" class="cp"></div>
+      <div class="f"><label>COLOR ESQUINA 2</label><input type="color" id="col_b" value="#1f5fff" class="cp"></div>
+      <div class="f"><label>COLOR PRINCIPAL</label><input type="color" id="col_m" value="#e3121b" class="cp"></div>
+    </div>
+    <div><label>ESTILOS RÁPIDOS</label><div class="scenes" id="presets"></div></div>
+    <p class="hint">Los cambios se ven al instante en todos los gráficos (marcador, VS, ganador, pantallas y overlays).</p>
+  </section>
+  <!-- CARTELERA -->
+  <section class="card span2">
+    <h2>CARTELERA <span class="sp"><button id="bprev">◀ ANTERIOR</button><button class="pri" id="bnext">SIGUIENTE ▶</button></span></h2>
+    <div class="fl"><table><thead><tr><th>#</th><th>HORA</th><th class="lbl-a">ESQUINA ROJA</th><th class="lbl-b">ESQUINA AZUL</th><th>DISC.</th><th></th></tr></thead><tbody id="fl"></tbody></table></div>
+    <details><summary>Pegar cartelera completa (una pelea por línea)</summary>
+      <p class="hint" style="margin:6px 0">Formato: <kbd>Rojo (Gimnasio) vs Azul (Gimnasio) | MMA | 70 kg · 3x3</kbd> (disciplina y categoría opcionales)</p>
+      <textarea id="paste" rows="6" placeholder="Juan Pérez vs Diego Soto | MMA | 70 KG · 3 ROUNDS X 3 MIN"></textarea>
+      <div class="row" style="margin-top:6px"><button class="pri" id="bpaste">CARGAR CARTELERA</button><button id="boficial">↺ CARTELERA OFICIAL FCC 2</button><button id="bswapall">⇄ INVERTIR ESQUINAS (TODA LA CARTELERA)</button><button id="badd">+ AGREGAR FILA</button></div>
+    </details>
   </section>
 
 
