@@ -157,6 +157,7 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
       <div class="f"><label>DISCIPLINA</label><select id="disciplina" class="live"><option>MMA</option><option>KICKBOXING</option><option>BOXEO</option><option>NOGI</option></select></div>
       <div class="f" style="flex:2"><label>CATEGORÍA / FORMATO</label><input id="categoria" class="live" placeholder="70 KG · 3 ROUNDS X 3 MIN"></div>
       <div class="f"><label>Nº COMBATE</label><input id="numero" class="live" type="number" min="1" max="99" value="1"></div>
+      <div class="f"><label>DE (TOTAL)</label><input id="total" class="live" type="number" min="1" max="99" placeholder="vacío = no mostrar"></div>
     </div>
     <div class="row">
       <label class="sw"><input type="checkbox" id="autolive" checked> Actualizar al aire mientras escribo</label>
@@ -257,7 +258,7 @@ var S=ls('fcc2-ctl')||{};
 S.clock=S.clock||{round:1,len:180,rem:180,running:false,at:Date.now()};
 S.fights=S.fights||Array.from({length:27},function(_,i){return{r:'',b:'',d:'MMA',c:''}});
 S.cur=S.cur||0;S.layout=S.layout||{scale:1,pos:'tc'};if(['tc','bc'].indexOf(S.layout.pos)<0)S.layout.pos='tc';S.theme=S.theme||{main:'#e3121b',a:'#e3121b',b:'#1f5fff'};S.lbl=S.lbl||{a:'ESQUINA ROJA',b:'ESQUINA AZUL'};S.show=S.show||{marcador:true,lt:false};S.ltp=S.ltp||[];
-var FIELDS=['r_nombre','r_apodo','r_record','r_peso','r_edad','b_nombre','b_apodo','b_record','b_peso','b_edad','disciplina','categoria','numero'];
+var FIELDS=['r_nombre','r_apodo','r_record','r_peso','r_edad','b_nombre','b_apodo','b_record','b_peso','b_edad','disciplina','categoria','numero','total'];
 S.f=S.f||{};
 function save(){ls('fcc2-ctl',S)}
 function remain(){var c=S.clock;return c.running?Math.max(0,c.rem-(Date.now()-c.at)/1000):c.rem}
@@ -271,7 +272,7 @@ function msg(){var f=S.f,c=S.clock,n=f.numero||1;
   marcador:{rojo:U(f.r_nombre)||'PELEADOR ROJO',azul:U(f.b_nombre)||'PELEADOR AZUL',sub:sub,rrec:U(f.r_record),brec:U(f.b_record),r_corner:U(S.lbl.a),b_corner:U(S.lbl.b)},
   vs:{r_nombre:U(f.r_nombre)||'NOMBRE APELLIDO',r_apodo:U(f.r_apodo),r_record:U(f.r_record)||'—',r_peso:U(f.r_peso)||'—',r_edad:U(f.r_edad)||'—',
       b_nombre:U(f.b_nombre)||'NOMBRE APELLIDO',b_apodo:U(f.b_apodo),b_record:U(f.b_record)||'—',b_peso:U(f.b_peso)||'—',b_edad:U(f.b_edad)||'—',
-      disciplina:U(f.disciplina),categoria:U(f.categoria),numero:'COMBATE '+n+' DE '+S.fights.length,r_corner:U(S.lbl.a),b_corner:U(S.lbl.b)},
+      disciplina:U(f.disciplina),categoria:U(f.categoria),numero:'COMBATE '+n+((f.total||'').toString().trim()?' DE '+f.total:''),r_corner:U(S.lbl.a),b_corner:U(S.lbl.b)},
   theme:S.theme,layout:S.layout,
   ganador:S.g||undefined,
   lt:S.lt||undefined,
@@ -367,7 +368,7 @@ $('bnext').onclick=function(){loadFight(S.cur+1)};$('bprev').onclick=function(){
 $('badd').onclick=function(){S.fights.push({r:'',b:'',d:'MMA',c:''});save();renderFights()};
 $('bpaste').onclick=function(){var L=$('paste').value.split(/\n/).map(function(l){return l.trim()}).filter(Boolean);if(!L.length)return;
  S.fights=L.map(function(l){var p=l.split('|').map(function(x){return x.trim()}),v=p[0].replace(/\s+/g,' ').split(/\s+(?:vs\.?|v\/s|versus|contra|x)\s+|\s+[-–—]\s+/i);return{r:(v[0]||'').trim(),b:(v[1]||'').trim(),d:U(p[1]||'MMA'),c:p[2]||''}});
- S.cur=0;save();renderFights();toast(S.fights.length+' combates cargados')};
+ S.cur=0;S.f.total=String(S.fights.length);$('total').value=S.f.total;save();renderFights();push();toast(S.fights.length+' combates cargados')};
 
 // ---------- resultado ----------
 function win(c){var f=S.f;var el=S.clock.len-remain();
