@@ -80,6 +80,7 @@ kbd{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#000;b
 .pv span{color:var(--mute);font-size:14px}
 .cp{height:42px;padding:3px;cursor:pointer}
 .sw-c{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:6px;border:1px solid rgba(255,255,255,.3)}
+.span2{grid-column:span 2}@media (max-width:900px){.span2{grid-column:auto}}
 details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1px}
 </style></head>
 <body>
@@ -168,13 +169,13 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
   </section>
 
   <!-- CARTELERA -->
-  <section class="card">
+  <section class="card span2">
     <h2>CARTELERA <span class="sp"><button id="bprev">◀ ANTERIOR</button><button class="pri" id="bnext">SIGUIENTE ▶</button></span></h2>
-    <div class="fl"><table><thead><tr><th>#</th><th class="lbl-a">ESQUINA ROJA</th><th class="lbl-b">ESQUINA AZUL</th><th>DISC.</th><th></th></tr></thead><tbody id="fl"></tbody></table></div>
+    <div class="fl"><table><thead><tr><th>#</th><th>HORA</th><th class="lbl-a">ESQUINA ROJA</th><th class="lbl-b">ESQUINA AZUL</th><th>DISC.</th><th></th></tr></thead><tbody id="fl"></tbody></table></div>
     <details><summary>Pegar cartelera completa (una pelea por línea)</summary>
       <p class="hint" style="margin:6px 0">Formato: <kbd>Rojo (Gimnasio) vs Azul (Gimnasio) | MMA | 70 kg · 3x3</kbd> (disciplina y categoría opcionales)</p>
       <textarea id="paste" rows="6" placeholder="Juan Pérez vs Diego Soto | MMA | 70 KG · 3 ROUNDS X 3 MIN"></textarea>
-      <div class="row" style="margin-top:6px"><button class="pri" id="bpaste">CARGAR CARTELERA</button><button id="badd">+ AGREGAR FILA</button></div>
+      <div class="row" style="margin-top:6px"><button class="pri" id="bpaste">CARGAR CARTELERA</button><button id="boficial">↺ CARTELERA OFICIAL FCC 2</button><button id="badd">+ AGREGAR FILA</button></div>
     </details>
   </section>
 
@@ -300,7 +301,7 @@ function utf8(s){return unescape(encodeURIComponent(s))}
 var S=ls('fcc2-ctl')||{};
 S.clock=S.clock||{round:1,len:180,rem:180,running:false,at:Date.now()};
 S.fights=S.fights||Array.from({length:27},function(_,i){return{r:'',b:'',d:'MMA',c:''}});
-S.cur=S.cur||0;S.mo=S.mo||{pos:'br',scale:1,op:1,live:true,msgs:true,estado:'EN VIVO',list:['FCC 2 · FIGHTING CHAMPIONSHIP CHILE','BLACK HOUSE · SANTIAGO','AUSPICIA DI PIPINO PIZZA']};S.layout=S.layout||{scale:1,pos:'tc'};if(['tc','bc'].indexOf(S.layout.pos)<0)S.layout.pos='tc';S.theme=S.theme||{main:'#e3121b',a:'#e3121b',b:'#1f5fff'};S.lbl=S.lbl||{a:'ESQUINA ROJA',b:'ESQUINA AZUL'};S.show=S.show||{marcador:true,lt:false};if(S.show.mosca==null)S.show.mosca=true;S.ltp=S.ltp||[];
+S.cur=S.cur||0;if(!S.ltpInit){S.ltp=(S.ltp||[]).concat([{n:'Matiedu',c:'Artista invitado · Show en vivo'}]);S.ltpInit=1}S.mo=S.mo||{pos:'br',scale:1,op:1,live:true,msgs:true,estado:'EN VIVO',list:['FCC 2 · FIGHTING CHAMPIONSHIP CHILE','BLACK HOUSE · SANTIAGO','AUSPICIA DI PIPINO PIZZA']};S.layout=S.layout||{scale:1,pos:'tc'};if(['tc','bc'].indexOf(S.layout.pos)<0)S.layout.pos='tc';S.theme=S.theme||{main:'#e3121b',a:'#e3121b',b:'#1f5fff'};S.lbl=S.lbl||{a:'ESQUINA ROJA',b:'ESQUINA AZUL'};S.show=S.show||{marcador:true,lt:false};if(S.show.mosca==null)S.show.mosca=true;S.ltp=S.ltp||[];
 var FIELDS=['r_nombre','r_gym','b_gym','r_apodo','r_record','r_peso','r_edad','b_nombre','b_apodo','b_record','b_peso','b_edad','disciplina','categoria','numero','total'];
 S.f=S.f||{};
 function save(){ls('fcc2-ctl',S)}
@@ -398,18 +399,22 @@ $('bsend').onclick=function(){readFields();save();push();toast('Enviado al aire'
 $('bswap').onclick=function(){readFields();['nombre','gym','apodo','record','peso','edad'].forEach(function(k){var t=S.f['r_'+k];S.f['r_'+k]=S.f['b_'+k];S.f['b_'+k]=t});loadFields();save();push()};
 
 // ---------- cartelera ----------
-function renderFights(){$('fl').innerHTML=S.fights.map(function(f,i){return '<tr class="'+(i===S.cur?'cur':'')+'"><td class="n">'+(i+1)+'</td><td class="rn"><input data-i="'+i+'" data-k="r" value="'+esc(f.r)+'" placeholder="Rojo"></td><td class="bn"><input data-i="'+i+'" data-k="b" value="'+esc(f.b)+'" placeholder="Azul"></td><td><input data-i="'+i+'" data-k="d" value="'+esc(f.d)+'" style="width:90px"></td><td><button data-load="'+i+'">'+(i===S.cur?'AL AIRE':'CARGAR')+'</button></td></tr>'}).join('')}
+var OFICIAL=[{"h": "13:15", "d": "NOGI", "r": "Ángel Jiménez", "b": "Martín Bahamonde", "c": "83 kg", "x": {"r_gym": "Cohab Centro", "b_gym": "La Familia Jiu Jitsu"}}, {"h": "13:25", "d": "NOGI", "r": "Diego Márquez", "b": "Pedro Montenegro", "c": "70 kg", "x": {"r_gym": "Alfa Team", "b_gym": "Crazy Brothers"}}, {"h": "13:35", "d": "NOGI", "r": "Pablo Bueno", "b": "Alexander Fichelman", "c": "80 kg", "x": {"r_gym": "Alfa Team", "b_gym": "Club Yamaguchi"}}, {"h": "13:45", "d": "NOGI", "r": "Lucas Yáñez", "b": "Matías Herrera", "c": "79 kg", "x": {"r_gym": "Manzur Bros / FCC Team", "b_gym": "Cohab Centro"}}, {"h": "13:55", "d": "NOGI", "r": "Jorge Allende", "b": "Gaspar Palma", "c": "76 kg", "x": {"r_gym": "Cohab Centro", "b_gym": "Alfa Team"}}, {"h": "14:05", "d": "NOGI", "r": "Cristian Miranda", "b": "Ricardo Muñoz", "c": "80 kg", "x": {"r_gym": "Manzur Bros", "b_gym": "Alfa Team"}}, {"h": "14:15", "d": "NOGI", "r": "Isabella Aguirres Díaz", "b": "Gissel Contreras", "c": "59 kg · Femenino infantil", "x": {"r_gym": "Manzur Bros", "b_gym": "Alfa Team"}}, {"h": "14:25", "d": "NOGI", "r": "Lorenzo Flores", "b": "Erik Espinoza", "c": "76 kg", "x": {"r_gym": "Cohab Centro", "b_gym": "Alfa Team"}}, {"h": "14:35", "d": "NOGI", "r": "Mateo Maiale", "b": "Iván Soto", "c": "76 kg", "x": {"r_gym": "Awka", "b_gym": "Alfa Team"}}, {"h": "14:45", "d": "NOGI", "r": "Barry Sandoval", "b": "Sebastián Herrera", "c": "75 kg", "x": {"r_gym": "Resistencia y Resiliencia", "b_gym": "Kacekastan"}}, {"h": "15:15", "d": "BOXEO", "r": "Vicente Valenzuela", "b": "Giovanni Vera", "c": "Peso pesado", "x": {"r_gym": "Alfa Team MMA", "b_gym": "Unity Boxeo"}, "len": 180, "tot": 3}, {"h": "15:28", "d": "BOXEO", "r": "Cristopher Pontigo", "b": "Cristhoper Saravia", "c": "72 kg", "x": {"r_gym": "Club Yamaguchi", "b_gym": "Manzur Bros"}, "len": 180, "tot": 3}, {"h": "15:41", "d": "BOXEO", "r": "Edson Alayo", "b": "Álvaro Astorga", "c": "Hasta 60 kg", "x": {"r_gym": "Team Clandestino MMA", "b_gym": "Manzur Bros"}, "len": 180, "tot": 3}, {"h": "15:54", "d": "BOXEO", "r": "Matías Infantes", "b": "Simon Montenegro", "c": "63 kg", "x": {"r_gym": "FCC Team", "b_gym": "Montenegro Team"}, "len": 180, "tot": 3}, {"h": "16:07", "d": "BOXEO", "r": "Javier Olivares", "b": "Basty Menéndez", "c": "Hasta 61 kg", "x": {"r_gym": "Manzur Bros", "b_gym": "Alfa Team"}, "len": 180, "tot": 3}, {"h": "16:20", "d": "BOXEO", "r": "Lautaro García", "b": "Alessandro Rivera", "c": "70 kg", "x": {"r_gym": "FCC Team", "b_gym": "Club Yamaguchi"}, "len": 180, "tot": 3}, {"h": "16:33", "d": "BOXEO", "r": "Joaquín Valdenegro", "b": "Sebastián González", "c": "57 kg · Élite", "x": {"r_gym": "Club Trueno Boxing", "b_gym": "FCC Team"}, "len": 180, "tot": 3}, {"h": "16:53", "d": "KICKBOXING", "r": "José Luis Schmidt", "b": "José Pretocinio", "c": "91 kg", "x": {"r_gym": "Brotherhood Quilicura", "b_gym": "Black House"}, "len": 120, "tot": 3}, {"h": "17:06", "d": "KICKBOXING", "r": "Sebastián Tapia", "b": "Cristóbal Sanhueza", "c": "Hasta 71 kg", "x": {"r_gym": "Brotherhood Quilicura", "b_gym": "KBE"}, "len": 120, "tot": 3}, {"h": "17:19", "d": "KICKBOXING", "r": "Bruno Canio", "b": "Matías Espinoza", "c": "Peso pesado · Low Kick Amateur", "x": {"r_gym": "Club Kacekastan", "b_gym": "Clandestino MMA"}, "len": 120, "tot": 3}, {"h": "17:32", "d": "KICKBOXING", "r": "Matías Aballay", "b": "Alberto Meza", "c": "Hasta 71 kg · K1", "x": {"r_gym": "Lions Fight Team", "b_gym": "Club Yamaguchi"}, "len": 120, "tot": 3}, {"h": "17:45", "d": "KICKBOXING", "r": "Diego López", "b": "Emiliano Espinoza", "c": "66 kg", "x": {"r_gym": "Alfa Team", "b_gym": "Clandestino MMA"}, "len": 120, "tot": 3}, {"h": "17:58", "d": "KICKBOXING", "r": "Felipe Castro", "b": "Arturo Cadenas", "c": "57 kg · Low Kick Semi Pro", "x": {"r_gym": "Manzur Bros", "b_gym": "KBE"}, "len": 180, "tot": 3}, {"h": "18:31", "d": "MMA", "r": "David Peime", "b": "Héctor García", "c": "57 kg", "x": {"r_gym": "Black House", "b_gym": "Alfa Team MMA"}, "len": 180, "tot": 3}, {"h": "18:44", "d": "MMA", "r": "Marlon Machiste", "b": "Román Araya", "c": "70 kg", "x": {"r_gym": "Training Boxing", "b_gym": "Club Clandestino MMA"}, "len": 180, "tot": 3}, {"h": "18:57", "d": "MMA", "r": "Fernando Benavente", "b": "Marcos Bustamante", "c": "70 kg · Coestelar", "x": {"r_gym": "Nintai Grappling Art", "b_gym": "Alfa Team"}, "len": 180, "tot": 3}, {"h": "19:30", "d": "MMA", "r": "Máximo Cuevas", "b": "Adán Letelier", "c": "66 kg · Pelea estelar · Título Copa FCC", "x": {"r_gym": "Clandestino MMA", "b_gym": "Limache Fight Club"}, "len": 180, "tot": 3}];
+function loadOficial(){S.fights=JSON.parse(JSON.stringify(OFICIAL));S.cur=0;S.f.total='27';$('total').value='27';save();renderFights();loadFight(0)}
+function renderFights(){$('fl').innerHTML=S.fights.map(function(f,i){return '<tr class="'+(i===S.cur?'cur':'')+'"><td class="n">'+(i+1)+'</td><td class="hint" style="width:46px">'+esc(f.h||'')+'</td><td class="rn"><input data-i="'+i+'" data-k="r" value="'+esc(f.r)+'" placeholder="Rojo"></td><td class="bn"><input data-i="'+i+'" data-k="b" value="'+esc(f.b)+'" placeholder="Azul"></td><td><input data-i="'+i+'" data-k="d" value="'+esc(f.d)+'" style="width:110px"></td><td><button data-load="'+i+'">'+(i===S.cur?'AL AIRE':'CARGAR')+'</button></td></tr>'}).join('')}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
 $('fl').addEventListener('input',function(e){var t=e.target;if(t.dataset.i==null)return;S.fights[+t.dataset.i][t.dataset.k]=t.value;save()});
 $('fl').addEventListener('click',function(e){var b=e.target.closest('[data-load]');if(b)loadFight(+b.dataset.load)});
 function loadFight(i){if(i<0||i>=S.fights.length)return;var f=S.fights[i];S.cur=i;
  S.f.r_nombre=f.r;S.f.b_nombre=f.b;['apodo','gym','record','peso','edad'].forEach(function(k){S.f['r_'+k]=(f.x&&f.x['r_'+k])||'';S.f['b_'+k]=(f.x&&f.x['b_'+k])||''});
+ var pm=(f.c||'').match(/(hasta\s*)?\d+\s*kg|peso\s+pesado/i);if(pm){if(!S.f.r_peso)S.f.r_peso=U(pm[0]);if(!S.f.b_peso)S.f.b_peso=U(pm[0])}
  if(f.d)S.f.disciplina=U(f.d);S.f.categoria=f.c||S.f.categoria||'';S.f.numero=i+1;
- S.clock={round:1,total:S.clock.total||3,len:S.clock.len,rem:S.clock.len,running:false,at:Date.now()};S.g=undefined;
+ var L=f.len||S.clock.len,T=f.tot||S.clock.total||3;S.clock={round:1,total:T,len:L,rem:L,running:false,at:Date.now()};$('len').value=String(L);$('tot').value=String(T);S.g=undefined;
  loadFields();renderFights();save();push();toast('Combate '+(i+1)+' cargado')}
 // guarda los datos extra del combate actual en la cartelera
 setInterval(function(){var f=S.fights[S.cur];if(!f)return;f.x=f.x||{};['apodo','gym','record','peso','edad'].forEach(function(k){f.x['r_'+k]=S.f['r_'+k];f.x['b_'+k]=S.f['b_'+k]});save()},3000);
 $('bnext').onclick=function(){loadFight(S.cur+1)};$('bprev').onclick=function(){loadFight(S.cur-1)};
+$('boficial').onclick=function(){loadOficial();toast('Cartelera oficial FCC 2 cargada (27 combates)')};
 $('badd').onclick=function(){S.fights.push({r:'',b:'',d:'MMA',c:''});save();renderFights()};
 $('bpaste').onclick=function(){var L=$('paste').value.split(/\n/).map(function(l){return l.trim()}).filter(Boolean);if(!L.length)return;
  S.fights=L.map(function(l){var p=l.split('|').map(function(x){return x.trim()}),GY=function(t){var m=(t||'').match(/^(.*?)\s*\(([^)]*)\)\s*$/);return m?[m[1].trim(),m[2].trim()]:[(t||'').trim(),'']},v=p[0].replace(/\s+/g,' ').split(/\s+(?:vs\.?|v\/s|versus|contra|x)\s+|\s+[-–—]\s+/i);var ra=GY(v[0]),ba=GY(v[1]);return{x:{r_gym:ra[1],b_gym:ba[1]},r:ra[0],b:ba[0],d:U(p[1]||'MMA'),c:p[2]||''}});
@@ -584,5 +589,6 @@ $('rb_speed').value=String(S.rb.speed);$('rb_len').value=String(S.rb.len);$('rb_
 ['rb_speed','rb_len','rb_back'].forEach(function(id){$(id).onchange=function(){S.rb={speed:+$('rb_speed').value,len:+$('rb_len').value,back:$('rb_back').checked};save()}});
 document.addEventListener('keydown',function(e){var t=e.target.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;if(e.key==='p'||e.key==='P')$('rb_play').click();else if(e.key==='m'||e.key==='M')$('rb_save').click()});
 renderHL();
+if(!S.fights.some(function(f){return (f.r||'').trim()}))setTimeout(loadOficial,50);
 renderMo();renderTheme();loadFields();renderFights();renderLtp();renderAir();push();runDiag();
 </script></body></html>
