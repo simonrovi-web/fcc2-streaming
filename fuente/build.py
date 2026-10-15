@@ -106,7 +106,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitAll);setTim
 var LAST=0;
 function applyLive(d){if(!d||!d.ts||d.ts<LAST)return;LAST=d.ts;var m=d[PANEL],big=false;
  if(m)for(var k in m){var el=document.querySelector('[data-k="'+k+'"]');if(el&&document.activeElement!==el&&m[k]!=null&&el.textContent!==String(m[k])){if(/nombre$|^rojo$|^azul$/.test(k))big=true;el.textContent=m[k]}}
- if(d.theme)applyTheme(d.theme);fitAll();
+ if(d.theme)applyTheme(d.theme);document.querySelectorAll('.gym').forEach(function(g){var t=g.querySelector('b');g.classList.toggle('empty',!t||!t.textContent.trim())});fitAll();
  if(big&&PANEL!=='marcador'&&document.getAnimations)document.getAnimations().forEach(function(a){try{a.cancel();a.play()}catch(e){}});
  if(d.clock&&window.onClock&&PANEL==='marcador')window.onClock(d.clock);
  if(d.layout&&window.onLayout&&PANEL==='marcador')window.onLayout(d.layout);
@@ -174,15 +174,22 @@ VSCSS = """
 .edge{position:absolute;top:0;bottom:104px;width:6px;z-index:1;transform-origin:top}
 .edge.r{left:1027px;background:var(--ca);box-shadow:0 0 24px var(--ca);transform:skewX(-7.6deg)}
 .edge.b{left:887px;background:var(--cb);box-shadow:0 0 24px var(--cb);transform:skewX(-7.6deg)}
-.fighter{position:absolute;top:205px;width:640px;display:flex;flex-direction:column;align-items:center;text-align:center;z-index:2}
+.fighter{position:absolute;top:186px;width:640px;display:flex;flex-direction:column;align-items:center;text-align:center;z-index:2}
 .fighter.r{left:90px;animation:inL .8s .1s ease both}.fighter.b{right:90px;animation:inR .8s .1s ease both}
 .corner{font-family:"Bebas";font-size:30px;letter-spacing:8px;padding:5px 26px 1px;transform:skewX(-14deg);color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.45)}
 .corner.r{background:var(--ca)}.corner.b{background:var(--cb)}
 .corner span{display:inline-block;transform:skewX(14deg)}
-.name{font-family:"Bebas";font-size:124px;line-height:1;padding-top:.06em;letter-spacing:2px;width:640px;max-height:250px;overflow:hidden;overflow-wrap:break-word;font-style:italic;color:#fff;text-shadow:4px 4px 0 #000,0 10px 34px rgba(0,0,0,.7)}
-.namebox{height:256px;width:640px;margin-top:14px;display:flex;align-items:center;justify-content:center}
-.nick{font-size:28px;letter-spacing:4px;color:#e6e6e6;margin-top:10px;min-height:34px}
-.stats{display:flex;justify-content:center;margin-top:26px;background:rgba(0,0,0,.55);border-top:3px solid rgba(255,255,255,.25)}
+.name{font-family:"Bebas";font-size:124px;line-height:1;padding-top:.06em;letter-spacing:2px;width:640px;max-height:226px;overflow:hidden;overflow-wrap:break-word;font-style:italic;color:#fff;text-shadow:4px 4px 0 #000,0 10px 34px rgba(0,0,0,.7)}
+.namebox{height:232px;width:640px;margin-top:12px;display:flex;align-items:center;justify-content:center}
+.gym{display:flex;align-items:center;gap:12px;margin-top:8px;padding:6px 26px 2px 18px;background:rgba(0,0,0,.6);transform:skewX(-14deg);max-width:620px}
+.gym>*{transform:skewX(14deg)}
+.gym.r{border-bottom:4px solid var(--ca)}.gym.b{border-bottom:4px solid var(--cb)}
+.gym svg{width:30px;height:34px;flex:none}
+.gym.r svg path{fill:var(--ca)}.gym.b svg path{fill:var(--cb)}
+.gym b{font-family:"Bebas";font-size:42px;line-height:1.15;letter-spacing:3px;font-weight:400;color:#fff;white-space:nowrap;overflow:hidden;max-width:540px}
+.gym.empty{visibility:hidden}
+.nick{font-size:26px;letter-spacing:4px;color:#e6e6e6;margin-top:8px;min-height:32px}
+.stats{display:flex;justify-content:center;margin-top:16px;background:rgba(0,0,0,.55);border-top:3px solid rgba(255,255,255,.25)}
 .stats div{padding:10px 30px 8px;border-left:1px solid rgba(255,255,255,.15);min-width:130px}
 .stats div:first-child{border-left:0}
 .stats b{display:block;font-family:"Bebas";font-size:50px;line-height:1.05}
@@ -191,7 +198,7 @@ VSCSS = """
 .vs{position:absolute;left:50%;top:400px;width:400px;margin:-150px 0 0 -200px;text-align:center;font-family:"Bebas";font-size:290px;line-height:1;font-style:italic;color:#fff;z-index:3;
  text-shadow:5px 5px 0 #000,0 0 50px rgba(var(--red2-rgb),.85),0 0 110px rgba(var(--red2-rgb),.45);animation:vsIn .7s .35s cubic-bezier(.2,1.6,.4,1) both}
 @keyframes vsIn{from{opacity:0;transform:scale(2.4)}to{opacity:1;transform:none}}
-.info{position:absolute;left:50%;top:705px;width:1100px;margin-left:-550px;text-align:center;z-index:3}
+.info{position:absolute;left:50%;top:716px;width:1100px;margin-left:-550px;text-align:center;z-index:3}
 .info .k{display:inline-block;font-family:"Bebas";font-size:66px;line-height:1.1;letter-spacing:10px;background:var(--red);padding:4px 44px 0;transform:skewX(-14deg);box-shadow:0 0 26px rgba(var(--red-rgb),.5)}
 .info .k span{display:inline-block;transform:skewX(14deg)}
 .info .w{font-family:"Bebas";font-size:60px;line-height:1.1;letter-spacing:6px;margin-top:12px;text-shadow:3px 3px 0 #000}
@@ -199,8 +206,9 @@ VSCSS = """
 """
 def side(cls, corner, pre):
     return f"""<div class="fighter {cls}"><div class="corner {cls}"><span data-k="{pre}corner">{corner}</span></div>
-<div class="namebox"><div class="name" data-k="{pre}nombre" data-fit="h" data-max="124" data-min="50" data-sync="vsn">NOMBRE APELLIDO</div></div>
-<div class="nick" data-k="{pre}apodo">"APODO" · ACADEMIA</div>
+<div class="namebox"><div class="name" data-k="{pre}nombre" data-fit="h" data-max="112" data-min="48" data-sync="vsn">NOMBRE APELLIDO</div></div>
+<div class="gym {cls}"><svg viewBox="0 0 24 28"><path d="M12 0l12 4v9c0 7.5-5.2 12.6-12 15C5.2 25.6 0 20.5 0 13V4z"/></svg><b data-k="{pre}gym" data-fit="w" data-max="42" data-min="22">GIMNASIO</b></div>
+<div class="nick" data-k="{pre}apodo">"APODO"</div>
 <div class="stats"><div><b data-k="{pre}record">0-0-0</b><span>RÉCORD</span></div><div><b data-k="{pre}peso">00 KG</b><span>PESO</span></div><div><b data-k="{pre}edad">00</b><span>EDAD</span></div></div></div>"""
 P['FCC2_VS'] = page('FCC 2 VS', VSCSS, f"""<div class="stage">{BG}
 <div class="half r"></div><div class="half b"></div>

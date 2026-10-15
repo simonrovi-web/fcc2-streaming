@@ -125,7 +125,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitAll);setTim
 var LAST=0;
 function applyLive(d){if(!d||!d.ts||d.ts<LAST)return;LAST=d.ts;var m=d[PANEL],big=false;
  if(m)for(var k in m){var el=document.querySelector('[data-k="'+k+'"]');if(el&&document.activeElement!==el&&m[k]!=null&&el.textContent!==String(m[k])){if(/nombre$|^rojo$|^azul$/.test(k))big=true;el.textContent=m[k]}}
- if(d.theme)applyTheme(d.theme);fitAll();
+ if(d.theme)applyTheme(d.theme);document.querySelectorAll('.gym').forEach(function(g){var t=g.querySelector('b');g.classList.toggle('empty',!t||!t.textContent.trim())});fitAll();
  if(big&&PANEL!=='marcador'&&document.getAnimations)document.getAnimations().forEach(function(a){try{a.cancel();a.play()}catch(e){}});
  if(d.clock&&window.onClock&&PANEL==='marcador')window.onClock(d.clock);
  if(d.layout&&window.onLayout&&PANEL==='marcador')window.onLayout(d.layout);
