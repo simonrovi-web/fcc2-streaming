@@ -81,9 +81,25 @@ kbd{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#000;b
 .cp{height:42px;padding:3px;cursor:pointer}
 .sw-c{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:6px;border:1px solid rgba(255,255,255,.3)}
 .span2{grid-column:span 2}@media (max-width:900px){.span2{grid-column:auto}}
+.topfix{position:sticky;top:0;z-index:6;background:rgba(8,8,8,.97);box-shadow:0 10px 24px rgba(0,0,0,.6)}
+.topfix header{position:static;background:transparent}
+.monitor{display:grid;grid-template-columns:minmax(260px,440px) 1fr;gap:14px;padding:10px 18px 12px;border-bottom:2px solid var(--red)}
+.mon-ctl{display:flex;flex-direction:column;gap:8px;min-width:0}
+.mon-row{display:flex;gap:8px;flex-wrap:wrap}
+.mini-clock{display:flex;align-items:center;gap:10px;background:#000;border:1px solid var(--line);padding:2px 14px}
+.mini-clock b#m_tm{font-family:"Bebas";font-size:40px;line-height:1;font-weight:400}
+.mini-clock b#m_tm.low{color:var(--red2)}
+.lbl2{font-family:"Bebas";font-size:18px;letter-spacing:3px;color:var(--mute)}
+.monitor .scenes button{font-size:17px;padding:6px 10px 3px}
+.pvh{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px}
+.pv{aspect-ratio:16/9;background:#000;border:1px solid var(--line);position:relative;display:flex;align-items:center;justify-content:center}
+.pv img{width:100%;height:100%;object-fit:contain;position:absolute;inset:0}
+.pv span{color:var(--mute);font-size:14px;text-align:center;padding:0 10px}
+@media (max-width:760px){.monitor{grid-template-columns:1fr}.mon-pv{max-width:360px}}
 details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1px}
 </style></head>
 <body>
+<div class="topfix">
 <header>
   <img src="__LOGO__" alt="FCC">
   <h1>CONTROL EN VIVO <em>FCC 2</em></h1>
@@ -95,25 +111,26 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
     <button class="pri" id="bconn">CONECTAR</button>
   </div>
 </header>
-<main>
-  <section class="card wide" id="setupcard">
-    <h2>CONFIGURAR OBS <span class="sp"><button id="bdiag">REVISAR</button></span></h2>
-    <div class="setup">
-      <div>
-        <ul class="chk" id="chk"><li class="pend">Conecta OBS arriba para revisar la instalación.</li></ul>
-        <div class="row" style="margin-top:10px">
-          <button class="pri big" id="binstall">⚙ INSTALAR GRÁFICOS EN OBS</button>
-          <button class="big" id="breload">↻ RECARGAR GRÁFICOS</button>
-          <button class="big" id="btest">✓ PROBAR</button>
-        </div>
-        <p class="hint" style="margin-top:8px"><b>INSTALAR</b> crea (si faltan) las escenas INICIO, ESTUDIO, VS, GANADOR, REPLAY, PAUSA, AUSPICIADOR y FINAL en la colección de escenas que tengas abierta, y pone cada gráfico FCC2 apuntando a esta carpeta. Si ya existen, solo corrige las rutas. No borra nada.</p>
-      </div>
-      <div>
-        <div class="pvh"><label class="sw"><input type="checkbox" id="pvon" checked> Ver lo que sale al aire (programa)</label><span id="pvname" class="hint"></span></div>
-        <div class="pv"><img id="pv" alt=""><span id="pvmsg">Sin vista previa</span></div>
-      </div>
+<div class="monitor" id="monitor">
+  <div class="mon-pv">
+    <div class="pvh"><label class="sw"><input type="checkbox" id="pvon" checked> AL AIRE</label><span id="pvname" class="hint"></span></div>
+    <div class="pv"><img id="pv" alt=""><span id="pvmsg">Conecta OBS para ver la pantalla</span></div>
+  </div>
+  <div class="mon-ctl">
+    <div class="mon-row">
+      <div class="mini-clock"><span class="hint">ROUND <b id="m_rd">1</b></span><b id="m_tm">3:00</b></div>
+      <button class="pri" id="m_start">▶ INICIAR</button>
+      <button id="m_reset">↺</button>
+      <button class="pri" id="m_rb">⏪ REPETIR</button>
+      <button id="m_hl">★ MOMENTO</button>
     </div>
-  </section>
+    <div class="mon-row" style="align-items:center"><span class="lbl2">ESCENAS</span><label class="sw" style="margin-left:auto"><input type="checkbox" id="toprev"> A vista previa (modo estudio)</label></div>
+    <div class="scenes" id="scenes"><span class="hint">Conecta OBS para ver tus escenas aquí.</span></div>
+    <div class="mon-row"><button class="pri" id="btrans" style="flex:1">TRANSICIÓN (MODO ESTUDIO)</button></div>
+  </div>
+</div>
+</div>
+<main>
   <!-- RELOJ -->
   <section class="card">
     <h2>RELOJ <span class="sp"><span class="onair v" id="air-marcador">MARCADOR EN PANTALLA</span></span></h2>
@@ -261,14 +278,21 @@ AUSPICIA DI PIPINO PIZZA</textarea></div>
     <div class="row"><div class="f"><label>TEXTO DEL REPLAY</label><input id="rp_texto" value="REPETICIÓN"></div><button id="brp2">ENVIAR</button></div>
   </section>
 
-  <!-- ESCENAS -->
-  <section class="card">
-    <h2>ESCENAS DE OBS <span class="sp"><label class="sw" style="margin:0"><input type="checkbox" id="toprev"> A vista previa</label></span></h2>
-    <div class="scenes" id="scenes"><span class="hint">Conecta OBS para ver tus escenas aquí.</span></div>
-    <div class="row"><button class="pri" id="btrans">TRANSICIÓN (MODO ESTUDIO)</button></div>
-    <p class="hint">Clic en una escena = la pone al aire. Con "A vista previa" marcado (Modo Estudio) la manda a la vista previa y luego usas TRANSICIÓN.</p>
-  </section>
 
+  <section class="card wide" id="setupcard">
+    <h2>CONFIGURAR OBS <span class="sp"><button id="bdiag">REVISAR</button></span></h2>
+    <div>
+      <div>
+        <ul class="chk" id="chk"><li class="pend">Conecta OBS arriba para revisar la instalación.</li></ul>
+        <div class="row" style="margin-top:10px">
+          <button class="pri big" id="binstall">⚙ INSTALAR GRÁFICOS EN OBS</button>
+          <button class="big" id="breload">↻ RECARGAR GRÁFICOS</button>
+          <button class="big" id="btest">✓ PROBAR</button>
+        </div>
+        <p class="hint" style="margin-top:8px"><b>INSTALAR</b> crea (si faltan) las escenas INICIO, ESTUDIO, VS, GANADOR, REPLAY, PAUSA, AUSPICIADOR y FINAL en la colección de escenas que tengas abierta, y pone cada gráfico FCC2 apuntando a esta carpeta. Si ya existen, solo corrige las rutas. No borra nada.</p>
+      </div>
+    </div>
+  </section>
   <section class="card wide">
     <h2>CÓMO CONECTAR</h2>
     <p class="hint">1) En OBS: <b>Herramientas → Ajustes del servidor WebSocket</b> → marca <b>Habilitar servidor WebSocket</b> → <b>Mostrar información de conexión</b> y copia la contraseña. 2) Pégala arriba y pulsa <b>CONECTAR</b> (para controlar <b>desde otro PC</b> de la misma red: escribe arriba la <b>IP del PC de OBS</b> en vez de <i>localhost</i>; esa IP aparece en <b>Mostrar información de conexión</b>. Primero haz INSTALAR una vez en el PC de OBS). 3) Los gráficos FCC2 (VS, Ganador, Marcador, Lower third, Replay) que estén en tus escenas se actualizan al instante. Este panel recuerda todo aunque lo cierres.</p>
@@ -591,5 +615,11 @@ $('rb_speed').value=String(S.rb.speed);$('rb_len').value=String(S.rb.len);$('rb_
 document.addEventListener('keydown',function(e){var t=e.target.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;if(e.key==='p'||e.key==='P')$('rb_play').click();else if(e.key==='m'||e.key==='M')$('rb_save').click()});
 renderHL();
 if(S.cartV!=='fcc2-oficial-1'||!S.fights.some(function(f){return (f.r||'').trim()})){S.cartV='fcc2-oficial-1';setTimeout(function(){loadOficial();toast('Cartelera oficial FCC 2 cargada')},50)}
+
+// ---------- franja fija: mini reloj y atajos ----------
+$('m_start').onclick=function(){$('bstart').click()};$('m_reset').onclick=function(){$('breset').click()};
+$('m_rb').onclick=function(){$('rb_play').click()};$('m_hl').onclick=function(){$('rb_save').click()};
+(function mini(){var r=remain();$('m_tm').textContent=fmt(r);$('m_tm').className=Math.ceil(r)<=10?'low':'';$('m_rd').textContent=S.clock.round+(S.clock.total?' / '+S.clock.total:'');
+ $('m_start').textContent=S.clock.running?'❚❚ PAUSAR':'▶ INICIAR';$('m_start').className=S.clock.running?'':'pri';requestAnimationFrame(mini)})();
 renderMo();renderTheme();loadFields();renderFights();renderLtp();renderAir();push();runDiag();
 </script></body></html>
