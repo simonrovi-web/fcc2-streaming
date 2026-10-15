@@ -36,7 +36,7 @@ document.querySelectorAll('[data-k]').forEach(function(el){var k=el.dataset.k,s=
 function fitEl(el){var mx=+el.dataset.max,mn=+el.dataset.min||20,f=mx;el.style.fontSize=f+'px';
  var mh=parseFloat(getComputedStyle(el).maxHeight)||1e9;var over=el.dataset.fit==='h'?function(){return el.scrollHeight>mh+4||el.scrollWidth>el.clientWidth+2}:function(){return el.scrollWidth>el.clientWidth+1};
  while(over()&&f>mn){f-=2;el.style.fontSize=f+'px'}}
-function fitAll(){document.querySelectorAll('[data-fit]').forEach(fitEl)}
+function fitAll(){document.querySelectorAll('[data-fit]').forEach(fitEl);var g={};document.querySelectorAll('[data-sync]').forEach(function(e){var k=e.dataset.sync,f=parseFloat(e.style.fontSize)||999;g[k]=Math.min(g[k]||999,f)});document.querySelectorAll('[data-sync]').forEach(function(e){e.style.fontSize=g[e.dataset.sync]+'px'})}
 // ---- colores editables desde el control ----
 function hx(h){h=(h||'').replace('#','');if(h.length===3)h=h.split('').map(function(c){return c+c}).join('');var n=parseInt(h,16);return isNaN(n)?null:[n>>16&255,n>>8&255,n&255]}
 function mixc(c,t,a){return c.map(function(v,i){return Math.round(v+(t[i]-v)*a)})}

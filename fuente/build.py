@@ -90,7 +90,7 @@ LIVE = r"""
 function fitEl(el){var mx=+el.dataset.max,mn=+el.dataset.min||20,f=mx;el.style.fontSize=f+'px';
  var mh=parseFloat(getComputedStyle(el).maxHeight)||1e9;var over=el.dataset.fit==='h'?function(){return el.scrollHeight>mh+4||el.scrollWidth>el.clientWidth+2}:function(){return el.scrollWidth>el.clientWidth+1};
  while(over()&&f>mn){f-=2;el.style.fontSize=f+'px'}}
-function fitAll(){document.querySelectorAll('[data-fit]').forEach(fitEl)}
+function fitAll(){document.querySelectorAll('[data-fit]').forEach(fitEl);var g={};document.querySelectorAll('[data-sync]').forEach(function(e){var k=e.dataset.sync,f=parseFloat(e.style.fontSize)||999;g[k]=Math.min(g[k]||999,f)});document.querySelectorAll('[data-sync]').forEach(function(e){e.style.fontSize=g[e.dataset.sync]+'px'})}
 // ---- colores editables desde el control ----
 function hx(h){h=(h||'').replace('#','');if(h.length===3)h=h.split('').map(function(c){return c+c}).join('');var n=parseInt(h,16);return isNaN(n)?null:[n>>16&255,n>>8&255,n&255]}
 function mixc(c,t,a){return c.map(function(v,i){return Math.round(v+(t[i]-v)*a)})}
@@ -166,35 +166,48 @@ ck.textContent=String(Math.floor(d/60)).padStart(2,'0')+':'+String(d%60).padStar
 t();setInterval(t,250);''')
 
 # ---------- VS ----------
-VSCSS = '''
-.side{position:absolute;top:0;bottom:104px;width:960px;display:flex;flex-direction:column;justify-content:center;padding:0 90px}
-.side.r{left:0;background:linear-gradient(100deg,rgba(var(--ca-rgb),.55),rgba(var(--ca-rgb),.08) 70%,transparent);clip-path:polygon(0 0,100% 0,86% 100%,0 100%);animation:inL .8s ease both}
-.side.b{right:0;align-items:flex-end;text-align:right;background:linear-gradient(-100deg,rgba(var(--cb-rgb),.55),rgba(var(--cb-rgb),.08) 70%,transparent);clip-path:polygon(14% 0,100% 0,100% 100%,0 100%);animation:inR .8s ease both}
-.corner{font-family:"Bebas";font-size:34px;letter-spacing:8px;opacity:.85}
-.name{font-family:"Bebas";font-size:150px;line-height:1;padding-top:.06em;letter-spacing:2px;width:600px;max-height:290px;overflow:hidden;overflow-wrap:break-word;margin-top:4px;text-shadow:0 6px 30px rgba(0,0,0,.6)}
-.nick{font-size:30px;letter-spacing:4px;color:#ddd;margin-top:14px}
-.stats{display:flex;gap:34px;margin-top:34px}
-.stats div{border-top:3px solid rgba(255,255,255,.5);padding-top:8px}
-.stats b{display:block;font-family:"Bebas";font-size:52px;line-height:1}
-.stats span{font-size:16px;letter-spacing:4px;color:#cfcfcf}
-.vs{position:absolute;left:50%;top:400px;transform:translate(-50%,-50%);font-family:"Bebas";font-size:260px;line-height:1;color:#fff;text-shadow:0 0 60px rgba(var(--red2-rgb),.7),0 0 6px #000;z-index:2;animation:inUp 1s .3s ease both}
-.minilogo{position:absolute;left:50%;top:40px;width:330px;transform:translateX(-50%);mix-blend-mode:lighten;z-index:2}
-.info{position:absolute;left:50%;top:700px;transform:translateX(-50%);text-align:center;z-index:2;white-space:nowrap}
-.info .k{font-family:"Bebas";font-size:44px;letter-spacing:6px;background:var(--red);padding:4px 30px 0;display:inline-block}
-.info .w{font-family:"Bebas";font-size:40px;letter-spacing:4px;margin-top:14px}
-.info .n{font-size:22px;letter-spacing:6px;color:var(--mute);margin-top:6px}
-'''
+VSCSS = """
+.half{position:absolute;top:0;bottom:104px;width:1030px}
+.half.r{left:0;background:linear-gradient(100deg,rgba(var(--ca-rgb),.62),rgba(var(--ca-rgb),.18) 55%,rgba(var(--ca-rgb),.04));clip-path:polygon(0 0,100% 0,87% 100%,0 100%);animation:inL .8s ease both}
+.half.b{right:0;background:linear-gradient(-100deg,rgba(var(--cb-rgb),.62),rgba(var(--cb-rgb),.18) 55%,rgba(var(--cb-rgb),.04));clip-path:polygon(13% 0,100% 0,100% 100%,0 100%);animation:inR .8s ease both}
+.edge{position:absolute;top:0;bottom:104px;width:6px;z-index:1;transform-origin:top}
+.edge.r{left:1027px;background:var(--ca);box-shadow:0 0 24px var(--ca);transform:skewX(-7.6deg)}
+.edge.b{left:887px;background:var(--cb);box-shadow:0 0 24px var(--cb);transform:skewX(-7.6deg)}
+.fighter{position:absolute;top:205px;width:640px;display:flex;flex-direction:column;align-items:center;text-align:center;z-index:2}
+.fighter.r{left:90px;animation:inL .8s .1s ease both}.fighter.b{right:90px;animation:inR .8s .1s ease both}
+.corner{font-family:"Bebas";font-size:30px;letter-spacing:8px;padding:5px 26px 1px;transform:skewX(-14deg);color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+.corner.r{background:var(--ca)}.corner.b{background:var(--cb)}
+.corner span{display:inline-block;transform:skewX(14deg)}
+.name{font-family:"Bebas";font-size:124px;line-height:1;padding-top:.06em;letter-spacing:2px;width:640px;max-height:250px;overflow:hidden;overflow-wrap:break-word;font-style:italic;color:#fff;text-shadow:4px 4px 0 #000,0 10px 34px rgba(0,0,0,.7)}
+.namebox{height:256px;width:640px;margin-top:14px;display:flex;align-items:center;justify-content:center}
+.nick{font-size:28px;letter-spacing:4px;color:#e6e6e6;margin-top:10px;min-height:34px}
+.stats{display:flex;justify-content:center;margin-top:26px;background:rgba(0,0,0,.55);border-top:3px solid rgba(255,255,255,.25)}
+.stats div{padding:10px 30px 8px;border-left:1px solid rgba(255,255,255,.15);min-width:130px}
+.stats div:first-child{border-left:0}
+.stats b{display:block;font-family:"Bebas";font-size:50px;line-height:1.05}
+.stats span{font-size:15px;letter-spacing:4px;color:#cfcfcf}
+.minilogo{position:absolute;left:50%;top:28px;width:300px;margin-left:-150px;mix-blend-mode:lighten;z-index:3}
+.vs{position:absolute;left:50%;top:400px;width:400px;margin:-150px 0 0 -200px;text-align:center;font-family:"Bebas";font-size:290px;line-height:1;font-style:italic;color:#fff;z-index:3;
+ text-shadow:5px 5px 0 #000,0 0 50px rgba(var(--red2-rgb),.85),0 0 110px rgba(var(--red2-rgb),.45);animation:vsIn .7s .35s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes vsIn{from{opacity:0;transform:scale(2.4)}to{opacity:1;transform:none}}
+.info{position:absolute;left:50%;top:760px;width:900px;margin-left:-450px;text-align:center;z-index:3}
+.info .k{display:inline-block;font-family:"Bebas";font-size:40px;letter-spacing:8px;background:var(--red);padding:4px 32px 0;transform:skewX(-14deg);box-shadow:0 0 26px rgba(var(--red-rgb),.5)}
+.info .k span{display:inline-block;transform:skewX(14deg)}
+.info .w{font-family:"Bebas";font-size:38px;letter-spacing:5px;margin-top:12px;text-shadow:2px 2px 0 #000}
+.info .n{font-size:20px;letter-spacing:7px;color:#cfcfcf;margin-top:4px}
+"""
 def side(cls, corner, pre):
-    return f'''<div class="side {cls}"><div class="corner" data-k="{pre}corner">{corner}</div>
-<div class="name" data-k="{pre}nombre" data-fit="h" data-max="150" data-min="56">NOMBRE APELLIDO</div>
+    return f"""<div class="fighter {cls}"><div class="corner {cls}"><span data-k="{pre}corner">{corner}</span></div>
+<div class="namebox"><div class="name" data-k="{pre}nombre" data-fit="h" data-max="124" data-min="50" data-sync="vsn">NOMBRE APELLIDO</div></div>
 <div class="nick" data-k="{pre}apodo">"APODO" · ACADEMIA</div>
-<div class="stats"><div><b data-k="{pre}record">0-0-0</b><span>RÉCORD</span></div><div><b data-k="{pre}peso">00 KG</b><span>PESO</span></div><div><b data-k="{pre}edad">00</b><span>EDAD</span></div></div></div>'''
-P['FCC2_VS'] = page('FCC 2 VS', VSCSS, f'''<div class="stage">{BG}
+<div class="stats"><div><b data-k="{pre}record">0-0-0</b><span>RÉCORD</span></div><div><b data-k="{pre}peso">00 KG</b><span>PESO</span></div><div><b data-k="{pre}edad">00</b><span>EDAD</span></div></div></div>"""
+P['FCC2_VS'] = page('FCC 2 VS', VSCSS, f"""<div class="stage">{BG}
+<div class="half r"></div><div class="half b"></div>
 {side('r','ESQUINA ROJA','r_')}{side('b','ESQUINA AZUL','b_')}
 <img class="minilogo" src="{LOGO}">
 <div class="vs">VS</div>
-<div class="info"><div class="k" data-k="disciplina">MMA</div><div class="w" data-k="categoria">CATEGORÍA · 3 ROUNDS X 3 MIN</div><div class="n" data-k="numero">COMBATE 1 DE 27</div></div>
-<div class="vig"></div>{BAR}</div>''')
+<div class="info"><div class="k"><span data-k="disciplina">MMA</span></div><div class="w" data-k="categoria">CATEGORÍA · 3 ROUNDS X 3 MIN</div><div class="n" data-k="numero">COMBATE 1</div></div>
+<div class="vig"></div>{BAR}</div>""")
 
 # ---------- GANADOR ----------
 P['FCC2_Ganador'] = page('FCC 2 Ganador', '''
