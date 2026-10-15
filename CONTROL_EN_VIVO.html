@@ -176,6 +176,27 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
     </details>
   </section>
 
+  <!-- MOSCA -->
+  <section class="card">
+    <h2>MOSCA <span class="sp"><span class="onair" id="air-mosca">EN PANTALLA</span></span></h2>
+    <div class="row">
+      <button class="pri" id="mo_show">MOSTRAR</button><button id="mo_hide">OCULTAR</button>
+    </div>
+    <div class="row">
+      <div class="f"><label>POSICIÓN</label><select id="mo_pos"><option value="br">Abajo derecha</option><option value="bl">Abajo izquierda</option><option value="tr">Arriba derecha</option><option value="tl">Arriba izquierda</option></select></div>
+      <div class="f"><label>TAMAÑO</label><select id="mo_scale"><option value="0.7">Pequeña</option><option value="0.85">Mediana</option><option value="1" selected>Normal</option><option value="1.2">Grande</option></select></div>
+      <div class="f"><label>OPACIDAD</label><input type="range" id="mo_op" min="0.3" max="1" step="0.05" value="1"></div>
+    </div>
+    <div class="row">
+      <label class="sw"><input type="checkbox" id="mo_live" checked> Indicador</label>
+      <div class="f" style="flex:2"><input id="mo_estado" value="EN VIVO" placeholder="EN VIVO / REPETICIÓN / PAUSA"></div>
+    </div>
+    <div><label class="sw"><input type="checkbox" id="mo_msgs" checked> Mensajes que rotan (uno por línea, cambian cada 6 s)</label>
+      <textarea id="mo_list" rows="3" style="margin-top:6px">FCC 2 · FIGHTING CHAMPIONSHIP CHILE
+BLACK HOUSE · SANTIAGO
+AUSPICIA DI PIPINO PIZZA</textarea></div>
+  </section>
+
   <!-- COLORES -->
   <section class="card">
     <h2>COLORES Y ESQUINAS <span class="sp"><button id="threset">RESTABLECER</button></span></h2>
@@ -257,7 +278,7 @@ function utf8(s){return unescape(encodeURIComponent(s))}
 var S=ls('fcc2-ctl')||{};
 S.clock=S.clock||{round:1,len:180,rem:180,running:false,at:Date.now()};
 S.fights=S.fights||Array.from({length:27},function(_,i){return{r:'',b:'',d:'MMA',c:''}});
-S.cur=S.cur||0;S.layout=S.layout||{scale:1,pos:'tc'};if(['tc','bc'].indexOf(S.layout.pos)<0)S.layout.pos='tc';S.theme=S.theme||{main:'#e3121b',a:'#e3121b',b:'#1f5fff'};S.lbl=S.lbl||{a:'ESQUINA ROJA',b:'ESQUINA AZUL'};S.show=S.show||{marcador:true,lt:false};S.ltp=S.ltp||[];
+S.cur=S.cur||0;S.mo=S.mo||{pos:'br',scale:1,op:1,live:true,msgs:true,estado:'EN VIVO',list:['FCC 2 · FIGHTING CHAMPIONSHIP CHILE','BLACK HOUSE · SANTIAGO','AUSPICIA DI PIPINO PIZZA']};S.layout=S.layout||{scale:1,pos:'tc'};if(['tc','bc'].indexOf(S.layout.pos)<0)S.layout.pos='tc';S.theme=S.theme||{main:'#e3121b',a:'#e3121b',b:'#1f5fff'};S.lbl=S.lbl||{a:'ESQUINA ROJA',b:'ESQUINA AZUL'};S.show=S.show||{marcador:true,lt:false};if(S.show.mosca==null)S.show.mosca=true;S.ltp=S.ltp||[];
 var FIELDS=['r_nombre','r_apodo','r_record','r_peso','r_edad','b_nombre','b_apodo','b_record','b_peso','b_edad','disciplina','categoria','numero','total'];
 S.f=S.f||{};
 function save(){ls('fcc2-ctl',S)}
@@ -277,7 +298,8 @@ function msg(){var f=S.f,c=S.clock,n=f.numero||1;
   ganador:S.g||undefined,
   lt:S.lt||undefined,
   replay:S.rp?{texto:U(S.rp)}:undefined,
-  show:{marcador:!!S.show.marcador,lt:!!S.show.lt}}}
+  show:{marcador:!!S.show.marcador,lt:!!S.show.lt,mosca:!!S.show.mosca},
+  mosca:{avoid:S.show.marcador?(S.layout.pos==='bc'?'bottom':'top'):'',pos:S.mo.pos,scale:S.mo.scale,op:S.mo.op,live:S.mo.live,msgs:S.mo.msgs,list:S.mo.list,estado:U(S.mo.estado)||'EN VIVO'}}}
 var bc=null;try{bc=new BroadcastChannel('fcc2')}catch(e){}
 function push(){var m=msg();
  try{localStorage.setItem('fcc2-live',JSON.stringify(m))}catch(e){}
@@ -340,6 +362,7 @@ setInterval(push,5000);
 // ---------- visibilidad ----------
 function renderAir(){var m=S.show.marcador;$('air-marcador').textContent=m?'MARCADOR EN PANTALLA':'MARCADOR OCULTO';$('air-marcador').className='onair'+(m?' v':'');
  $('tg-marcador').textContent=m?'OCULTAR MARCADOR':'MOSTRAR MARCADOR';
+ $('air-mosca').textContent=S.show.mosca?'EN PANTALLA':'OCULTA';$('air-mosca').className='onair'+(S.show.mosca?' v':'');
  $('air-lt').textContent=S.show.lt?'EN PANTALLA':'OCULTO';$('air-lt').className='onair'+(S.show.lt?' v':'')}
 $('tg-marcador').onclick=function(){S.show.marcador=!S.show.marcador;save();push()};
 
@@ -395,10 +418,10 @@ function ctlPath(){var p=decodeURIComponent(location.pathname);if(/^\/[A-Za-z]:/
 function panelDir(){return ctlPath().replace(/[^\/]*$/,'')+'Paneles/'}
 var PLAN=[
  {scene:'INICIO',src:[['FCC2 Inicio','FCC2_Inicio']]},
- {scene:'ESTUDIO',src:[['FCC2 Marcador','FCC2_Overlay_Marcador'],['FCC2 Lower Third','FCC2_Overlay_LowerThird']]},
+ {scene:'ESTUDIO',src:[['FCC2 Marcador','FCC2_Overlay_Marcador'],['FCC2 Lower Third','FCC2_Overlay_LowerThird'],['FCC2 Mosca','FCC2_Overlay_Mosca']]},
  {scene:'VS',src:[['FCC2 VS','FCC2_VS']]},
  {scene:'GANADOR',src:[['FCC2 Ganador','FCC2_Ganador']]},
- {scene:'REPLAY',src:[['FCC2 Replay','FCC2_Overlay_Replay']]},
+ {scene:'REPLAY',src:[['FCC2 Replay','FCC2_Overlay_Replay'],['FCC2 Mosca','FCC2_Overlay_Mosca']]},
  {scene:'PAUSA',src:[['FCC2 Pausa','FCC2_Pausa']]},
  {scene:'AUSPICIADOR',src:[['FCC2 Auspiciador','FCC2_Auspiciador']]},
  {scene:'FINAL',src:[['FCC2 Final','FCC2_Final']]}];
@@ -422,7 +445,7 @@ async function runDiag(){var L=[];
   var norm=lf.replace(/\\/g,'/').replace(/^file:\/\/\//,'');
   if(!isRemote()&&norm.toLowerCase().indexOf(panelDir().toLowerCase())!==0)wrong.push(inputs[i].inputName)}
  MARK=(found['FCC2_Overlay_Marcador']||['FCC2 Marcador'])[0];FCCIN=[].concat.apply([],Object.keys(found).map(function(k){return found[k]}));
- var need=['FCC2_Overlay_Marcador','FCC2_VS','FCC2_Ganador','FCC2_Overlay_LowerThird','FCC2_Overlay_Replay'];
+ var need=['FCC2_Overlay_Marcador','FCC2_VS','FCC2_Ganador','FCC2_Overlay_LowerThird','FCC2_Overlay_Replay','FCC2_Overlay_Mosca'];
  var miss=need.filter(function(k){return !found[k]});
  if(!Object.keys(found).length)L.push(li('bad','No hay gráficos FCC2 en esta colección de escenas',(isRemote()?'Abre CONTROL_EN_VIVO.html en el PC de OBS y pulsa INSTALAR una vez.':'Pulsa INSTALAR GRÁFICOS EN OBS.')));
  else if(miss.length)L.push(li('warn','Faltan gráficos en OBS: '+miss.map(function(x){return x.replace('FCC2_','').replace('Overlay_','')}).join(', '),(isRemote()?'Pulsa INSTALAR en el PC de OBS para agregarlos.':'Pulsa INSTALAR GRÁFICOS EN OBS para agregarlos.')));
@@ -476,5 +499,12 @@ $('presets').addEventListener('click',function(e){var b=e.target.closest('[data-
 $('threset').onclick=function(){S.theme={main:'#e3121b',a:'#e3121b',b:'#1f5fff'};S.lbl={a:'ESQUINA ROJA',b:'ESQUINA AZUL'};save();renderTheme();push()};
 $('mk_scale').value=String(S.layout.scale);$('mk_pos').value=S.layout.pos;
 ['mk_scale','mk_pos'].forEach(function(id){$(id).onchange=function(){S.layout={scale:+$('mk_scale').value,pos:$('mk_pos').value};save();push()}});
-renderTheme();loadFields();renderFights();renderLtp();renderAir();push();runDiag();
+
+// ---------- mosca ----------
+function renderMo(){$('mo_pos').value=S.mo.pos;$('mo_scale').value=String(S.mo.scale);$('mo_op').value=S.mo.op;$('mo_live').checked=!!S.mo.live;$('mo_msgs').checked=!!S.mo.msgs;$('mo_estado').value=S.mo.estado||'EN VIVO';$('mo_list').value=(S.mo.list||[]).join('\n')}
+function readMo(){S.mo={pos:$('mo_pos').value,scale:+$('mo_scale').value,op:+$('mo_op').value,live:$('mo_live').checked,msgs:$('mo_msgs').checked,estado:$('mo_estado').value,
+ list:$('mo_list').value.split(/\n/).map(function(x){return x.trim().toUpperCase()}).filter(Boolean)};save();clearTimeout(deb);deb=setTimeout(push,200)}
+['mo_pos','mo_scale','mo_op','mo_live','mo_msgs','mo_estado','mo_list'].forEach(function(id){$(id).addEventListener('input',readMo);$(id).addEventListener('change',readMo)});
+$('mo_show').onclick=function(){S.show.mosca=true;save();push()};$('mo_hide').onclick=function(){S.show.mosca=false;save();push()};
+renderMo();renderTheme();loadFields();renderFights();renderLtp();renderAir();push();runDiag();
 </script></body></html>

@@ -26,6 +26,8 @@ OVERLAYS (fondo transparente, van ENCIMA de la cámara)
                             Rounds de otra duración: ?min=5 en la URL.
   FCC2_Overlay_Replay       Marco rojo + "REPETICIÓN" para la escena REPLAY.
   FCC2_Overlay_LowerThird   Nombre y cargo de comentaristas o invitados.
+  FCC2_Overlay_Mosca        Logo FCC en una esquina + EN VIVO + mensajes que rotan.
+                            Posición, tamaño, opacidad y textos desde CONTROL_EN_VIVO.
 
 CONTROL EN VIVO (CONTROL_EN_VIVO.html, en la carpeta principal)
   1. DESCOMPRIME el zip en una carpeta fija (ej. Documentos\FCC2_Kit). No lo abras desde dentro del zip.

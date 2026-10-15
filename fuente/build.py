@@ -110,6 +110,7 @@ function applyLive(d){if(!d||!d.ts||d.ts<LAST)return;LAST=d.ts;var m=d[PANEL],bi
  if(big&&PANEL!=='marcador'&&document.getAnimations)document.getAnimations().forEach(function(a){try{a.cancel();a.play()}catch(e){}});
  if(d.clock&&window.onClock&&PANEL==='marcador')window.onClock(d.clock);
  if(d.layout&&window.onLayout&&PANEL==='marcador')window.onLayout(d.layout);
+ if(d.mosca&&window.onMosca&&PANEL==='mosca')window.onMosca(d.mosca);
  if(d.show&&PANEL in d.show){var v=!!d.show[PANEL];document.documentElement.style.transition='opacity .4s';document.documentElement.style.opacity=v?1:0}}
 window.addEventListener('fcc2',function(e){applyLive(e.detail)});
 try{new BroadcastChannel('fcc2').onmessage=function(e){applyLive(e.data)}}catch(e){}
@@ -349,8 +350,33 @@ P['FCC2_Overlay_LowerThird'] = page('FCC 2 Lower Third', '''
 .lt img{width:150px;margin-left:-6px;align-self:center}
 ''', f'''<div class="lt"><div class="accent"></div><div class="box"><div class="n" data-k="nombre" data-fit="w" data-max="66" data-min="30">NOMBRE APELLIDO</div><div class="c"><b>FCC 2</b> · <span data-k="cargo">COMENTARISTA</span></div></div><img src="{LOGOA}"></div>''', full=False)
 
+
+P['FCC2_Overlay_Mosca'] = page('FCC 2 Mosca', """
+.mosca{position:absolute;right:56px;bottom:56px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;transform-origin:right bottom;transition:opacity .4s,transform .35s}
+.mosca.pos-bl{right:auto;left:56px;align-items:flex-start;transform-origin:left bottom}
+.mosca.pos-tr{bottom:auto;top:56px;transform-origin:right top}
+.mosca.pos-tl{bottom:auto;top:56px;right:auto;left:56px;align-items:flex-start;transform-origin:left top}
+.mosca img{width:250px;filter:drop-shadow(0 6px 16px rgba(0,0,0,.8))}
+.live{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.78);border-left:6px solid var(--red2);padding:5px 16px 2px 12px;transform:skewX(-14deg)}
+.live>*{transform:skewX(14deg)}
+.live i{width:14px;height:14px;border-radius:50%;background:var(--red2);box-shadow:0 0 12px var(--red2);animation:pulse 1.2s ease-in-out infinite}
+.live b{font-family:"Bebas";font-size:30px;letter-spacing:5px;color:#fff;font-weight:400}
+.msg{font-family:"Bebas";font-size:24px;letter-spacing:4px;color:#fff;background:linear-gradient(90deg,var(--red),var(--red-dk));padding:4px 16px 1px;transform:skewX(-14deg);max-width:520px;white-space:nowrap;overflow:hidden;transition:opacity .5s}
+.msg span{display:inline-block;transform:skewX(14deg)}
+.msg.off{opacity:0}
+.hide{display:none!important}
+""", f"""<div class="mosca" id="mosca"><img src="{LOGOA}"><div class="live" id="live"><i></i><b data-k="estado">EN VIVO</b></div><div class="msg" id="msg"><span id="msgt">FCC 2 · FIGHTING CHAMPIONSHIP CHILE</span></div></div>""", """
+var MS=['FCC 2 · FIGHTING CHAMPIONSHIP CHILE','BLACK HOUSE · SANTIAGO','AUSPICIA DI PIPINO PIZZA'],mi=0,CFG={pos:'br',scale:1,op:1,live:true,msgs:true};
+try{var c0=JSON.parse(localStorage.getItem('fcc2-mosca')||'null');if(c0)CFG=c0}catch(e){}
+function applyM(){var m=document.getElementById('mosca');m.className='mosca pos-'+(CFG.pos||'br');var top=/^t/.test(CFG.pos||'br');m.style.top=top?(CFG.avoid==='top'?'330px':''):'';m.style.bottom=!top?(CFG.avoid==='bottom'?'330px':''):'';m.style.transform='scale('+(+CFG.scale||1)+')';m.style.opacity=CFG.op==null?1:CFG.op;
+ document.getElementById('live').classList.toggle('hide',!CFG.live);document.getElementById('msg').classList.toggle('hide',!CFG.msgs||!MS.length);
+ if(CFG.list&&CFG.list.length)MS=CFG.list}
+window.onMosca=function(c){CFG=c;try{localStorage.setItem('fcc2-mosca',JSON.stringify(c))}catch(e){}applyM();if(mi>=MS.length)mi=0;document.getElementById('msgt').textContent=MS[mi]||''};
+applyM();document.getElementById('msgt').textContent=MS[0];
+setInterval(function(){if(MS.length<2)return;var el=document.getElementById('msg');el.classList.add('off');setTimeout(function(){mi=(mi+1)%MS.length;document.getElementById('msgt').textContent=MS[mi];el.classList.remove('off')},550)},6000);""", full=False)
+
 os.makedirs('out', exist_ok=True)
-PID={'FCC2_VS':'vs','FCC2_Ganador':'ganador','FCC2_Overlay_Marcador':'marcador','FCC2_Overlay_LowerThird':'lt','FCC2_Overlay_Replay':'replay','FCC2_Pausa':'pausa','FCC2_Final':'final'}
+PID={'FCC2_VS':'vs','FCC2_Ganador':'ganador','FCC2_Overlay_Marcador':'marcador','FCC2_Overlay_LowerThird':'lt','FCC2_Overlay_Replay':'replay','FCC2_Overlay_Mosca':'mosca','FCC2_Pausa':'pausa','FCC2_Final':'final'}
 for k, v in P.items():
     open(f'out/{k}.html', 'w').write(v.replace('__PANEL__', PID.get(k,'otro')))
 print(list(P))
