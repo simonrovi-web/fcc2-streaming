@@ -28,3 +28,9 @@ Más detalles en `Paneles/LEEME.txt`.
 2. En OBS → Herramientas → Ajustes del servidor WebSocket → **Mostrar información de conexión**: anota la **IP** y la contraseña.
 3. En el otro PC (misma red Wi‑Fi/cable): abre `CONTROL_EN_VIVO.html`, escribe esa IP en lugar de `localhost`, la contraseña, y **CONECTAR**.
 4. Si no conecta: en el PC de OBS permite OBS en el **Firewall de Windows** (redes privadas) o el puerto **4455**.
+
+## Repeticiones y mejores momentos
+
+Desde `CONTROL_EN_VIVO.html`: **⏪ REPETIR AHORA** (tecla P) guarda los últimos segundos con el búfer de repetición de OBS,
+los reproduce en la escena REPLAY (opcional en cámara lenta) y vuelve sola a la escena anterior.
+**★ GUARDAR MOMENTO** (tecla M) arma una lista de mejores momentos, y **▶ RESUMEN** los reproduce seguidos.

@@ -38,3 +38,13 @@ CONTROL EN VIVO (CONTROL_EN_VIVO.html, en la carpeta principal)
   5. Pulsa INSTALAR GRÁFICOS EN OBS: crea las escenas y pone todos los gráficos en OBS.
   6. Pulsa PROBAR: en la vista del control debes ver el marcador con tus nombres y el reloj.
   La lista "CONFIGURAR OBS" te dice en verde/rojo qué está bien y qué falta.
+
+REPETICIONES Y MEJORES MOMENTOS (en CONTROL_EN_VIVO)
+  Usa el búfer de repetición de OBS (graba en memoria los últimos segundos).
+  1. Pulsa INSTALAR GRÁFICOS EN OBS (o INICIAR BÚFER): activa el búfer y crea la fuente
+     "FCC2 Repeticion Video" en la escena REPLAY.
+  2. ⏪ REPETIR AHORA (tecla P): guarda la jugada, va a REPLAY, la reproduce y vuelve sola.
+  3. ★ GUARDAR MOMENTO (tecla M): la guarda en la lista sin cortar la transmisión.
+  4. ▶ RESUMEN DEL COMBATE / DE TODO: reproduce los momentos seguidos.
+  Velocidad: normal, 75 %, cámara lenta 50 % o súper lenta 35 %.
+  Los clips quedan guardados en la carpeta de grabaciones de OBS (Ajustes > Salida).
