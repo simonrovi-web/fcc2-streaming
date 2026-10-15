@@ -96,6 +96,11 @@ kbd{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#000;b
 .pv img{width:100%;height:100%;object-fit:contain;position:absolute;inset:0}
 .pv span{color:var(--mute);font-size:14px;text-align:center;padding:0 10px}
 @media (max-width:760px){.monitor{grid-template-columns:1fr}.mon-pv{max-width:360px}}
+.rec{display:inline-flex;align-items:center;gap:7px;padding:3px 10px 1px;border:1px solid var(--line);font-family:"Bebas";font-size:18px;letter-spacing:2px;color:var(--mute);background:#000;white-space:nowrap}
+.rec i{width:12px;height:12px;border-radius:50%;background:#444;flex:none}
+.rec.on{color:#fff;border-color:#ff2a2a}.rec.on i{background:#ff2a2a;box-shadow:0 0 10px #ff2a2a;animation:recb 1s steps(1) infinite}
+.rec.save{color:#fff;border-color:#f5b301}.rec.save i{background:#f5b301;box-shadow:0 0 10px #f5b301;animation:none}
+@keyframes recb{50%{opacity:.2}}
 details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1px}
 </style></head>
 <body>
@@ -114,14 +119,14 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
 <div class="monitor" id="monitor">
   <div class="mon-pv">
     <div class="pvh"><label class="sw"><input type="checkbox" id="pvon" checked> AL AIRE</label><span id="pvname" class="hint"></span></div>
-    <div class="pv"><img id="pv" alt=""><span id="pvmsg">Conecta OBS para ver la pantalla</span></div>
+    <div class="pv"><img id="pv" alt="" style="display:none"><span id="pvmsg">Conecta OBS para ver la pantalla</span></div>
   </div>
   <div class="mon-ctl">
     <div class="mon-row">
       <div class="mini-clock"><span class="hint">ROUND <b id="m_rd">1</b></span><b id="m_tm">3:00</b></div>
       <button class="pri" id="m_start">▶ INICIAR</button>
       <button id="m_reset">↺</button>
-      <button class="pri" id="m_rb">⏪ REPETIR</button>
+      <span class="rec" id="m_rec" title="Búfer de repetición"><i></i><b>REC</b></span><button class="pri" id="m_rb">⏪ REPETIR</button>
       <button id="m_hl">★ MOMENTO</button>
     </div>
     <div class="mon-row" style="align-items:center"><span class="lbl2">ESCENAS</span><label class="sw" style="margin-left:auto"><input type="checkbox" id="toprev"> A vista previa (modo estudio)</label></div>
@@ -157,7 +162,7 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
   </section>
   <!-- REPETICIONES -->
   <section class="card">
-    <h2>REPETICIONES <span class="sp"><span class="onair" id="rb-state">BÚFER APAGADO</span></span></h2>
+    <h2>REPETICIONES <span class="sp"><span class="rec" id="rb_rec"><i></i><b>REC</b></span><span class="onair" id="rb-state">BÚFER APAGADO</span></span></h2>
     <div class="row">
       <button class="pri big" id="rb_play" style="flex:2">⏪ REPETIR AHORA</button>
       <button class="big" id="rb_save">★ GUARDAR MOMENTO</button>
@@ -528,7 +533,7 @@ $('btest').onclick=async function(){if(!WS.ok)return toast('Conecta OBS primero'
 var PVHOLD=0;var MARK='FCC2 Marcador',FCCIN=[];
 setInterval(async function(){if(!WS.ok||!$('pvon').checked||Date.now()<PVHOLD||document.hidden)return;if(!SC.cur)return;
  var r=await reqP('GetSourceScreenshot',{sourceName:SC.cur,imageFormat:'jpg',imageWidth:640,imageCompressionQuality:65});
- if(r.requestStatus&&r.requestStatus.result){$('pv').src=r.responseData.imageData;$('pvmsg').textContent='';$('pvname').textContent='AL AIRE: '+SC.cur}},1200);
+ if(r.requestStatus&&r.requestStatus.result&&r.responseData&&r.responseData.imageData){$('pv').src=r.responseData.imageData;$('pv').style.display='';$('pvmsg').textContent='';$('pvname').textContent='AL AIRE: '+SC.cur}},1200);
 $('tot').value=S.clock.total||3;$('tot').onchange=function(){setClock({total:+this.value})};
 
 // ---------- colores y nombres de esquina ----------
@@ -559,7 +564,7 @@ S.hl=S.hl||[];S.rb=S.rb||{speed:50,len:10,back:true};var RBMAX=30;
 function hlLabel(){var f=S.f,c=S.clock;return {c:S.cur,num:f.numero||S.cur+1,round:c.round,t:fmt(c.len-remain()),r:U(f.r_nombre),b:U(f.b_nombre)}}
 function renderHL(){$('rb_count').textContent=S.hl.length?'('+S.hl.length+')':'';
  $('rb_list').innerHTML=S.hl.length?S.hl.map(function(h,i){return '<tr><td class="n">'+(i+1)+'</td><td>C'+h.num+' · R'+h.round+' · '+h.t+'<br><span class="hint">'+esc((h.r||'?')+' vs '+(h.b||'?'))+'</span></td><td style="width:120px"><button data-hp="'+i+'">▶</button> <button data-hd="'+i+'">✕</button></td></tr>'}).reverse().join(''):'<tr><td class="hint">Aún no hay momentos guardados.</td></tr>'}
-function rbBadge(){var e=$('rb-state');e.textContent=RB.playing?'REPRODUCIENDO':RB.active?'BÚFER ACTIVO':'BÚFER APAGADO';e.className='onair'+(RB.active||RB.playing?' v':'')}
+function rbBadge(){['m_rec','rb_rec'].forEach(function(id){var e=$(id);if(!e)return;e.className='rec'+(RB.saving?' save':RB.active?' on':'');e.querySelector('b').textContent=RB.saving?'GUARDANDO':'REC';e.title=RB.active?'Grabando repetición (búfer activo)':'Búfer apagado'});var e=$('rb-state');e.textContent=RB.playing?'REPRODUCIENDO':RB.active?'BÚFER ACTIVO':'BÚFER APAGADO';e.className='onair'+(RB.active||RB.playing?' v':'')}
 async function rbStatus(){var r=await reqP('GetReplayBufferStatus',{});RB.active=!!((r.responseData||{}).outputActive);rbBadge()}
 async function ensureReplay(install){
  // 1) activar el búfer en el perfil (si está detenido) con la duración elegida
@@ -579,7 +584,7 @@ async function ensureReplay(install){
   else{var it=((await reqP('GetSceneItemList',{sceneName:'REPLAY'})).responseData||{}).sceneItems||[];if(!it.some(function(x){return x.sourceName===RBIN}))await reqP('CreateSceneItem',{sceneName:'REPLAY',sourceName:RBIN})}
   var id=((await reqP('GetSceneItemId',{sceneName:'REPLAY',sourceName:RBIN})).responseData||{}).sceneItemId;if(id!=null)await reqP('SetSceneItemIndex',{sceneName:'REPLAY',sceneItemId:id,sceneItemIndex:0})}
  await rbStatus()}
-function saveClip(){return new Promise(async function(res){if(!WS.ok){toast('Conecta OBS primero');return res(null)}
+function saveClip(){return new Promise(async function(res0){var res=function(v){RB.saving=false;rbBadge();res0(v)};RB.saving=true;rbBadge();if(!WS.ok){toast('Conecta OBS primero');return res(null)}
  if(!RB.active){await ensureReplay(false);if(!RB.active)return res(null)}
  var done=false;RB.waitSave=function(p){if(done)return;done=true;res(p)};
  var r=await reqP('SaveReplayBuffer',{});if(!(r.requestStatus&&r.requestStatus.result)){done=true;toast('OBS no pudo guardar: '+((r.requestStatus||{}).comment||''));return res(null)}
