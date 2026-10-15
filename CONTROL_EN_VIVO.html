@@ -164,14 +164,14 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
     </div>
     <div class="row">
       <div class="f"><label>VELOCIDAD</label><select id="rb_speed"><option value="100">Normal</option><option value="75">75 %</option><option value="50" selected>Cámara lenta 50 %</option><option value="35">Súper lenta 35 %</option></select></div>
-      <div class="f"><label>DURACIÓN DEL BÚFER</label><select id="rb_len"><option value="10">10 s</option><option value="15">15 s</option><option value="20" selected>20 s</option><option value="30">30 s</option></select></div>
+      <div class="f"><label>DURACIÓN DE LA REPETICIÓN</label><select id="rb_len"><option value="3">Últimos 3 s</option><option value="5">Últimos 5 s</option><option value="10" selected>Últimos 10 s</option><option value="15">Últimos 15 s</option><option value="20">Últimos 20 s</option><option value="30">Últimos 30 s</option></select></div>
       <button id="rb_start" style="align-self:flex-end">INICIAR BÚFER</button>
     </div>
     <label class="sw"><input type="checkbox" id="rb_back" checked> Al terminar, volver solo a la escena anterior</label>
     <div><label>MEJORES MOMENTOS <span id="rb_count"></span></label>
       <div class="fl" style="max-height:200px"><table><tbody id="rb_list"><tr><td class="hint">Aún no hay momentos guardados.</td></tr></tbody></table></div></div>
     <div class="row"><button class="pri" id="rb_reel">▶ RESUMEN DEL COMBATE</button><button id="rb_reelall">▶ RESUMEN DE TODO</button><button id="rb_stop">■ DETENER</button></div>
-    <p class="hint">Atajos: <kbd>P</kbd> repetir ahora · <kbd>M</kbd> guardar momento. Requiere el búfer de repetición de OBS (se activa con INSTALAR o INICIAR BÚFER).</p>
+    <p class="hint">Atajos: <kbd>P</kbd> repetir ahora · <kbd>M</kbd> guardar momento. OBS guarda siempre los últimos 30 s y aquí eliges cuánto de eso se repite. Requiere el búfer de repetición (se activa con INSTALAR o INICIAR BÚFER).</p>
   </section>
   <!-- COMBATE -->
   <section class="card">
@@ -555,7 +555,7 @@ $('mo_show').onclick=function(){S.show.mosca=true;save();push()};$('mo_hide').on
 
 // ---------- repeticiones (búfer de repetición de OBS) ----------
 var RBIN='FCC2 Repeticion Video',RB={active:false,want:null,playing:false,queue:[],back:'',waitSave:null};
-S.hl=S.hl||[];S.rb=S.rb||{speed:50,len:20,back:true};
+S.hl=S.hl||[];S.rb=S.rb||{speed:50,len:10,back:true};var RBMAX=30;
 function hlLabel(){var f=S.f,c=S.clock;return {c:S.cur,num:f.numero||S.cur+1,round:c.round,t:fmt(c.len-remain()),r:U(f.r_nombre),b:U(f.b_nombre)}}
 function renderHL(){$('rb_count').textContent=S.hl.length?'('+S.hl.length+')':'';
  $('rb_list').innerHTML=S.hl.length?S.hl.map(function(h,i){return '<tr><td class="n">'+(i+1)+'</td><td>C'+h.num+' · R'+h.round+' · '+h.t+'<br><span class="hint">'+esc((h.r||'?')+' vs '+(h.b||'?'))+'</span></td><td style="width:120px"><button data-hp="'+i+'">▶</button> <button data-hd="'+i+'">✕</button></td></tr>'}).reverse().join(''):'<tr><td class="hint">Aún no hay momentos guardados.</td></tr>'}
@@ -567,8 +567,11 @@ async function ensureReplay(install){
  if(!act){var mode=((await reqP('GetProfileParameter',{parameterCategory:'Output',parameterName:'Mode'})).responseData||{}).parameterValue||'Simple';
   var cat=/adv/i.test(mode)?'AdvOut':'SimpleOutput';
   await reqP('SetProfileParameter',{parameterCategory:cat,parameterName:'RecRB',parameterValue:'true'});
-  await reqP('SetProfileParameter',{parameterCategory:cat,parameterName:'RecRBTime',parameterValue:String(S.rb.len||20)});
+  await reqP('SetProfileParameter',{parameterCategory:cat,parameterName:'RecRBTime',parameterValue:String(RBMAX)});
   var r=await reqP('StartReplayBuffer',{});if(!(r.requestStatus&&r.requestStatus.result))toast('No pude iniciar el búfer: '+((r.requestStatus||{}).comment||'revisa Ajustes → Salida en OBS'))}
+ else if(install){var md=((await reqP('GetProfileParameter',{parameterCategory:'Output',parameterName:'Mode'})).responseData||{}).parameterValue||'Simple';var ct=/adv/i.test(md)?'AdvOut':'SimpleOutput';
+  var cur=+(((await reqP('GetProfileParameter',{parameterCategory:ct,parameterName:'RecRBTime'})).responseData||{}).parameterValue||0);
+  if(cur&&cur<RBMAX){await reqP('StopReplayBuffer',{});await new Promise(function(r){setTimeout(r,1200)});await reqP('SetProfileParameter',{parameterCategory:ct,parameterName:'RecRBTime',parameterValue:String(RBMAX)});await reqP('StartReplayBuffer',{})}}
  // 2) fuente de video en la escena REPLAY (debajo del overlay)
  if(install){var sl=((await reqP('GetSceneList',{})).responseData||{}).scenes||[];if(!sl.some(function(x){return x.sceneName==='REPLAY'}))await reqP('CreateScene',{sceneName:'REPLAY'});
   var ins=((await reqP('GetInputList',{})).responseData||{}).inputs||[];var set={is_local_file:true,local_file:'',looping:false,restart_on_activate:true,close_when_inactive:true,speed_percent:+S.rb.speed||100};
@@ -586,7 +589,10 @@ async function playClips(list,label){if(!list.length)return;RB.queue=list.slice(
  if(SC.cur!=='REPLAY')await reqP('SetCurrentProgramScene',{sceneName:'REPLAY'});nextClip()}
 async function nextClip(){var p=RB.queue.shift();if(!p){return endReplay()}
  await reqP('SetInputSettings',{inputName:RBIN,inputSettings:{is_local_file:true,local_file:p,looping:false,speed_percent:+$('rb_speed').value||100}});
- await reqP('TriggerMediaInputAction',{inputName:RBIN,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART'})}
+ await reqP('TriggerMediaInputAction',{inputName:RBIN,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART'});
+ var want=(+$('rb_len').value||10)*1000;
+ for(var k=0;k<8;k++){await new Promise(function(r){setTimeout(r,150)});var st=(await reqP('GetMediaInputStatus',{inputName:RBIN})).responseData||{};
+  if(st.mediaDuration>0){if(st.mediaDuration>want+300)await reqP('SetMediaInputCursor',{inputName:RBIN,mediaCursor:Math.max(0,st.mediaDuration-want)});break}}}
 async function endReplay(){RB.playing=false;RB.queue=[];rbBadge();S.rp='REPETICIÓN';push();var b=RB.back;RB.back='';
  if($('rb_back').checked&&b&&b!=='REPLAY')await reqP('SetCurrentProgramScene',{sceneName:b});loadScenes()}
 window.onObsEvent=function(t,d){

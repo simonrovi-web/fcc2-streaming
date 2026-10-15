@@ -47,4 +47,5 @@ REPETICIONES Y MEJORES MOMENTOS (en CONTROL_EN_VIVO)
   3. ★ GUARDAR MOMENTO (tecla M): la guarda en la lista sin cortar la transmisión.
   4. ▶ RESUMEN DEL COMBATE / DE TODO: reproduce los momentos seguidos.
   Velocidad: normal, 75 %, cámara lenta 50 % o súper lenta 35 %.
+  Duración: repite los últimos 3, 5, 10, 15, 20 o 30 s (OBS guarda siempre 30 s).
   Los clips quedan guardados en la carpeta de grabaciones de OBS (Ajustes > Salida).
