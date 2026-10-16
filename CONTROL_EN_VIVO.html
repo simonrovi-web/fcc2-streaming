@@ -172,7 +172,7 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
       <div class="f"><label>DURACIÓN DE LA REPETICIÓN</label><select id="rb_len"><option value="3">Últimos 3 s</option><option value="5">Últimos 5 s</option><option value="10" selected>Últimos 10 s</option><option value="15">Últimos 15 s</option><option value="20">Últimos 20 s</option><option value="30">Últimos 30 s</option></select></div>
       <button id="rb_start" style="align-self:flex-end">INICIAR BÚFER</button>
     </div>
-    <div class="f"><label>AL TERMINAR LA REPETICIÓN</label><select id="rb_after"><option value="preview" selected>Pasar a la vista previa (transición automática)</option><option value="back">Volver a la escena anterior</option><option value="stay">Quedarse en REPLAY</option></select></div>
+    <div class="f"><label>AL TERMINAR LA REPETICIÓN</label><select id="rb_after"><option value="estudio" selected>Ir siempre a ESTUDIO (transición automática)</option><option value="preview">Pasar a la vista previa (transición automática)</option><option value="back">Volver a la escena anterior</option><option value="stay">Quedarse en REPLAY</option></select></div>
     <div><label>MEJORES MOMENTOS <span id="rb_count"></span></label>
       <div class="fl" style="max-height:200px"><table><tbody id="rb_list"><tr><td class="hint">Aún no hay momentos guardados.</td></tr></tbody></table></div></div>
     <div class="row"><button class="pri" id="rb_reel">▶ RESUMEN DEL COMBATE</button><button id="rb_reelall">▶ RESUMEN DE TODO</button><button id="rb_stop">■ DETENER</button></div>
@@ -599,6 +599,10 @@ async function nextClip(){var p=RB.queue.shift();if(!p){return endReplay()}
  for(var k=0;k<8;k++){await new Promise(function(r){setTimeout(r,150)});var st=(await reqP('GetMediaInputStatus',{inputName:RBIN})).responseData||{};
   if(st.mediaDuration>0){if(st.mediaDuration>want+300)await reqP('SetMediaInputCursor',{inputName:RBIN,mediaCursor:Math.max(0,st.mediaDuration-want)});break}}}
 async function endReplay(){RB.playing=false;RB.queue=[];rbBadge();S.rp='REPETICIÓN';push();var b=RB.back;RB.back='';var mode=$('rb_after').value;
+ if(mode==='estudio'){var sm0=((await reqP('GetStudioModeEnabled',{})).responseData||{}).studioModeEnabled;
+  if(sm0){await reqP('SetCurrentPreviewScene',{sceneName:'ESTUDIO'});await reqP('TriggerStudioModeTransition',{})}
+  else await reqP('SetCurrentProgramScene',{sceneName:'ESTUDIO'});
+  loadScenes();return}
  if(mode==='preview'){var sm=((await reqP('GetStudioModeEnabled',{})).responseData||{}).studioModeEnabled;
   if(sm){var pv=((await reqP('GetCurrentPreviewScene',{})).responseData||{}).currentPreviewSceneName||'';
    if(!pv||pv==='REPLAY')await reqP('SetCurrentPreviewScene',{sceneName:(b&&b!=='REPLAY')?b:'ESTUDIO'});
@@ -619,7 +623,7 @@ $('rb_reel').onclick=function(){var l=S.hl.filter(function(h){return h.c===S.cur
 $('rb_reelall').onclick=function(){if(!S.hl.length)return toast('No hay momentos guardados');RB.back=SC.cur;playClips(S.hl.map(function(h){return h.path}),'MEJORES MOMENTOS')};
 $('rb_stop').onclick=async function(){await reqP('TriggerMediaInputAction',{inputName:RBIN,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP'});endReplay()};
 $('rb_start').onclick=async function(){if(!WS.ok)return toast('Conecta OBS primero');await ensureReplay(true);toast(RB.active?'Búfer de repetición activo':'No se pudo activar')};
-$('rb_speed').value=String(S.rb.speed);$('rb_len').value=String(S.rb.len);$('rb_after').value=S.rb.after||'preview';
+$('rb_speed').value=String(S.rb.speed);$('rb_len').value=String(S.rb.len);if(S.rbV!==2){S.rb.after='estudio';S.rbV=2;save()}$('rb_after').value=S.rb.after||'estudio';
 ['rb_speed','rb_len','rb_after'].forEach(function(id){$(id).onchange=function(){S.rb={speed:+$('rb_speed').value,len:+$('rb_len').value,after:$('rb_after').value};save()}});
 document.addEventListener('keydown',function(e){var t=e.target.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;if(e.key==='p'||e.key==='P')$('rb_play').click();else if(e.key==='m'||e.key==='M')$('rb_save').click()});
 renderHL();
