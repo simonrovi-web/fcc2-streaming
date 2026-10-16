@@ -111,7 +111,8 @@ function applyLive(d){if(!d||!d.ts||d.ts<LAST)return;LAST=d.ts;var m=d[PANEL],bi
  if(d.clock&&window.onClock&&PANEL==='marcador')window.onClock(d.clock);
  if(d.layout&&window.onLayout&&PANEL==='marcador')window.onLayout(d.layout);
  if(d.mosca&&window.onMosca&&PANEL==='mosca')window.onMosca(d.mosca);
- if(d.show&&PANEL in d.show){var v=!!d.show[PANEL];document.documentElement.style.transition='opacity .4s';document.documentElement.style.opacity=v?1:0}}
+ if(PANEL==='lt'&&window.onLT){window.onLT(d.lt,!!(d.show&&d.show.lt))}
+ else if(d.show&&PANEL in d.show){var v=!!d.show[PANEL];document.documentElement.style.transition='opacity .4s';document.documentElement.style.opacity=v?1:0}}
 window.addEventListener('fcc2',function(e){applyLive(e.detail)});
 try{new BroadcastChannel('fcc2').onmessage=function(e){applyLive(e.data)}}catch(e){}
 window.addEventListener('storage',function(e){if(e.key==='fcc2-live')try{applyLive(JSON.parse(e.newValue))}catch(x){}});
@@ -327,16 +328,92 @@ P['FCC2_Overlay_Replay'] = page('FCC 2 Replay', '''
 .lg{position:absolute;bottom:30px;right:40px;width:240px}
 ''', f'''<div class="frame"></div><div class="bug"><i></i><span data-k="texto">REPETICIÓN</span></div><img class="lg" src="{LOGOA}">''', full=False)
 
-P['FCC2_Overlay_LowerThird'] = page('FCC 2 Lower Third', '''
-.lt{position:absolute;left:90px;bottom:110px;display:flex;align-items:stretch;animation:inL .7s ease both}
-.lt .accent{width:14px;background:var(--red2)}
-.lt .box{background:linear-gradient(90deg,rgba(8,8,8,.95),rgba(20,0,0,.9));padding:14px 40px 12px 26px;min-width:620px}
-.lt .n{font-family:"Bebas";font-size:66px;line-height:1.1;padding-top:.04em;letter-spacing:2px;max-width:1100px;white-space:nowrap;overflow:hidden}
-.lt .c{font-size:24px;letter-spacing:5px;color:#cfcfcf;margin-top:4px}
-.lt .c b{color:var(--red2);font-weight:600}
-.lt img{width:150px;margin-left:-6px;align-self:center}
-''', f'''<div class="lt"><div class="accent"></div><div class="box"><div class="n" data-k="nombre" data-fit="w" data-max="66" data-min="30">NOMBRE APELLIDO</div><div class="c"><b>FCC 2</b> · <span data-k="cargo">COMENTARISTA</span></div></div><img src="{LOGOA}"></div>''', full=False)
+P['FCC2_Overlay_LowerThird'] = page('FCC 2 Lower Third', r"""
+#lt{position:absolute;left:96px;bottom:96px;--c:var(--red);--c-rgb:var(--red-rgb);--cd:var(--red-dk)}
+#lt.r{--c:var(--ca);--c-rgb:var(--ca-rgb);--cd:var(--ca-dk)}
+#lt.b{--c:var(--cb);--c-rgb:var(--cb-rgb);--cd:var(--cb-dk)}
+#lt{visibility:hidden}#lt.in,#lt.out{visibility:visible}
+.row1{display:flex;align-items:stretch;height:132px;position:relative}
+/* bloque de color con número / esquina */
+.slab{position:relative;width:200px;margin-right:-26px;z-index:2;transform:skewX(-14deg);transform-origin:left;
+ background:linear-gradient(160deg,rgba(255,255,255,.12),transparent 45%,rgba(0,0,0,.45)),var(--c);box-shadow:0 0 34px rgba(var(--c-rgb),.65),inset 0 0 0 2px rgba(255,255,255,.12);overflow:hidden}
+.slab .in{position:absolute;inset:0;transform:skewX(14deg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.slab small{font-family:"Bebas";font-size:20px;letter-spacing:3px;color:rgba(255,255,255,.85);line-height:1}
+.slab b{font-family:"Bebas";font-weight:400;font-size:86px;line-height:.9;color:#fff;text-shadow:3px 3px 0 rgba(0,0,0,.35)}
+.slab img{width:150px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
+.slab::after{content:"";position:absolute;top:-20%;bottom:-20%;width:60px;left:-120px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-14deg)}
+/* barra principal */
+.bar{position:relative;background:linear-gradient(90deg,rgba(6,6,6,.96) 0%,rgba(14,14,14,.94) 70%,rgba(var(--c-rgb),.35) 100%);padding:0 70px 0 64px;display:flex;flex-direction:column;justify-content:center;
+ min-width:760px;clip-path:polygon(0 0,100% 0,calc(100% - 34px) 100%,0 100%);overflow:hidden}
+.bar::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--c),rgba(var(--c-rgb),0));transform-origin:left}
+.bar::after{content:"";position:absolute;top:0;bottom:0;width:160px;left:-200px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.13),transparent);transform:skewX(-20deg)}
+.mask{overflow:hidden;padding-top:6px}
+.nm{font-family:"Bebas";font-size:88px;line-height:1;letter-spacing:2px;font-style:italic;color:#fff;white-space:nowrap;padding-right:.12em;text-shadow:3px 3px 0 #000}
+.nk{font-family:"Bebas";font-size:30px;letter-spacing:6px;color:rgba(var(--c-rgb),1);filter:brightness(1.5);line-height:1.05;white-space:nowrap}
+.nk:empty{display:none}
+/* franja de características */
+.row2{display:flex;margin-left:150px;margin-top:-2px;position:relative;z-index:1}
+.chip{display:flex;flex-direction:column;justify-content:center;background:rgba(0,0,0,.88);border-bottom:3px solid var(--c);padding:8px 26px 6px;margin-right:6px;transform:skewX(-14deg);min-width:120px}
+.chip>*{transform:skewX(14deg)}
+.chip span{font-size:14px;letter-spacing:4px;color:#9d9d9d;line-height:1.1}
+.chip b{font-family:"Bebas";font-weight:400;font-size:34px;letter-spacing:2px;color:#fff;line-height:1.05;white-space:nowrap}
+.chip.hl{background:linear-gradient(90deg,transparent,rgba(0,0,0,.4)),var(--c);border-bottom-color:#fff}
+.chip.hl span{color:rgba(255,255,255,.8)}
+.tagline{position:absolute;left:205px;top:-34px;font-family:"Bebas";font-size:24px;letter-spacing:7px;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8);white-space:nowrap}.tagline i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);box-shadow:0 0 10px var(--c);margin-right:10px;vertical-align:2px;animation:pulse 1.2s ease-in-out infinite}
 
+/* ===== animación de entrada ===== */
+#lt.in .slab{animation:slabIn .55s cubic-bezier(.2,.9,.25,1.15) both,breathe2 3s 1.2s ease-in-out infinite}
+#lt.in .slab::after{animation:shine 3.8s 1.1s ease-in-out infinite}
+#lt.in .slab .in{animation:fadeUp .4s .3s ease both}
+#lt.in .bar{animation:barIn .6s .14s cubic-bezier(.7,0,.2,1) both}
+#lt.in .bar::before{animation:lineIn .7s .45s ease both}
+#lt.in .bar::after{animation:sweep 4.2s .75s ease-in-out infinite}
+#lt.in .nm{animation:nameIn .6s .38s cubic-bezier(.2,.9,.2,1) both}
+#lt.in .nk{animation:fadeL .5s .62s ease both}
+#lt.in .tagline{animation:fadeL .5s .8s ease both}
+#lt.in .chip{animation:chipIn .45s var(--d,0s) cubic-bezier(.2,1.25,.4,1) both}
+@keyframes slabIn{0%{transform:skewX(-14deg) scaleX(0);filter:brightness(3)}60%{filter:brightness(1.6)}100%{transform:skewX(-14deg) scaleX(1);filter:none}}
+@keyframes barIn{from{clip-path:polygon(0 0,0 0,0 100%,0 100%)}to{clip-path:polygon(0 0,100% 0,calc(100% - 34px) 100%,0 100%)}}
+@keyframes lineIn{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes nameIn{from{transform:translateY(105%) skewX(-8deg);letter-spacing:22px;opacity:0}to{transform:none;letter-spacing:2px;opacity:1}}
+@keyframes fadeL{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+@keyframes fadeUp{from{opacity:0;transform:skewX(14deg) translateY(30px)}to{opacity:1;transform:skewX(14deg)}}
+@keyframes chipIn{from{opacity:0;transform:skewX(-14deg) translateY(-34px) scaleY(.4)}to{opacity:1;transform:skewX(-14deg)}}
+@keyframes sweep{0%{left:-200px}35%,100%{left:110%}}
+@keyframes shine{0%{left:-120px}30%,100%{left:260px}}
+@keyframes breathe2{0%,100%{box-shadow:0 0 34px rgba(var(--c-rgb),.65),inset 0 0 0 2px rgba(255,255,255,.12)}50%{box-shadow:0 0 58px rgba(var(--c-rgb),1),inset 0 0 0 2px rgba(255,255,255,.25)}}
+/* ===== animación de salida ===== */
+#lt.out .chip{animation:chipOut .3s ease both}
+#lt.out .nm,#lt.out .nk,#lt.out .tagline{animation:nameOut .3s ease both}
+#lt.out .bar{animation:barOut .45s .18s cubic-bezier(.7,0,.3,1) both}
+#lt.out .slab{animation:slabOut .4s .42s cubic-bezier(.6,0,.4,1) both}
+@keyframes chipOut{to{opacity:0;transform:skewX(-14deg) translateY(-30px)}}
+@keyframes nameOut{to{opacity:0;transform:translateY(-60%)}}
+@keyframes barOut{from{clip-path:polygon(0 0,100% 0,calc(100% - 34px) 100%,0 100%)}to{clip-path:polygon(0 0,0 0,0 100%,0 100%)}}
+@keyframes slabOut{to{transform:skewX(-14deg) scaleX(0);opacity:0}}
+""", f"""<div id="lt"><div class="row1"><div class="slab glow"><div class="in" id="slab"></div></div>
+<div class="tagline"><i></i><span id="tagline">FCC 2 · FIGHTING CHAMPIONSHIP CHILE</span></div><div class="bar"><div class="mask"><div class="nm" id="nm" data-fit="w" data-max="88" data-min="44">NOMBRE APELLIDO</div></div><div class="nk" id="nk"></div></div></div>
+<div class="row2" id="chips"></div></div>
+<img id="logoa" src="{LOGOA}" style="display:none">""", r"""
+var LTD=null,LTV=false,LTK='';
+function e2(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function ltRender(d){var el=document.getElementById('lt'),f=d.modo==='peleador';
+ el.classList.remove('r','b');if(f&&(d.esq==='r'||d.esq==='b'))el.classList.add(d.esq);
+ document.getElementById('slab').innerHTML=f&&d.num?'<small>'+e2(d.esq==='b'?(d.lbl||'ESQUINA AZUL'):(d.lbl||'ESQUINA ROJA'))+'</small><b>'+e2(d.num)+'</b><small>COMBATE</small>':'<img src="'+document.getElementById('logoa').src+'">';
+ var nm=document.getElementById('nm');nm.textContent=d.nombre||'NOMBRE APELLIDO';
+ document.getElementById('nk').textContent=f?(d.apodo||''):(d.cargo||'');
+ document.getElementById('tagline').textContent=f?'FCC 2 · FIGHTING CHAMPIONSHIP CHILE':'FCC 2 · EN VIVO';
+ var ch=[];if(f){if(d.disciplina)ch.push(['DISCIPLINA',d.disciplina,1]);if(d.categoria)ch.push(['CATEGORÍA',d.categoria]);if(d.gym)ch.push(['EQUIPO',d.gym]);if(d.record)ch.push(['RÉCORD',d.record]);if(d.edad)ch.push(['EDAD',/\d$/.test(d.edad)?d.edad+' AÑOS':d.edad]);if(d.peso&&!(d.categoria||'').match(/KG|PESADO/))ch.push(['PESO',d.peso])}
+ document.getElementById('chips').innerHTML=ch.map(function(c,i){return '<div class="chip'+(c[2]?' hl':'')+'" style="--d:'+(.62+i*.09)+'s"><span>'+e2(c[0])+'</span><b>'+e2(c[1])+'</b></div>'}).join('');
+ var bar=document.querySelector('.bar');bar.style.minWidth=Math.max(760,ch.length*190-80)+'px';fitAll()}
+function ltPlay(cls){var el=document.getElementById('lt');el.classList.remove('in','out');void el.offsetWidth;if(cls)el.classList.add(cls)}
+window.onLT=function(d,show){if(!d)d={};var k=JSON.stringify(d);
+ if(show&&(!LTV||k!==LTK)){var go=function(){LTD=d;LTK=k;ltRender(d);ltPlay('in')};if(LTV){ltPlay('out');setTimeout(go,900)}else go();LTV=true}
+ else if(!show&&LTV){LTV=false;ltPlay('out')}
+ else if(!show){LTK=k}};
+// vista previa sin control: ?demo=1
+if(Q.get('demo'))setTimeout(function(){window.onLT({modo:'peleador',esq:Q.get('esq')||'r',num:'7',nombre:'ISABELLA AGUIRRES DÍAZ',apodo:'"LA LEONA"',disciplina:'NOGI',categoria:'59 KG · FEMENINO INFANTIL',gym:'MANZUR BROS',record:'4-1-0',edad:'15'},true)},300);
+""", full=False)
 
 P['FCC2_Overlay_Mosca'] = page('FCC 2 Mosca', """
 .mosca{position:absolute;right:56px;bottom:56px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;transform-origin:right bottom;transition:opacity .4s,transform .35s}

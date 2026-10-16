@@ -59,6 +59,14 @@ td.rn input{color:#ff8a8a}td.bn input{color:#9cb6ff}
 td button{font-size:15px;padding:4px 8px 2px}
 .fl{max-height:430px;overflow:auto;border:1px solid var(--line)}
 .scenes{display:flex;flex-wrap:wrap;gap:8px}
+.ltf{max-height:300px;overflow:auto;border:1px solid var(--line)}
+.ltf .fr{display:flex;align-items:center;gap:6px;padding:4px 6px;border-bottom:1px solid var(--line)}
+.ltf .fr.cur{background:rgba(227,18,27,.12)}
+.ltf .fr .n{width:26px;font-family:"Bebas";font-size:18px;color:var(--mute)}
+.ltf .fr .d{width:66px;flex:none;font-size:10px;letter-spacing:1px;color:var(--mute);line-height:1.2}
+.ltf .fr button{flex:1;min-width:0;text-align:left;font-size:14px;letter-spacing:.5px;padding:5px 6px 2px;white-space:normal;line-height:1.1}
+.ltf .fr button.r{border-left:4px solid var(--red2)}.ltf .fr button.b{border-left:4px solid var(--blue)}
+.ltf .fr button.on{background:var(--ok);color:#000}
 .scenes button.cur{background:var(--red);border-color:var(--red)}
 .scenes button.prev{border-color:var(--ok);color:var(--ok)}
 .hint{font-size:13px;color:var(--mute);line-height:1.5}
@@ -245,6 +253,11 @@ AUSPICIA DI PIPINO PIZZA</textarea></div>
   <!-- LOWER THIRD -->
   <section class="card">
     <h2>LOWER THIRD <span class="sp"><span class="onair" id="air-lt">OCULTO</span></span></h2>
+    <div class="row"><button class="pri" id="blt_r" style="flex:1;border-left:6px solid #fff">🔴 PELEADOR ROJO ACTUAL</button><button class="pri" id="blt_b" style="flex:1;background:var(--blue);border-color:var(--blue)">🔵 PELEADOR AZUL ACTUAL</button></div>
+    <div class="row"><div class="f"><label>SE OCULTA SOLO DESPUÉS DE</label><select id="lt_auto"><option value="0">No ocultar solo</option><option value="6">6 segundos</option><option value="8">8 segundos</option><option value="10">10 segundos</option><option value="15">15 segundos</option></select></div><button id="blth2" style="align-self:flex-end">OCULTAR</button></div>
+    <label>TODOS LOS PELEADORES · clic en un nombre para mostrar su lower third</label>
+    <div class="ltf" id="ltf"></div>
+    <label style="margin-top:6px">PERSONA (COMENTARISTA, INVITADO…)</label>
     <div class="row"><div class="f" style="flex:2"><label>NOMBRE</label><input id="lt_nombre" placeholder="Nombre Apellido"></div><div class="f"><label>CARGO</label><input id="lt_cargo" placeholder="Comentarista"></div></div>
     <div class="row"><button class="pri" id="blt">MOSTRAR</button><button id="blth">OCULTAR</button><button id="bltsave">GUARDAR COMO ATAJO</button></div>
     <div class="scenes" id="ltp"></div>
@@ -426,7 +439,7 @@ $('bswap').onclick=function(){readFields();['nombre','gym','apodo','record','pes
 // ---------- cartelera ----------
 var OFICIAL=[{"h": "13:15", "d": "NOGI", "r": "Ángel Jiménez", "b": "Martín Bahamonde", "c": "83 kg", "x": {"r_gym": "Cohab Centro", "b_gym": "La Familia Jiu Jitsu"}}, {"h": "13:25", "d": "NOGI", "r": "Diego Márquez", "b": "Pedro Montenegro", "c": "70 kg", "x": {"r_gym": "Alfa Team", "b_gym": "Crazy Brothers"}}, {"h": "13:35", "d": "NOGI", "r": "Pablo Bueno", "b": "Alexander Fichelman", "c": "80 kg", "x": {"r_gym": "Alfa Team", "b_gym": "Club Yamaguchi"}}, {"h": "13:45", "d": "NOGI", "r": "Lucas Yáñez", "b": "Matías Herrera", "c": "79 kg", "x": {"r_gym": "Manzur Bros / FCC Team", "b_gym": "Cohab Centro"}}, {"h": "13:55", "d": "NOGI", "r": "Jorge Allende", "b": "Gaspar Palma", "c": "76 kg", "x": {"r_gym": "Cohab Centro", "b_gym": "Alfa Team"}}, {"h": "14:05", "d": "NOGI", "r": "Cristian Miranda", "b": "Ricardo Muñoz", "c": "80 kg", "x": {"r_gym": "Manzur Bros", "b_gym": "Alfa Team"}}, {"h": "14:15", "d": "NOGI", "r": "Isabella Aguirres Díaz", "b": "Gissel Contreras", "c": "59 kg · Femenino infantil", "x": {"r_gym": "Manzur Bros", "b_gym": "Alfa Team"}}, {"h": "14:25", "d": "NOGI", "r": "Lorenzo Flores", "b": "Erik Espinoza", "c": "76 kg", "x": {"r_gym": "Cohab Centro", "b_gym": "Alfa Team"}}, {"h": "14:35", "d": "NOGI", "r": "Mateo Maiale", "b": "Iván Soto", "c": "76 kg", "x": {"r_gym": "Awka", "b_gym": "Alfa Team"}}, {"h": "14:45", "d": "NOGI", "r": "Barry Sandoval", "b": "Sebastián Herrera", "c": "75 kg", "x": {"r_gym": "Resistencia y Resiliencia", "b_gym": "Kacekastan"}}, {"h": "15:15", "d": "BOXEO", "r": "Vicente Valenzuela", "b": "Giovanni Vera", "c": "Peso pesado", "x": {"r_gym": "Alfa Team MMA", "b_gym": "Unity Boxeo"}, "len": 180, "tot": 3}, {"h": "15:28", "d": "BOXEO", "r": "Cristopher Pontigo", "b": "Cristhoper Saravia", "c": "72 kg", "x": {"r_gym": "Club Yamaguchi", "b_gym": "Manzur Bros"}, "len": 180, "tot": 3}, {"h": "15:41", "d": "BOXEO", "r": "Edson Alayo", "b": "Álvaro Astorga", "c": "Hasta 60 kg", "x": {"r_gym": "Team Clandestino MMA", "b_gym": "Manzur Bros"}, "len": 180, "tot": 3}, {"h": "15:54", "d": "BOXEO", "r": "Matías Infantes", "b": "Simon Montenegro", "c": "63 kg", "x": {"r_gym": "FCC Team", "b_gym": "Montenegro Team"}, "len": 180, "tot": 3}, {"h": "16:07", "d": "BOXEO", "r": "Javier Olivares", "b": "Basty Menéndez", "c": "Hasta 61 kg", "x": {"r_gym": "Manzur Bros", "b_gym": "Alfa Team"}, "len": 180, "tot": 3}, {"h": "16:20", "d": "BOXEO", "r": "Lautaro García", "b": "Alessandro Rivera", "c": "70 kg", "x": {"r_gym": "FCC Team", "b_gym": "Club Yamaguchi"}, "len": 180, "tot": 3}, {"h": "16:33", "d": "BOXEO", "r": "Joaquín Valdenegro", "b": "Sebastián González", "c": "57 kg · Élite", "x": {"r_gym": "Club Trueno Boxing", "b_gym": "FCC Team"}, "len": 180, "tot": 3}, {"h": "16:53", "d": "KICKBOXING", "r": "José Luis Schmidt", "b": "José Pretocinio", "c": "91 kg", "x": {"r_gym": "Brotherhood Quilicura", "b_gym": "Black House"}, "len": 120, "tot": 3}, {"h": "17:06", "d": "KICKBOXING", "r": "Sebastián Tapia", "b": "Cristóbal Sanhueza", "c": "Hasta 71 kg", "x": {"r_gym": "Brotherhood Quilicura", "b_gym": "KBE"}, "len": 120, "tot": 3}, {"h": "17:19", "d": "KICKBOXING", "r": "Bruno Canio", "b": "Matías Espinoza", "c": "Peso pesado · Low Kick Amateur", "x": {"r_gym": "Club Kacekastan", "b_gym": "Clandestino MMA"}, "len": 120, "tot": 3}, {"h": "17:32", "d": "KICKBOXING", "r": "Matías Aballay", "b": "Alberto Meza", "c": "Hasta 71 kg · K1", "x": {"r_gym": "Lions Fight Team", "b_gym": "Club Yamaguchi"}, "len": 120, "tot": 3}, {"h": "17:45", "d": "KICKBOXING", "r": "Diego López", "b": "Emiliano Espinoza", "c": "66 kg", "x": {"r_gym": "Alfa Team", "b_gym": "Clandestino MMA"}, "len": 120, "tot": 3}, {"h": "17:58", "d": "KICKBOXING", "r": "Felipe Castro", "b": "Arturo Cadenas", "c": "57 kg · Low Kick Semi Pro", "x": {"r_gym": "Manzur Bros", "b_gym": "KBE"}, "len": 180, "tot": 3}, {"h": "18:31", "d": "MMA", "r": "David Peime", "b": "Héctor García", "c": "57 kg", "x": {"r_gym": "Black House", "b_gym": "Alfa Team MMA"}, "len": 180, "tot": 3}, {"h": "18:44", "d": "MMA", "r": "Marlon Machiste", "b": "Román Araya", "c": "70 kg", "x": {"r_gym": "Training Boxing", "b_gym": "Club Clandestino MMA"}, "len": 180, "tot": 3}, {"h": "18:57", "d": "MMA", "r": "Fernando Benavente", "b": "Marcos Bustamante", "c": "70 kg · Coestelar", "x": {"r_gym": "Nintai Grappling Art", "b_gym": "Alfa Team"}, "len": 180, "tot": 3}, {"h": "19:30", "d": "MMA", "r": "Máximo Cuevas", "b": "Adán Letelier", "c": "66 kg · Pelea estelar · Título Copa FCC", "x": {"r_gym": "Clandestino MMA", "b_gym": "Limache Fight Club"}, "len": 180, "tot": 3}];
 function loadOficial(){S.fights=JSON.parse(JSON.stringify(OFICIAL));S.cur=0;S.f.total='27';$('total').value='27';save();renderFights();loadFight(0)}
-function renderFights(){$('fl').innerHTML=S.fights.map(function(f,i){return '<tr class="'+(i===S.cur?'cur':'')+'"><td class="n">'+(i+1)+'</td><td class="hint" style="width:46px">'+esc(f.h||'')+'</td><td class="rn"><input data-i="'+i+'" data-k="r" value="'+esc(f.r)+'" placeholder="Rojo"></td><td class="bn"><input data-i="'+i+'" data-k="b" value="'+esc(f.b)+'" placeholder="Azul"></td><td><input data-i="'+i+'" data-k="d" value="'+esc(f.d)+'" style="width:110px"></td><td><button data-load="'+i+'">'+(i===S.cur?'AL AIRE':'CARGAR')+'</button></td></tr>'}).join('')}
+function renderFights(){if(window.renderLtf)setTimeout(renderLtf,0);$('fl').innerHTML=S.fights.map(function(f,i){return '<tr class="'+(i===S.cur?'cur':'')+'"><td class="n">'+(i+1)+'</td><td class="hint" style="width:46px">'+esc(f.h||'')+'</td><td class="rn"><input data-i="'+i+'" data-k="r" value="'+esc(f.r)+'" placeholder="Rojo"></td><td class="bn"><input data-i="'+i+'" data-k="b" value="'+esc(f.b)+'" placeholder="Azul"></td><td><input data-i="'+i+'" data-k="d" value="'+esc(f.d)+'" style="width:110px"></td><td><button data-load="'+i+'">'+(i===S.cur?'AL AIRE':'CARGAR')+'</button></td></tr>'}).join('')}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
 $('fl').addEventListener('input',function(e){var t=e.target;if(t.dataset.i==null)return;S.fights[+t.dataset.i][t.dataset.k]=t.value;save()});
 $('fl').addEventListener('click',function(e){var b=e.target.closest('[data-load]');if(b)loadFight(+b.dataset.load)});
@@ -455,8 +468,17 @@ $('bwin').onclick=function(){S.g={nombre:U($('g_nombre').value),esquina:U($('g_e
  if(!S.g.nombre)return toast('Elige el ganador');save();push();toast('Resultado enviado')};
 
 // ---------- lower third y replay ----------
-$('blt').onclick=function(){S.lt={nombre:U($('lt_nombre').value)||'NOMBRE APELLIDO',cargo:U($('lt_cargo').value)};S.show.lt=true;save();push()};
-$('blth').onclick=function(){S.show.lt=false;save();push()};
+var LTT=null;function ltShow(o){o.t=Date.now();S.lt=o;S.show.lt=true;save();push();renderLtf();clearTimeout(LTT);var a=+S.ltAuto||0;if(a)LTT=setTimeout(function(){S.show.lt=false;save();push();renderLtf()},(a+1.6)*1000)}
+$('blt').onclick=function(){ltShow({modo:'persona',nombre:U($('lt_nombre').value)||'NOMBRE APELLIDO',cargo:U($('lt_cargo').value)})};
+$('blth').onclick=$('blth2').onclick=function(){clearTimeout(LTT);S.show.lt=false;save();push();renderLtf()};
+function ltFighter(i,c){var f=S.fights[i];if(!f)return;var x=f.x||{},cur=i===S.cur,F=S.f,g=function(k){return cur?(F[c+'_'+k]||''):(x[c+'_'+k]||'')};
+ var cat=cur?(F.categoria||f.c||''):(f.c||''),pm=cat.match(/(hasta\s*)?\d+\s*kg|peso\s+pesado/i);
+ ltShow({modo:'peleador',esq:c,num:String(i+1),lbl:U(c==='r'?S.lbl.a:S.lbl.b),nombre:U(cur?F[c+'_nombre']:f[c])||'NOMBRE APELLIDO',apodo:qt(g('apodo')),gym:U(g('gym')),record:U(g('record')),edad:U(g('edad')),peso:U(g('peso')||(pm?pm[0]:'')),disciplina:U(cur?(F.disciplina||f.d):f.d),categoria:U(cat)})}
+$('blt_r').onclick=function(){ltFighter(S.cur,'r')};$('blt_b').onclick=function(){ltFighter(S.cur,'b')};
+S.ltAuto=S.ltAuto==null?8:S.ltAuto;$('lt_auto').value=String(S.ltAuto);$('lt_auto').onchange=function(){S.ltAuto=+this.value;save()};
+function renderLtf(){var L=S.lt||{},on=S.show.lt&&L.modo==='peleador';$('ltf').innerHTML=S.fights.map(function(f,i){var b=function(c){var nm=f[c]||'';if(i===S.cur)nm=S.f[c+'_nombre']||nm;var a=on&&L.num===String(i+1)&&L.esq===c;return '<button class="'+c+(a?' on':'')+'" data-ltf="'+i+':'+c+'"'+(nm?'':' disabled')+'>'+esc(nm||'—')+'</button>'};
+ return '<div class="fr'+(i===S.cur?' cur':'')+'"><span class="n">'+(i+1)+'</span><span class="d">'+esc(U(f.d))+'<br>'+esc(U(f.c))+'</span>'+b('r')+b('b')+'</div>'}).join('')}
+$('ltf').addEventListener('click',function(e){var t=e.target.closest('[data-ltf]');if(!t)return;var p=t.dataset.ltf.split(':');ltFighter(+p[0],p[1])});
 $('bltsave').onclick=function(){var n=$('lt_nombre').value.trim();if(!n)return;S.ltp.push({n:n,c:$('lt_cargo').value.trim()});save();renderLtp()};
 function renderLtp(){$('ltp').innerHTML=S.ltp.map(function(p,i){return '<button data-lt="'+i+'" title="Clic derecho para borrar">'+esc(p.n)+(p.c?' · '+esc(p.c):'')+'</button>'}).join('')}
 $('ltp').addEventListener('click',function(e){var b=e.target.closest('[data-lt]');if(!b)return;var p=S.ltp[+b.dataset.lt];$('lt_nombre').value=p.n;$('lt_cargo').value=p.c;$('blt').click()});
@@ -670,7 +692,7 @@ function doCmd(c,a){switch(c){
  case 'replay':$('rb_play').click();break; case 'replay3':case 'replay5':case 'replay10':RB.len1=+c.slice(6);$('rb_play').click();break; case 'replayslow':RB.spd1=35;$('rb_play').click();break; case 'moment':$('rb_save').click();break;
  case 'reel':$('rb_reel').click();break; case 'reelall':$('rb_reelall').click();break; case 'stop':$('rb_stop').click();break;
  case 'tgl_marcador':$('tg-marcador').click();break;
- case 'tgl_lt':(S.show.lt?$('blth'):$('blt')).click();break;
+ case 'lt_r':$('blt_r').click();break; case 'lt_b':$('blt_b').click();break; case 'tgl_lt':(S.show.lt?$('blth'):$('blt')).click();break;
  case 'tgl_mosca':(S.show.mosca?$('mo_hide'):$('mo_show')).click();break;
  case 'next':$('bnext').click();break; case 'prev':$('bprev').click();break;
  case 'win_r':$('wr').click();$('bwin').click();break; case 'win_b':$('wb').click();$('bwin').click();break;
