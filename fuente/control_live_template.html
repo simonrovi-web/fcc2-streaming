@@ -714,8 +714,10 @@ async function loadIn(slot,path,spd){var nm=RBINS[slot],k=RB.bk[slot];
 function imgLit(src){return new Promise(function(res){var im=new Image();im.onload=function(){try{var c=document.createElement('canvas');c.width=16;c.height=9;var x=c.getContext('2d');x.drawImage(im,0,0,16,9);var d=x.getImageData(0,0,16,9).data,mx=0;for(var i=0;i<d.length;i+=4){var v=d[i]+d[i+1]+d[i+2];if(d[i+3]>0&&v>mx)mx=v}res(mx>24)}catch(e){res(true)}};im.onerror=function(){res(true)};im.src=src})}
 async function frameReady(nm){for(var i=0;i<16;i++){var r=await reqP('GetSourceScreenshot',{sourceName:nm,imageFormat:'png',imageWidth:16,imageHeight:9});
   var d=(r.responseData||{}).imageData;if(!(r.requestStatus&&r.requestStatus.result)||!d)return;if(await imgLit(d))return;await wait(40)}}
-async function seekWait(nm,ms){await reqP('SetMediaInputCursor',{inputName:nm,mediaCursor:Math.max(0,Math.round(ms))});
- for(var i=0;i<10;i++){await wait(40);var st=await mstat(nm);if(st.mediaCursor!=null&&Math.abs(st.mediaCursor-ms)<450)break}await frameReady(nm)}
+// salta a un punto. Con el video en pausa OBS no siempre redibuja el cuadro nuevo: por eso se da un "toque" de play/pausa
+async function seekWait(nm,ms,nudge){await reqP('SetMediaInputCursor',{inputName:nm,mediaCursor:Math.max(0,Math.round(ms))});
+ if(nudge){await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'});await wait(55);await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'})}
+ for(var i=0;i<5;i++){await wait(30);var st=await mstat(nm);if(st.mediaCursor!=null&&Math.abs(st.mediaCursor-ms)<500)break}await frameReady(nm)}
 async function prepare(slot,path,want,spd){var nm=RBINS[slot],st=await loadIn(slot,path,spd),ok=st.mediaDuration>0;
  if(ok&&st.mediaDuration>want+300)await seekWait(nm,st.mediaDuration-want);else if(ok)await frameReady(nm);
  await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'});
@@ -760,7 +762,7 @@ async function cutTo(ms,spd,play){if(!RB.cur)return;var wasSw=RB.switching;RB.sw
  try{if(RB.prep){try{await RB.prep}catch(e){}if(RB.prepItem)RB.queue.unshift(RB.prepItem);RB.prep=null;RB.prepItem=null}
   var bk=1-RB.slot,nm=RBINS[bk],c=RB.cur,st=await loadIn(bk,c.path,spd);if(!(st.mediaDuration>0))return;
   var lo=Math.max(0,st.mediaDuration-(c.want||10000));ms=Math.max(lo,Math.min(st.mediaDuration-200,ms));
-  await seekWait(nm,ms);
+  await seekWait(nm,ms,!play);
   if(play)await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'});
   var old=RBINS[RB.slot];await raise(bk);await wait(60);reqP('TriggerMediaInputAction',{inputName:old,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'});
   RB.slot=bk;RB.cur=Object.assign({},c,{slot:bk,spd:spd,ok:true});RB.spdNow=spd;RB.userPause=!play;RB.tpHold=Date.now()+1200;RB.wd={c:-1,n:0,t:Date.now()};
@@ -779,7 +781,7 @@ function tpBackPlay(){tpSeek(-3000,null,true)}                                  
 // rebobinar: la imagen corre hacia atrás (como VHS) hasta que vuelvas a tocar; entonces sigue reproduciendo desde ahí
 function tpRewind(){if(!tpOk())return;if(RB.rew){RB.rew=false;return}RB.rew=true;tpUI();
  tpq(async function(){var q=await curPos(),t=q.c,lo=q.lo;await reqP('TriggerMediaInputAction',{inputName:TPN(),mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'});RB.userPause=true;
-  while(RB.rew&&RB.playing){t-=400;if(t<=lo){t=lo;RB.rew=false}await cutTo(t,RB.spdNow||100,false)}
+  var dt=250;while(RB.rew&&RB.playing){var st0=Date.now();t-=Math.max(120,Math.min(700,dt*1.6));if(t<=lo){t=lo;RB.rew=false}await cutTo(t,RB.spdNow||100,false);dt=Date.now()-st0}   // ~1,6× hacia atrás
   RB.rew=false;if(RB.playing){RB.userPause=false;await reqP('TriggerMediaInputAction',{inputName:TPN(),mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'});RB.wd={c:-1,n:0,t:Date.now()}}tpUI()})}
 var SCRUB={v:null,run:false};
 function tpScrub(f){if(!RB.playing||RB.loading)return;RB.rew=false;SCRUB.v=f;if(SCRUB.run)return;SCRUB.run=true;
