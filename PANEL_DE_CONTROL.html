@@ -105,7 +105,9 @@ var OV=[
 var TR=[
  {f:'FCC2_Transicion_Golpe',n:'Golpe',d:'Barras diagonales + logo con destello. Transición general.',ms:2000,dur:'4 s'},
  {f:'FCC2_Transicion_Replay',n:'Replay',d:'Igual que Golpe con "REPETICIÓN". Anúlala en la escena REPLAY.',ms:2000,dur:'4 s'},
- {f:'FCC2_Transicion_Rapida',n:'Rápida',d:'Círculo + logo. Para cortes rápidos.',ms:2000,dur:'4 s'}];
+ {f:'FCC2_Transicion_Rapida',n:'Rápida',d:'Círculo + logo. Para cortes rápidos.',ms:2000,dur:'4 s'},
+ {f:'FCC2_Transicion_Golpe_Corta',n:'Golpe corta',d:'Igual que Golpe en la mitad del tiempo. Para cambios ágiles entre combates.',ms:1000,dur:'2 s'},
+ {f:'FCC2_Transicion_Rapida_Corta',n:'Rápida corta',d:'Igual que Rápida en la mitad del tiempo.',ms:1000,dur:'2 s'}];
 
 var base=decodeURI(location.href.replace(/[#?].*$/,'').replace(/[^\/]*$/,''));
 function winPath(rel){var u=base+rel;if(u.indexOf('file:///')===0){u=u.slice(8);if(/^[A-Za-z]:/.test(u))u=u.replace(/\//g,'\\');}return u}

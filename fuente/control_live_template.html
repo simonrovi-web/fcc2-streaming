@@ -335,7 +335,7 @@ AUSPICIA DI PIPINO PIZZA</textarea></div>
         <h3 style="font-family:Bebas;font-size:22px;letter-spacing:2px;font-weight:400;margin-top:14px">TRANSICIONES (STINGERS)</h3>
         <ul class="chk" id="trl"><li class="pend">Pulsa AJUSTAR TRANSICIONES con OBS conectado.</li></ul>
         <div class="row" style="margin-top:8px"><button class="pri big" id="btrfix">🎬 AJUSTAR TRANSICIONES</button></div>
-        <p class="hint">Revisa la resolución de OBS y deja cada stinger FCC2 con el video correcto (1080p o 720p según tu lienzo), punto de corte en <b>2000 ms</b> (cuando el logo tapa toda la pantalla) y decodificación por hardware. Primero crea en OBS, en <b>Transiciones de escena → + → Stinger</b>, tres transiciones llamadas <b>FCC2 Golpe</b>, <b>FCC2 Rapida</b> y <b>FCC2 Replay</b> (puedes dejarlas vacías: este botón les pone el video).</p>
+        <p class="hint">Revisa la resolución de OBS y deja cada stinger FCC2 con el video correcto (1080p o 720p según tu lienzo), punto de corte en <b>2000 ms</b> (cuando el logo tapa toda la pantalla) y decodificación por hardware. Primero crea en OBS, en <b>Transiciones de escena → + → Stinger</b>, transiciones llamadas <b>FCC2 Golpe</b>, <b>FCC2 Rapida</b>, <b>FCC2 Replay</b> y las cortas de 2 s <b>FCC2 Golpe Corta</b> y <b>FCC2 Rapida Corta</b> (puedes dejarlas vacías: este botón les pone el video).</p>
         <p class="hint" style="margin-top:8px"><b>INSTALAR</b> crea (si faltan) las escenas INICIO, ESTUDIO, VS, GANADOR, REPLAY, PAUSA, AUSPICIADOR y FINAL en la colección de escenas que tengas abierta, y pone cada gráfico FCC2 apuntando a esta carpeta. Si ya existen, solo corrige las rutas. No borra nada.</p>
       </div>
     </div>
@@ -565,7 +565,7 @@ async function runDiag(){var L=[];
  $('chk').innerHTML=L.join('');return {found:found,wrong:wrong,miss:miss}}
 $('bdiag').onclick=function(){runDiag()};
 // ---------- transiciones: ajustar stingers y elegir la transición activa ----------
-function trFile(name,path){var t=(name+' '+(path||'')).toLowerCase();if(/golpe/.test(t))return 'Golpe';if(/r[aá]pid/.test(t))return 'Rapida';if(/replay|repetic/.test(t))return 'Replay';return null}
+function trFile(name,path){var t=(name+' '+(path||'')).toLowerCase(),c=/cort[ao]|2 ?s\b|corta/.test(name.toLowerCase())||(!/fcc2/i.test(name)&&/_corta/.test(t))?'_Corta':'';if(/golpe/.test(t))return 'Golpe'+c;if(/r[aá]pid/.test(t))return 'Rapida'+c;if(/replay|repetic/.test(t))return 'Replay';return null}
 async function trFix(){if(!WS.ok)return toast('Conecta OBS primero');var L=[],out=$('trl');out.innerHTML='<li class="pend">Revisando…</li>';
  var vs=(await reqP('GetVideoSettings',{})).responseData||{},bw=vs.baseWidth,bh=vs.baseHeight,sub='';
  if(bw===1920&&bh===1080)L.push(li('ok','Lienzo de OBS 1920×1080','Se usan los stingers en 1080p.'));
@@ -573,14 +573,14 @@ async function trFix(){if(!WS.ok)return toast('Conecta OBS primero');var L=[],ou
  else L.push(li('bad','Lienzo de OBS '+bw+'×'+bh,'Los stingers son 1920×1080 y OBS no los ajusta solo. Recomendado: Ajustes → Video → Resolución base 1920×1080 (o 1280×720) y vuelve a pulsar AJUSTAR.'));
  var dir=isRemote()?'':ctlPath().replace(/[^\/]*$/,'')+'Transiciones/'+sub;
  var tl=(await reqP('GetSceneTransitionList',{})).responseData||{},prevT=tl.currentSceneTransitionName,list=(tl.transitions||[]).filter(function(x){return /stinger/.test(x.transitionKind||'')}),n=0;
- if(!list.length)L.push(li('bad','No hay transiciones Stinger en OBS','En OBS: panel <b>Transiciones de escena</b> → <b>+</b> → <b>Stinger</b> → nómbrala <b>FCC2 Golpe</b> (repite para <b>FCC2 Rapida</b> y <b>FCC2 Replay</b>) y acepta aunque esté vacía. Luego pulsa AJUSTAR otra vez.'));
+ if(!list.length)L.push(li('bad','No hay transiciones Stinger en OBS','En OBS: panel <b>Transiciones de escena</b> → <b>+</b> → <b>Stinger</b> → nómbrala <b>FCC2 Golpe</b> (repite para <b>FCC2 Rapida</b>, <b>FCC2 Replay</b>, <b>FCC2 Golpe Corta</b> y <b>FCC2 Rapida Corta</b>) y acepta aunque esté vacía. Luego pulsa AJUSTAR otra vez.'));
  for(var i=0;i<list.length;i++){var nm=list[i].transitionName;await reqP('SetCurrentSceneTransition',{transitionName:nm});
   var cur=(await reqP('GetCurrentSceneTransition',{})).responseData||{},se=cur.transitionSettings||{},f=trFile(nm,se.path);
   if(!f){L.push(li('pend','«'+esc(nm)+'»: no es de FCC2, no se tocó','Si quieres que use un video FCC2, ponle Golpe, Rapida o Replay en el nombre.'));continue}
-  var ns={transition_point_type:0,tp_type:0,transition_point:2000,hw_decode:true};
+  var short=/_Corta$/.test(f),tp=short?1000:2000;var ns={transition_point_type:0,tp_type:0,transition_point:tp,hw_decode:true};
   if(dir)ns.path=dir+'FCC2_Transicion_'+f+'.webm';
   var r=await reqP('SetCurrentSceneTransitionSettings',{transitionSettings:ns,overlay:true});n++;
-  L.push(r.requestStatus&&r.requestStatus.result?li('ok','«'+esc(nm)+'» → FCC2_Transicion_'+f+'.webm'+(sub?' (720p)':''),'Corte a 2000 ms · el video tapa la pantalla de 0,3 s a 3,7 s, así que el cambio de escena nunca se ve.'+(dir?'':' (control remoto: la ruta del video no se cambió, solo el punto de corte)')):li('bad','«'+esc(nm)+'»: OBS no aceptó el ajuste',esc((r.requestStatus||{}).comment||'')))}
+  L.push(r.requestStatus&&r.requestStatus.result?li('ok','«'+esc(nm)+'» → FCC2_Transicion_'+f+'.webm'+(sub?' (720p)':''),(short?'Versión corta (2 s) · corte a 1000 ms · tapa la pantalla de 0,3 s a 1,7 s.':'Corte a 2000 ms · el video tapa la pantalla de 0,3 s a 3,7 s, así que el cambio de escena nunca se ve.')+(dir?'':' (control remoto: la ruta del video no se cambió, solo el punto de corte)')):li('bad','«'+esc(nm)+'»: OBS no aceptó el ajuste',esc((r.requestStatus||{}).comment||'')))}
  if(prevT)await reqP('SetCurrentSceneTransition',{transitionName:prevT});
  if(n)L.push(li('ok','Listo','En el control, elige la transición con los botones bajo TRANSICIÓN. En OBS no hace falta cambiar la duración: el stinger usa su propio largo (4 s).'));
  out.innerHTML=L.join('');loadTrans()}

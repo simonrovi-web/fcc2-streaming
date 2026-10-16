@@ -10,7 +10,7 @@ Gráficos, transiciones y control en vivo para la transmisión de **FCC 2**
 | `CONTROL_EN_VIVO.html` | Control en tiempo real: reloj, nombres, cartelera, resultado, lower third, escenas. Se conecta a OBS por WebSocket e instala los gráficos solo. |
 | `PANEL_DE_CONTROL.html` | Catálogo de todos los gráficos y transiciones con vista previa y botones para copiar rutas. |
 | `Paneles/` | Gráficos 1920×1080 (fuente *Navegador* de OBS): Inicio, Pausa, VS, Ganador, Auspiciador, Final y overlays transparentes (Marcador, Replay, Lower third, Mosca). Cada uno con su `.png`. |
-| `Transiciones/` | Stingers `.webm` con transparencia y sonido, 4 s (1080p y `720p/`). Punto de transición: **2000 ms**. En CONTROL_EN_VIVO → CONFIGURAR OBS → **AJUSTAR TRANSICIONES** los deja configurados solos. |
+| `Transiciones/` | Stingers `.webm` con transparencia y sonido (1080p y `720p/`): Golpe, Rápida y Replay de 4 s (corte **2000 ms**) y Golpe/Rápida **cortas de 2 s** (corte **1000 ms**). En CONTROL_EN_VIVO → CONFIGURAR OBS → **AJUSTAR TRANSICIONES** los deja configurados solos. |
 | `fuente/` | Archivos fuente para regenerar los gráficos (`python3 build.py`). |
 
 ## Uso rápido
