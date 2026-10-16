@@ -124,11 +124,22 @@ details.adv h3{font-family:"Bebas";font-size:20px;letter-spacing:2px;color:#ddd;
 .shfoot{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
 .shfoot .pri{margin-left:auto}
 .warnl{color:var(--warn);font-size:14px;margin-top:6px}
+
+.lockb{margin-left:auto;font-size:22px;padding:10px 20px 6px;border-width:2px}
+.lockb.on{background:#13a34a;border-color:#4ff18d;color:#fff}
+.lockb.off{background:#5a4500;border-color:var(--warn);color:#fff}
+.lockbar{display:none;align-items:center;gap:12px;background:#0d2a17;border:1px solid #2ecc71;padding:10px 16px;margin-bottom:16px;font-size:15px}
+.lockbar>b{white-space:nowrap;flex:none}.lockbar b{font-family:"Bebas";font-size:24px;letter-spacing:2px;font-weight:400;color:#4ff18d}
+body.locked .lockbar{display:flex}
+body.locked .editonly{display:none!important}
+body.locked .bt{cursor:pointer}
+body.locked .bt:hover .tile{outline:2px solid #4ff18d}
 </style></head>
 <body>
 <header>
   <img src="__LOGO__" alt="FCC">
   <h1>PANEL MIDI <em>FCC 2</em></h1>
+  <button class="lockb" id="block">🔒 BLOQUEADO</button>
 </header>
 <main>
   <div class="steps">
@@ -138,16 +149,17 @@ details.adv h3{font-family:"Bebas";font-size:20px;letter-spacing:2px;color:#ddd;
   </div>
   <div id="ch-obs" style="display:none"><span></span></div>
 
+  <div class="lockbar"><b>🔒 MODO EN VIVO · BLOQUEADO</b><span>Los pads solo ejecutan sus acciones: no se puede agregar, cambiar ni borrar nada. Clic en una tarjeta = ejecutar esa acción. Para editar, pulsa <b style="font-size:17px;color:#fff">🔒 BLOQUEADO</b> arriba a la derecha (dos veces).</span></div>
   <section class="sec">
-    <h2>MIS BOTONES <span class="sp"><button id="bwiz">ASIGNAR TODOS PASO A PASO</button><button id="badd" class="pri">+ AGREGAR BOTÓN</button></span></h2>
-    <p class="sub">Cada tarjeta es un pad de tu controlador. El color muestra el estado en vivo. <b>Toca una tarjeta para cambiarla.</b></p>
+    <h2>MIS BOTONES <span class="sp editonly"><button id="bwiz">ASIGNAR TODOS PASO A PASO</button><button id="badd" class="pri">+ AGREGAR BOTÓN</button></span></h2>
+    <p class="sub editonly">Cada tarjeta es un pad de tu controlador. El color muestra el estado en vivo. <b>Toca una tarjeta para cambiarla.</b> Cuando termines, pulsa <b>🔓 EDITANDO</b> arriba para bloquear.</p>
     <div class="wiz" id="wiz"></div>
     <div class="cards" id="cards"></div>
     <div class="leg"><span><i class="led c-red"></i>Rojo: al aire</span><span><i class="led c-green"></i>Verde: en vista previa / encendido</span><span><i class="led c-yellow"></i>Amarillo: disponible</span><span><i class="led c-blue"></i>Azul: acción</span><span>Parpadeando: en curso</span></div>
     <div class="note" id="samsonNote" style="display:none"><b>Samson Conspiracy:</b> sus pads no aceptan luces enviadas desde el computador (solo se iluminan al presionarlos). Los pads <b>sí controlan OBS</b>, y los colores de estado los ves en las tarjetas de esta pantalla. Para que queden encendidos, en el menú de la Conspiracy pon los pads en modo <b>Toggle</b>.</div>
   </section>
 
-  <details class="adv" id="adv"><summary>AVANZADO (puertos, luces, mensajes MIDI)</summary><div class="in">
+  <details class="adv editonly" id="adv"><summary>AVANZADO (puertos, luces, mensajes MIDI)</summary><div class="in">
     <h3>PUERTOS Y MODELO</h3>
     <div class="row">
       <div><label>ENTRADA (BOTONES)</label><select id="min"></select></div>
@@ -275,7 +287,7 @@ function onMidi(ev){var d=ev.data,st=d[0]&0xF0,ch=d[0]&0x0F,num=d[1],val=d[2];va
  if(wizPress(m))return;
  if(SH){SH.m=m;shRender();if(SH.i==null&&SH.a)shCommit();return}
  var mp=MAPS.find(function(x){return x.m&&key(x.m)===key(m)});if(mp&&mp.a){run(mp.a);flash(mp)}
- else{shOpen(null,m);if(!isGrid())buildGrid()}}
+ else{if(!isGrid())buildGrid();if(!LOCK&&m.type==='note')toast('Pad '+m.num+' sin acción'+(SH?'':' · para asignarlo toca + AGREGAR BOTÓN'))}}
 function flash(mp){var i=MAPS.indexOf(mp),el=document.querySelector('[data-mi="'+i+'"]');if(el){el.style.transform='scale(.92)';setTimeout(function(){el.style.transform=''},120)}}
 function fillPorts(){var si=$('min'),so=$('mout'),ins=[],outs=[];MA.inputs.forEach(function(p){ins.push(p)});MA.outputs.forEach(function(p){outs.push(p)});
  var savedIn=ls('fcc2-midi-in'),savedOut=ls('fcc2-midi-out');
@@ -303,7 +315,7 @@ function isGrid(){var p=prof();return p==='apc1'||p==='apc2'||p==='lp'}
 function buildGrid(){if(!isGrid()){var g=$('grid');g.style.gridTemplateColumns='repeat(auto-fill,92px)';var h2='',seen={};MAPS.forEach(function(x){if(x.m&&x.m.type==='note'){seen[x.m.num]=1;h2+='<div class="pad" data-n="'+x.m.num+'"><span class="id">'+x.m.num+'</span><span class="lb"></span></div>'}});KNOWN.slice().sort(function(a,b){return a-b}).forEach(function(n){if(!seen[n])h2+='<div class="pad" data-n="'+n+'"><span class="id">'+n+'</span><span class="lb"></span></div>'});g.innerHTML=h2||'<p class="hint" style="grid-column:1/-1">Presiona tus pads y aparecerán aquí.</p>';return}
  $('grid').style.gridTemplateColumns='';var h='';for(var r=0;r<8;r++)for(var c=0;c<8;c++){var n=gridNote(r,c);h+='<div class="pad" data-r="'+r+'" data-c="'+c+'" data-n="'+n+'"><span class="id">'+n+'</span><span class="lb"></span></div>'}$('grid').innerHTML=h}
 function selPad(i){SEL=i;var el=$('grid').children[i];var n=+el.dataset.n;var mi=MAPS.findIndex(function(x){return x.m&&x.m.type==='note'&&x.m.num===n});
- if(mi>=0)shOpen(mi);else shOpen(null,{type:'note',ch:CALCH|0,num:n})}
+ if(LOCK)return;if(mi>=0)shOpen(mi);else shOpen(null,{type:'note',ch:CALCH|0,num:n})}
 $('grid').addEventListener('click',function(e){var p=e.target.closest('.pad');if(!p)return;var n=+p.dataset.n;var mp=MAPS.find(function(x){return x.m&&x.m.type==='note'&&x.m.num===n});
  if(mp&&mp.a){run(mp.a);return}selPad([].indexOf.call($('grid').children,p))});
 
@@ -311,16 +323,16 @@ $('grid').addEventListener('click',function(e){var p=e.target.closest('.pad');if
 function midLabel(m){if(!m)return 'SIN PAD';return (m.type==='note'?'PAD ':'PERILLA/CC ')+m.num+(m.ch?' · canal '+(m.ch+1):'')}
 function cardsHtml(){var h=MAPS.map(function(x,i){var a=x.a;return '<div class="bt" data-mi="'+i+'"><div class="tile"><b>'+esc(a?actLabel(a):'SIN ACCIÓN')+'</b><small>'+esc(a?kindOf(a):'TOCA PARA ELEGIR')+'</small></div><div class="pid'+(x.m?'':' no')+'">'+midLabel(x.m)+'</div></div>'}).join('');
  if(!MAPS.length)return '<div class="empty" style="grid-column:1/-1"><p>Todavía no tienes botones.<br>Toca <b>+ AGREGAR BOTÓN</b>, presiona un pad de tu controlador y elige qué hace.<br>O usa <b>ASIGNAR TODOS PASO A PASO</b> y el panel te va pidiendo cada pad.</p><div class="row"><button class="pri big" data-go="add">+ AGREGAR BOTÓN</button><button class="big" data-go="wiz">ASIGNAR TODOS PASO A PASO</button>'+(isGrid()?'<button class="big" data-go="auto">AUTO 8×8 ('+(prof()==='lp'?'LAUNCHPAD':'APC MINI')+')</button>':'')+'</div></div>';
- return h+'<div class="bt addc" data-go="add"><div class="tile"><b>+ AGREGAR</b><small>NUEVO BOTÓN</small></div><div class="pid">&nbsp;</div></div>'}
+ return h+'<div class="bt addc editonly" data-go="add"><div class="tile"><b>+ AGREGAR</b><small>NUEVO BOTÓN</small></div><div class="pid">&nbsp;</div></div>'}
 var lastCards='';function renderMaps(){if(typeof isGrid==='function'&&!isGrid())setTimeout(function(){buildGrid();refresh()},0);var h=cardsHtml();if(h!==lastCards){lastCards=h;$('cards').innerHTML=h}}
 $('cards').addEventListener('click',function(e){var g=e.target.closest('[data-go]');if(g){var k=g.dataset.go;if(k==='add')shOpen(null);else if(k==='wiz')$('bwiz').click();else if(k==='auto')$('bauto').click();return}
- var c=e.target.closest('.bt[data-mi]');if(c)shOpen(+c.dataset.mi)});
+ var c=e.target.closest('.bt[data-mi]');if(!c)return;if(LOCK){var x=MAPS[+c.dataset.mi];if(x&&x.a){run(x.a);flash(x)}return}shOpen(+c.dataset.mi)});
 $('badd').onclick=function(){shOpen(null)};
 $('bclear').onclick=function(){MAPS.forEach(function(x){if(x.m)sendLed(x.m,'off',false)});MAPS=[];save();renderMaps();refresh();toast('Botones borrados')};
 
 // ---------- hoja: agregar / editar un botón ----------
 var SH=null;
-function shOpen(i,m){WIZ=null;wizShow();if(i!=null){var x=MAPS[i];SH={i:i,m:x.m,a:x.a}}else SH={i:null,m:m||null,a:''};$('sheet').className='sheet on';shRender()}
+function shOpen(i,m){if(LOCK)return toast('🔒 Bloqueado: desbloquea para editar');WIZ=null;wizShow();if(i!=null){var x=MAPS[i];SH={i:i,m:x.m,a:x.a}}else SH={i:null,m:m||null,a:''};$('sheet').className='sheet on';shRender()}
 function shClose(){SH=null;$('sheet').className='sheet'}
 function shActsHtml(){var sc=((ST&&ST.scenes)||[]).slice();if(SH.a&&SH.a.indexOf('scene:')===0&&sc.indexOf(SH.a.slice(6))<0)sc.push(SH.a.slice(6));
  function btn(v,t){return '<button class="ab'+(SH.a===v?' sel':'')+'" data-a="'+esc(v)+'">'+esc(t)+'</button>'}
@@ -345,7 +357,7 @@ $('shTest').onclick=function(){if(SH&&SH.a)run(SH.a);else toast('Primero elige u
 $('shDel').onclick=function(){if(!SH||SH.i==null)return;var x=MAPS[SH.i];if(x.m)sendLed(x.m,'off',false);MAPS.splice(SH.i,1);save();shClose();renderMaps();refresh();toast('Botón quitado')};
 
 // distribución automática para cuadrícula 8x8
-$('bauto').onclick=function(){var sc=((ST&&ST.scenes)||['INICIO','ESTUDIO','VS','GANADOR','REPLAY','PAUSA','AUSPICIADOR','FINAL']).slice(0,8);
+$('bauto').onclick=function(){if(LOCK)return;var sc=((ST&&ST.scenes)||['INICIO','ESTUDIO','VS','GANADOR','REPLAY','PAUSA','AUSPICIADOR','FINAL']).slice(0,8);
  var rows=[sc.map(function(n){return 'scene:'+n}),
   ['trans','toprev','replay','moment','reel','stop','reelall',''],
   ['clock','reset','rminus','rplus','m10','p10','prev','next'],
@@ -360,7 +372,7 @@ $('btest').onclick=function(){if(!OUT)return toast('Elige la salida (LEDs)');var
 function refresh(){var alive=Date.now()-lastST<2000;
  var ob=alive&&ST&&ST.conn;var cc=$('ch-ctl');cc.className='step '+(ob?'ok':'bad');cc.querySelector('span').textContent=!alive?'Abre CONTROL_EN_VIVO.html en este mismo Chrome':ob?('Conectado a OBS · al aire: '+(ST.cur||'—')):'Está abierto, pero falta conectarlo a OBS (botón CONECTAR)';
  $('ch-obs').querySelector('span').textContent=ob?('OBS ✓ · al aire: '+(ST.cur||'')):'OBS sin conexión';
- var nm=MAPS.filter(function(x){return x.m&&x.a}).length,cm=$('ch-maps');cm.className='step '+(nm?'ok':'bad');cm.querySelector('span').textContent=nm?(nm+(nm===1?' botón listo':' botones listos')+' · toca una tarjeta para cambiarla'):'Toca + AGREGAR BOTÓN';
+ var nm=MAPS.filter(function(x){return x.m&&x.a}).length,cm=$('ch-maps');cm.className='step '+(nm?'ok':'bad');cm.querySelector('span').textContent=nm?(nm+(nm===1?' botón listo':' botones listos')+(LOCK?' · 🔒 bloqueado':' · toca una tarjeta para cambiarla')):'Toca + AGREGAR BOTÓN';
  var pads=$('grid').children;for(var i=0;i<pads.length;i++){var p=pads[i],n=+p.dataset.n;if(!p.classList.contains('pad'))continue;var mp=MAPS.find(function(x){return x.m&&x.m.type==='note'&&x.m.num===n});var a=mp?mp.a:'';var c=colorFor(a);
   var vc=a?c[0]:'off';if(OPT.allon&&(vc==='off'||vc==='dim'))vc=OPT.base;if(FLASH[n]>Date.now())vc=OPT.press;p.className='pad'+(vc!=='off'?' c-'+vc:'')+(c[1]&&a&&!(FLASH[n]>Date.now())?' blink':'')+(SEL===i?' sel':'');p.querySelector('.lb').textContent=actLabel(a)}
  var now=Date.now(),done={};
@@ -379,8 +391,8 @@ function wizList(){var sc=((ST&&ST.scenes)||['INICIO','ESTUDIO','VS','GANADOR','
 function wizShow(){var w=$('wiz');if(!WIZ){w.className='wiz';return}w.className='wiz on';var a=WIZ.list[WIZ.i];
  w.innerHTML='PASO '+(WIZ.i+1)+' DE '+WIZ.list.length+' · PRESIONA EL PAD QUE QUIERES PARA:<span class="act">'+esc(actLabel(a)||a)+'</span><button id="wskip">SALTAR ESTE</button> <button id="wend" class="pri">TERMINAR</button>';
  $('wskip').onclick=function(){WIZ.i++;if(WIZ.i>=WIZ.list.length)WIZ=null;wizShow()};$('wend').onclick=function(){WIZ=null;wizShow();toast('Asistente terminado')}}
-$('bwiz').onclick=function(){shClose();WIZ={list:wizList(),i:0};LEARN=null;wizShow();$('wiz').scrollIntoView({block:'center',behavior:'smooth'})};
-function wizPress(m){if(!WIZ)return false;var a=WIZ.list[WIZ.i];MAPS=MAPS.filter(function(x){return !(x.m&&key(x.m)===key(m))});MAPS.push({m:m,a:a});save();renderMaps();
+$('bwiz').onclick=function(){if(LOCK)return;shClose();WIZ={list:wizList(),i:0};LEARN=null;wizShow();$('wiz').scrollIntoView({block:'center',behavior:'smooth'})};
+function wizPress(m){if(!WIZ||LOCK)return false;var a=WIZ.list[WIZ.i];MAPS=MAPS.filter(function(x){return !(x.m&&key(x.m)===key(m))});MAPS.push({m:m,a:a});save();renderMaps();
  WIZ.i++;if(WIZ.i>=WIZ.list.length){WIZ=null;toast('¡Listo! Todos los pads asignados')}wizShow();return true}
 // ---------- calibración de colores ----------
 function calPads(){var opts=MAPS.filter(function(x){return x.m&&x.m.type==='note'}).map(function(x){return x.m.num});if(LASTN!=null&&opts.indexOf(LASTN)<0)opts.unshift(LASTN);
@@ -411,6 +423,13 @@ calText();
 $('allon').checked=OPT.allon;$('basec').value=OPT.base;$('pressc').value=OPT.press;$('nknown').textContent=KNOWN.length;
 ['allon','basec','pressc'].forEach(function(id){$(id).onchange=function(){OPT={allon:$('allon').checked,base:$('basec').value,press:$('pressc').value};ls('fcc2-midi-opt',OPT);SENT={};refresh()}});
 $('bknown').onclick=function(){KNOWN.forEach(function(n){sendLed({type:'note',ch:CALCH,num:n},'off',false)});KNOWN=[];ls('fcc2-midi-known',KNOWN);$('nknown').textContent=0;SENT={};refresh()};
+// ---------- bloqueo (modo en vivo) ----------
+var LOCK=ls('fcc2-midi-lock');if(LOCK==null)LOCK=MAPS.some(function(x){return x.m&&x.a});var unl=0;
+function setLock(v){LOCK=!!v;ls('fcc2-midi-lock',LOCK);document.body.classList.toggle('locked',LOCK);var b=$('block');b.className='lockb '+(LOCK?'on':'off');b.textContent=LOCK?'🔒 BLOQUEADO':'🔓 EDITANDO · TOCA PARA BLOQUEAR';
+ if(LOCK){shClose();WIZ=null;wizShow()}}
+$('block').onclick=function(){if(!LOCK){setLock(true);toast('🔒 Bloqueado: modo en vivo');return}
+ if(Date.now()-unl<2500){unl=0;setLock(false);toast('🔓 Desbloqueado: ya puedes editar')}else{unl=Date.now();toast('Toca otra vez para desbloquear')}};
+setLock(LOCK);
 buildGrid();renderMaps();calPads();initMidi();
 window.addEventListener('beforeunload',function(){MAPS.forEach(function(x){if(x.m)try{OUT&&OUT.send(ledMsg(x.m,'off',false))}catch(e){}})});
 </script></body></html>
