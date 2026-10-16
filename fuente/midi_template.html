@@ -55,24 +55,104 @@ td button{font-size:15px;padding:4px 8px 2px}
 .wiz.on{display:block}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(100px);background:var(--red);font-family:"Bebas";font-size:20px;letter-spacing:2px;padding:8px 20px 5px;transition:transform .2s;z-index:9}
 .toast.on{transform:translateX(-50%)}
+
+/* ===== v31: interfaz simple ===== */
+main{display:block;max-width:1180px;margin:0 auto;padding:16px 18px 60px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+@media (max-width:820px){.steps{grid-template-columns:1fr}}
+.step{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-left:5px solid #555;padding:12px 14px}
+.step>i{flex:0 0 38px;height:38px;border-radius:50%;background:#2a2a2a;display:flex;align-items:center;justify-content:center;font-style:normal;font-family:"Bebas";font-size:24px;padding-top:3px}
+.step b{display:block;font-family:"Bebas";font-size:21px;letter-spacing:1.5px;font-weight:400}
+.step span{display:block;font-size:13px;color:var(--mute);line-height:1.35}
+.step.ok{border-left-color:var(--ok)}.step.ok>i{background:var(--ok);color:#000;font-size:0}.step.ok>i::after{content:"✓";font-size:24px}
+.step.bad{border-left-color:var(--red2)}.step.bad>i{background:var(--red)}
+.step.bad span{color:#ffb3b3}
+.sec{background:var(--card);border:1px solid var(--line);padding:16px;margin-bottom:16px}
+.sec h2{font-family:"Bebas";font-size:30px;letter-spacing:3px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-weight:400}
+.sec h2::before{content:"";width:8px;height:26px;background:var(--red2);transform:skewX(-14deg)}
+.sec h2 .sp{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.sub{font-size:14px;color:var(--mute);margin:4px 0 14px}
+button.big{font-size:22px;padding:11px 18px 7px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.bt{cursor:pointer;user-select:none;transition:transform .1s}
+.bt .tile{height:104px;border-radius:10px;background:#1c1c1c;border:2px solid #2c2c2c;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px;gap:4px}
+.bt .tile b{font-family:"Bebas";font-size:25px;letter-spacing:1px;line-height:1;font-weight:400;padding-top:3px}
+.bt .tile small{font-size:11px;letter-spacing:2px;opacity:.75}
+.bt .pid{font-size:12px;color:var(--mute);text-align:center;margin-top:5px;letter-spacing:1px}
+.bt .pid.no{color:var(--warn)}
+.bt:hover .tile{outline:2px solid #fff}
+.tile.c-red{background:#c8101a;border-color:#ff4b52;box-shadow:0 0 16px rgba(255,40,40,.45);color:#fff}
+.tile.c-green{background:#13a34a;border-color:#4ff18d;box-shadow:0 0 16px rgba(46,204,113,.4);color:#fff}
+.tile.c-yellow{background:#c89300;border-color:#ffd24a;color:#000}
+.tile.c-blue{background:#1d4fd8;border-color:#6f97ff;color:#fff}
+.tile.c-dim{background:#3a2b10;border-color:#5a4520}
+.tile.blink{animation:pulse .8s steps(1) infinite}
+.addc .tile{border:2px dashed #555;background:transparent;color:#ddd}
+.addc:hover .tile{border-color:var(--red2);outline:none}
+.addc .tile b{font-size:26px}
+.empty{text-align:center;padding:26px 10px 10px}
+.empty p{font-size:17px;line-height:1.6;color:#ddd;margin-bottom:16px}
+.empty .row{justify-content:center}.empty .row>*{flex:0 0 auto}
+.leg{margin-top:14px}
+.wiz{font-size:26px;text-align:center;padding:16px;margin-bottom:12px}
+.wiz .act{display:block;color:#fff;font-size:44px;margin:6px 0 10px}
+.note{border:1px solid #2f6bff;background:#0b1a3d;padding:10px 14px;font-size:14px;line-height:1.5;margin-top:14px}
+details.adv{background:var(--card);border:1px solid var(--line)}
+details.adv>summary{cursor:pointer;font-family:"Bebas";font-size:24px;letter-spacing:3px;padding:12px 16px;list-style:none}
+details.adv>summary::-webkit-details-marker{display:none}
+details.adv>summary::before{content:"▸ ";color:var(--red2)}details.adv[open]>summary::before{content:"▾ "}
+details.adv .in{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px}
+details.adv h3{font-family:"Bebas";font-size:20px;letter-spacing:2px;color:#ddd;font-weight:400;margin-top:8px;border-top:1px solid var(--line);padding-top:12px}
+#calcard{display:flex;flex-direction:column;gap:10px}
+/* hoja para agregar / editar */
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:flex-start;justify-content:center;z-index:8;overflow:auto;padding:30px 12px}
+.sheet.on{display:flex}
+.sheet .box{background:#141414;border:1px solid var(--line);border-top:4px solid var(--red2);width:100%;max-width:900px;padding:18px}
+.sheet h3{font-family:"Bebas";font-size:32px;letter-spacing:3px;font-weight:400;display:flex;align-items:center}
+.sheet h3 button{margin-left:auto}
+.ps{display:flex;gap:12px;align-items:center;margin:14px 0 8px}
+.ps>i{flex:0 0 34px;height:34px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-style:normal;font-family:"Bebas";font-size:22px;padding-top:3px}
+.ps.ok>i{background:var(--ok);color:#000;font-size:0}.ps.ok>i::after{content:"✓";font-size:22px}
+.ps b{font-family:"Bebas";font-size:24px;letter-spacing:1.5px;font-weight:400}
+.padwait{border:2px dashed var(--warn);background:#2a2100;padding:16px;text-align:center;font-family:"Bebas";font-size:28px;letter-spacing:2px;animation:pulse 1.2s steps(1) infinite}
+.padok{border:2px solid var(--ok);background:#0d2a17;padding:12px 16px;font-family:"Bebas";font-size:26px;letter-spacing:2px}
+.padok small{font-family:"Oswald";font-size:13px;letter-spacing:0;color:#bbb;display:block}
+.grp{margin:10px 0 4px;font-size:12px;letter-spacing:2px;color:var(--mute)}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.ab{font-size:19px;padding:10px 14px 6px;background:#1f1f1f}
+.ab.sel{background:var(--red);border-color:#fff}
+.shfoot{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+.shfoot .pri{margin-left:auto}
+.warnl{color:var(--warn);font-size:14px;margin-top:6px}
 </style></head>
 <body>
 <header>
   <img src="__LOGO__" alt="FCC">
   <h1>PANEL MIDI <em>FCC 2</em></h1>
-  <div class="chips">
-    <div class="chip" id="ch-ctl"><i></i><span>Control en vivo</span></div>
-    <div class="chip" id="ch-obs"><i></i><span>OBS</span></div>
-    <div class="chip" id="ch-midi"><i></i><span>MIDI</span></div>
-  </div>
 </header>
 <main>
-  <section class="card">
-    <h2>CONTROLADOR <span class="sp"><button id="btest">PROBAR LEDS</button><button id="bwiz" class="pri">ASISTENTE</button><button id="bauto">AUTO-ASIGNAR 8×8</button></span></h2>
+  <div class="steps">
+    <div class="step" id="ch-ctl"><i>1</i><div><b>CONTROL EN VIVO</b><span>Abre CONTROL_EN_VIVO.html en este mismo Chrome</span></div></div>
+    <div class="step" id="ch-midi"><i>2</i><div><b>CONTROLADOR</b><span>Conecta el controlador por USB</span></div></div>
+    <div class="step" id="ch-maps"><i>3</i><div><b>BOTONES</b><span>Toca + AGREGAR BOTÓN</span></div></div>
+  </div>
+  <div id="ch-obs" style="display:none"><span></span></div>
+
+  <section class="sec">
+    <h2>MIS BOTONES <span class="sp"><button id="bwiz">ASIGNAR TODOS PASO A PASO</button><button id="badd" class="pri">+ AGREGAR BOTÓN</button></span></h2>
+    <p class="sub">Cada tarjeta es un pad de tu controlador. El color muestra el estado en vivo. <b>Toca una tarjeta para cambiarla.</b></p>
+    <div class="wiz" id="wiz"></div>
+    <div class="cards" id="cards"></div>
+    <div class="leg"><span><i class="led c-red"></i>Rojo: al aire</span><span><i class="led c-green"></i>Verde: en vista previa / encendido</span><span><i class="led c-yellow"></i>Amarillo: disponible</span><span><i class="led c-blue"></i>Azul: acción</span><span>Parpadeando: en curso</span></div>
+    <div class="note" id="samsonNote" style="display:none"><b>Samson Conspiracy:</b> sus pads no aceptan luces enviadas desde el computador (solo se iluminan al presionarlos). Los pads <b>sí controlan OBS</b>, y los colores de estado los ves en las tarjetas de esta pantalla. Para que queden encendidos, en el menú de la Conspiracy pon los pads en modo <b>Toggle</b>.</div>
+  </section>
+
+  <details class="adv" id="adv"><summary>AVANZADO (puertos, luces, mensajes MIDI)</summary><div class="in">
+    <h3>PUERTOS Y MODELO</h3>
     <div class="row">
       <div><label>ENTRADA (BOTONES)</label><select id="min"></select></div>
       <div><label>SALIDA (LEDS)</label><select id="mout"></select></div>
-      <div><label>MODELO / LEDS</label><select id="prof">
+      <div><label>MODELO</label><select id="prof">
         <option value="auto">Detectar automáticamente</option>
         <option value="apc1">Akai APC mini (mk1)</option>
         <option value="apc2">Akai APC mini mk2</option>
@@ -80,18 +160,13 @@ td button{font-size:15px;padding:4px 8px 2px}
         <option value="generic">Genérico (LED encendido/apagado)</option><option value="custom">Personalizado (calibrado)</option>
       </select></div>
     </div>
-    <div class="wiz" id="wiz"></div><div class="grid" id="grid"></div>
-    <div class="leg"><span><i class="led c-red"></i>Al aire / activo</span><span><i class="led c-green"></i>En vista previa / encendido</span><span><i class="led c-yellow"></i>Disponible</span><span><i class="led c-blue"></i>Acción</span><span><i class="led c-dim"></i>Escena sin usar</span></div>
-    <p class="hint">Clic en un cuadro = probar esa acción. Para asignar un botón: pulsa <b>APRENDER</b> en la lista y luego presiona el botón en tu controlador. Si tu controlador no es una cuadrícula 8×8, usa la lista de la derecha (sirve para cualquier MIDI).</p>
-  </section>
+    <div class="row"><button id="btest">PROBAR LEDS</button><button id="bauto">AUTO-ASIGNAR CUADRÍCULA 8×8</button><button id="bclear">BORRAR TODOS LOS BOTONES</button></div>
+    <h3>VISTA DEL CONTROLADOR</h3>
+    <div class="grid" id="grid"></div>
 
-  <section class="card" id="calcard">
-    <h2>COLORES DE LOS LEDS <span class="sp"><button id="calreset">RESTABLECER</button></span></h2>
-    <div class="wiz on" id="samsonNote" style="display:none;font-family:'Oswald';font-size:15px;letter-spacing:0;line-height:1.5">
-      <b>Samson Conspiracy:</b> probado en tu equipo — sus pads <b>no aceptan luces enviadas desde el computador</b> (solo se iluminan por dentro al presionarlos). Los pads igual controlan OBS normalmente y los colores de estado se ven en la pantalla de este panel.
-      Para que queden <b>encendidos</b>: en el menú de la Conspiracy pon los pads en modo <b>Toggle</b> (se quedan iluminados al presionarlos y se apagan al presionarlos de nuevo).</div>
-    <p class="hint"><b>¿No se enciende nada?</b> Presiona un pad y pulsa <b>🔍 BUSCAR CÓMO SE ENCIENDEN</b>: se irán probando todas las salidas y canales; cuando el pad se ilumine pulsa <b>¡SE ENCENDIÓ!</b>. Si no se enciende con ninguna, en el menú de la Conspiracy revisa que la iluminación de los pads no esté en modo solo-al-presionar (busca la opción de LED/backlight del pad en la configuración del preset).</p>
-    <p class="hint">Cada marca usa valores distintos para los colores. Presiona un pad en el controlador (o elige uno), mueve el deslizador y mira qué color toma el pad. Cuando veas el color, pulsa el botón de ese color para guardarlo.</p>
+    <div id="calcard">
+    <h3>COLORES DE LOS LEDS <button id="calreset" style="float:right">RESTABLECER</button></h3>
+    <p class="hint">Presiona un pad, mueve el deslizador y mira qué color toma. Cuando veas el color, pulsa el botón de ese color para guardarlo.</p>
     <div class="row">
       <div><label>PAD DE PRUEBA</label><select id="calpad"></select></div>
       <div style="flex:2"><label>VALOR (VELOCIDAD) · <b id="calv">64</b></label><input type="range" id="calval" min="0" max="127" value="64"></div>
@@ -101,23 +176,30 @@ td button{font-size:15px;padding:4px 8px 2px}
     </div>
     <div class="hint" id="calnow"></div>
     <div class="row">
-      <label class="sw" style="flex:0 0 auto;display:flex;align-items:center;gap:8px;font-size:14px;letter-spacing:0;color:#ddd"><input type="checkbox" id="allon" style="width:auto" checked> Mantener TODOS los pads encendidos</label>
+      <label class="sw" style="flex:0 0 auto;display:flex;align-items:center;gap:8px;font-size:14px;letter-spacing:0;color:#ddd"><input type="checkbox" id="allon" style="width:auto" checked> Mantener todos los pads encendidos</label>
       <div><label>COLOR BASE</label><select id="basec"><option value="dim">Tenue</option><option value="yellow">Amarillo</option><option value="blue">Azul</option><option value="red">Rojo</option><option value="green">Verde</option></select></div>
       <div><label>COLOR AL PRESIONAR</label><select id="pressc"><option value="green">Verde</option><option value="red">Rojo</option><option value="yellow">Amarillo</option><option value="blue">Azul</option><option value="off">Apagar</option></select></div>
       <button id="bknown">PADS CONOCIDOS: <span id="nknown">0</span> · BORRAR</button>
     </div>
-    <p class="hint">Presiona una vez cada pad de tu controlador para que el panel lo conozca y lo mantenga encendido.</p>
+    <p class="hint"><b>¿No se enciende nada?</b> Presiona un pad y pulsa BUSCAR: se prueban todas las salidas y canales; cuando el pad se ilumine pulsa ¡SE ENCENDIÓ!</p>
     <div class="row"><button class="pri" id="bfind">🔍 BUSCAR CÓMO SE ENCIENDEN</button><button id="bfound" style="display:none;background:#13a34a;border-color:#2ecc71">¡SE ENCENDIÓ!</button><button id="bfstop" style="display:none">CANCELAR</button></div>
-    <div class="wiz" id="findst"></div>
-  </section>
+    <div class="wiz" id="findst" style="font-size:18px"></div>
+    </div>
 
-  <section class="card">
-    <h2>ASIGNACIONES <span class="sp"><button id="badd">+ NUEVA</button><button id="bclear">BORRAR TODAS</button></span></h2>
-    <div class="list"><table><thead><tr><th>BOTÓN MIDI</th><th>ACCIÓN</th><th>LED</th><th></th></tr></thead><tbody id="maps"></tbody></table></div>
-    <div><label>ÚLTIMOS MENSAJES MIDI</label><div class="log" id="log"></div></div>
-    <p class="hint">Requisitos: abre este panel en <b>Chrome</b> en el mismo PC donde está abierto <b>CONTROL_EN_VIVO.html</b> (conectado a OBS). Chrome pedirá permiso para usar dispositivos MIDI: acepta. Cierra otros programas que estén usando el controlador (por ejemplo Ableton) para que Chrome pueda abrirlo.</p>
-  </section>
+    <h3>ÚLTIMOS MENSAJES MIDI</h3>
+    <div class="log" id="log"></div>
+    <p class="hint">Requisitos: Chrome, en el mismo PC donde está abierto CONTROL_EN_VIVO.html conectado a OBS. Acepta el permiso MIDI que pide Chrome. Cierra otros programas que usen el controlador (por ejemplo Ableton).</p>
+  </div></details>
 </main>
+
+<div class="sheet" id="sheet"><div class="box">
+  <h3><span id="shTitle">AGREGAR BOTÓN</span><button id="shClose">✕ CERRAR</button></h3>
+  <div class="ps" id="ps1"><i>1</i><b>PRESIONA EL PAD EN TU CONTROLADOR</b></div>
+  <div id="shPad"></div>
+  <div class="ps" id="ps2"><i>2</i><b>TOCA LO QUE QUIERES QUE HAGA</b></div>
+  <div id="shActs"></div>
+  <div class="shfoot"><button id="shTest">▶ PROBAR</button><button id="shDel">🗑 QUITAR ESTE BOTÓN</button><button id="shOk" class="pri big">GUARDAR</button></div>
+</div></div>
 <div class="toast" id="toast"></div>
 <script>
 function $(i){return document.getElementById(i)}
@@ -133,7 +215,15 @@ var ACTIONS=[
  ['replay','⏪ Repetir ahora'],['moment','★ Guardar momento'],['reel','▶ Resumen del combate'],['reelall','▶ Resumen de todo'],['stop','■ Detener repetición'],
  ['tgl_marcador','Mostrar/ocultar marcador'],['tgl_lt','Mostrar/ocultar lower third'],['tgl_mosca','Mostrar/ocultar mosca'],
  ['prev','◀ Combate anterior'],['next','Combate siguiente ▶'],['win_r','Gana esquina roja (enviar)'],['win_b','Gana esquina azul (enviar)']];
-var SHORT={trans:'TRANSICIÓN',toprev:'A PREVIA',clock:'RELOJ ▶❚❚',reset:'RELOJ ↺',rminus:'ROUND −',rplus:'ROUND +',m10:'−10 S',p10:'+10 S',replay:'⏪ REPETIR',moment:'★ MOMENTO',reel:'RESUMEN',reelall:'RESUMEN TODO',stop:'■ STOP',tgl_marcador:'MARCADOR',tgl_lt:'LOWER 3RD',tgl_mosca:'MOSCA',prev:'◀ COMBATE',next:'COMBATE ▶',win_r:'GANA ROJO',win_b:'GANA AZUL'};
+var GROUPS=[
+ ['REPETICIONES',[['replay','⏪ Repetir ahora'],['replay3','⏪ Repetir 3 s'],['replay5','⏪ Repetir 5 s'],['replay10','⏪ Repetir 10 s'],['replayslow','🐢 Repetir súper lenta'],['moment','★ Guardar momento'],['reel','▶ Resumen del combate'],['reelall','▶ Resumen de todo'],['stop','■ Detener repetición']]],
+ ['CAMBIO DE ESCENA',[['trans','⇄ Transición (modo estudio)'],['toprev','Alternar "a vista previa"']]],
+ ['RELOJ',[['clock','▶❚❚ Iniciar / pausar'],['reset','↺ Reiniciar'],['rminus','Round −'],['rplus','Round +'],['m10','−10 s'],['p10','+10 s']]],
+ ['GRÁFICOS',[['tgl_marcador','Mostrar/ocultar marcador'],['tgl_lt','Mostrar/ocultar lower third'],['tgl_mosca','Mostrar/ocultar mosca']]],
+ ['COMBATE',[['prev','◀ Combate anterior'],['next','Combate siguiente ▶'],['win_r','🔴 Gana esquina roja'],['win_b','🔵 Gana esquina azul']]]];
+var KIND={trans:'CAMBIO',toprev:'CAMBIO',clock:'RELOJ',reset:'RELOJ',rminus:'RELOJ',rplus:'RELOJ',m10:'RELOJ',p10:'RELOJ',replay:'REPETICIÓN',replay3:'REPETICIÓN',replay5:'REPETICIÓN',replay10:'REPETICIÓN',replayslow:'REPETICIÓN',moment:'REPETICIÓN',reel:'REPETICIÓN',reelall:'REPETICIÓN',stop:'REPETICIÓN',tgl_marcador:'GRÁFICO',tgl_lt:'GRÁFICO',tgl_mosca:'GRÁFICO',prev:'COMBATE',next:'COMBATE',win_r:'RESULTADO',win_b:'RESULTADO'};
+function kindOf(a){return a.indexOf('scene:')===0?'ESCENA':(KIND[a]||'')}
+var SHORT={replay3:'REPETIR 3 S',replay5:'REPETIR 5 S',replay10:'REPETIR 10 S',replayslow:'REPETIR LENTA',trans:'TRANSICIÓN',toprev:'A PREVIA',clock:'RELOJ ▶❚❚',reset:'RELOJ ↺',rminus:'ROUND −',rplus:'ROUND +',m10:'−10 S',p10:'+10 S',replay:'REPETIR',moment:'★ MOMENTO',reel:'RESUMEN',reelall:'RESUMEN TODO',stop:'■ STOP',tgl_marcador:'MARCADOR',tgl_lt:'LOWER 3RD',tgl_mosca:'MOSCA',prev:'◀ COMBATE',next:'COMBATE ▶',win_r:'GANA ROJO',win_b:'GANA AZUL'};
 function actLabel(a){if(!a)return '';if(a.indexOf('scene:')===0)return a.slice(6);return SHORT[a]||a}
 
 // ---------- estado recibido del control ----------
@@ -146,7 +236,7 @@ function run(a){if(!a)return;if(a.indexOf('scene:')===0)send('scene',a.slice(6))
 function colorFor(a){if(!a)return['off',false];var s=ST||{};
  if(a.indexOf('scene:')===0){var n=a.slice(6);if(n===s.cur)return['red',false];if(n===s.prev)return['green',false];return[(s.scenes||[]).indexOf(n)>=0?'yellow':'dim',false]}
  switch(a){case 'clock':return s.running?['green',true]:['yellow',false];
-  case 'replay':return s.saving?['yellow',true]:s.playing?['red',true]:s.rb?['red',false]:['dim',false];
+  case 'replay':case 'replay3':case 'replay5':case 'replay10':case 'replayslow':return s.saving?['yellow',true]:s.playing?['red',true]:s.rb?['red',false]:['dim',false];
   case 'moment':return s.saving?['yellow',true]:s.rb?['blue',false]:['dim',false];
   case 'stop':return s.playing?['red',true]:['dim',false];
   case 'reel':case 'reelall':return s.playing?['red',false]:['blue',false];
@@ -182,9 +272,9 @@ function onMidi(ev){var d=ev.data,st=d[0]&0xF0,ch=d[0]&0x0F,num=d[1],val=d[2];va
  if(m.type==='note'){LASTN=num;CALCH=ch;calPads();$('calpad').value=num;if(KNOWN.indexOf(num)<0){KNOWN.push(num);ls('fcc2-midi-known',KNOWN);$('nknown').textContent=KNOWN.length}
   FLASH[num]=Date.now()+280;SENT={};refresh();setTimeout(function(){SENT={};refresh()},300)}
  if(wizPress(m))return;
- if(LEARN!=null){MAPS[LEARN].m=m;LEARN=null;save();renderMaps();toast('Botón asignado');return}
+ if(SH){SH.m=m;shRender();if(SH.i==null&&SH.a)shCommit();return}
  var mp=MAPS.find(function(x){return x.m&&key(x.m)===key(m)});if(mp&&mp.a){run(mp.a);flash(mp)}
- else if(isGrid()){var gi=gridIndexOf(m);if(gi!=null)selPad(gi)}else buildGrid()}
+ else{shOpen(null,m);if(!isGrid())buildGrid()}}
 function flash(mp){var i=MAPS.indexOf(mp),el=document.querySelector('[data-mi="'+i+'"]');if(el){el.style.transform='scale(.92)';setTimeout(function(){el.style.transform=''},120)}}
 function fillPorts(){var si=$('min'),so=$('mout'),ins=[],outs=[];MA.inputs.forEach(function(p){ins.push(p)});MA.outputs.forEach(function(p){outs.push(p)});
  var savedIn=ls('fcc2-midi-in'),savedOut=ls('fcc2-midi-out');
@@ -195,13 +285,13 @@ function fillPorts(){var si=$('min'),so=$('mout'),ins=[],outs=[];MA.inputs.forEa
  openPorts()}
 function openPorts(){if(IN)IN.onmidimessage=null;IN=MA.inputs.get($('min').value)||null;OUT=MA.outputs.get($('mout').value)||null;SENT={};
  if(IN)IN.onmidimessage=onMidi;ls('fcc2-midi-in',$('min').value);ls('fcc2-midi-out',$('mout').value);
- var c=$('ch-midi');c.className='chip '+(IN?'ok':'bad');c.querySelector('span').textContent=IN?('MIDI: '+IN.name):'MIDI sin controlador';
+ var c=$('ch-midi');c.className='step '+(IN?'ok':'bad');c.querySelector('span').textContent=IN?('Conectado: '+IN.name):'No se detecta. Conéctalo por USB y cierra otros programas que lo usen';
  if(prof()==='lp')toast('Launchpad: ponlo en modo Programmer para que los LEDs respondan');
  buildGrid();calVis();refresh()}
-function initMidi(){if(!navigator.requestMIDIAccess){$('ch-midi').className='chip bad';$('ch-midi').querySelector('span').textContent='Usa Chrome para MIDI';return}
- navigator.requestMIDIAccess({sysex:false}).then(function(a){MA=a;fillPorts();a.onstatechange=function(){fillPorts()}},function(){$('ch-midi').className='chip bad';$('ch-midi').querySelector('span').textContent='Permiso MIDI denegado'})}
+function initMidi(){if(!navigator.requestMIDIAccess){$('ch-midi').className='step bad';$('ch-midi').querySelector('span').textContent='Este navegador no tiene MIDI: abre este panel en Chrome';return}
+ navigator.requestMIDIAccess({sysex:false}).then(function(a){MA=a;fillPorts();a.onstatechange=function(){fillPorts()}},function(){$('ch-midi').className='step bad';$('ch-midi').querySelector('span').textContent='Chrome bloqueó el permiso MIDI: haz clic en el candado de la barra de direcciones y permite MIDI'})}
 $('min').onchange=openPorts;$('mout').onchange=openPorts;$('prof').onchange=function(){PROF=this.value;ls('fcc2-midi-prof',PROF);SENT={};buildGrid();calVis();refresh()};
-function calVis(){var p=prof();$('calcard').style.display=(p==='samson'||p==='custom'||p==='generic')?'':'none';$('samsonNote').style.display=p==='samson'?'block':'none'}
+function calVis(){var p=prof();$('calcard').style.display=(p==='samson'||p==='custom'||p==='generic')?'':'none';$('samsonNote').style.display=(p==='samson'&&IN)?'block':'none'}
 PROF=ls('fcc2-midi-prof')||'auto';$('prof').value=PROF;
 
 // ---------- rejilla 8x8 (APC mini / Launchpad) ----------
@@ -209,26 +299,49 @@ function gridNote(r,c){var p=prof();if(p==='lp')return (8-r)*10+(c+1);return (7-
 function gridIndexOf(m){if(m.type!=='note')return null;for(var r=0;r<8;r++)for(var c=0;c<8;c++)if(gridNote(r,c)===m.num)return r*8+c;return null}
 var SEL=null;
 function isGrid(){var p=prof();return p==='apc1'||p==='apc2'||p==='lp'}
-function buildGrid(){if(!isGrid()){var g=$('grid');g.style.gridTemplateColumns='repeat(5,1fr)';var h2='',seen={};MAPS.forEach(function(x){if(x.m&&x.m.type==='note'){seen[x.m.num]=1;h2+='<div class="pad" data-n="'+x.m.num+'"><span class="id">'+x.m.num+'</span><span class="lb"></span></div>'}});KNOWN.slice().sort(function(a,b){return a-b}).forEach(function(n){if(!seen[n])h2+='<div class="pad" data-n="'+n+'"><span class="id">'+n+'</span><span class="lb"></span></div>'});g.innerHTML=h2||'<p class="hint" style="grid-column:1/-1">Pulsa ASISTENTE y presiona tus pads uno por uno.</p>';return}
+function buildGrid(){if(!isGrid()){var g=$('grid');g.style.gridTemplateColumns='repeat(auto-fill,92px)';var h2='',seen={};MAPS.forEach(function(x){if(x.m&&x.m.type==='note'){seen[x.m.num]=1;h2+='<div class="pad" data-n="'+x.m.num+'"><span class="id">'+x.m.num+'</span><span class="lb"></span></div>'}});KNOWN.slice().sort(function(a,b){return a-b}).forEach(function(n){if(!seen[n])h2+='<div class="pad" data-n="'+n+'"><span class="id">'+n+'</span><span class="lb"></span></div>'});g.innerHTML=h2||'<p class="hint" style="grid-column:1/-1">Presiona tus pads y aparecerán aquí.</p>';return}
  $('grid').style.gridTemplateColumns='';var h='';for(var r=0;r<8;r++)for(var c=0;c<8;c++){var n=gridNote(r,c);h+='<div class="pad" data-r="'+r+'" data-c="'+c+'" data-n="'+n+'"><span class="id">'+n+'</span><span class="lb"></span></div>'}$('grid').innerHTML=h}
-function selPad(i){SEL=i;var el=$('grid').children[i];var n=+el.dataset.n;var mp=MAPS.find(function(x){return x.m&&x.m.type==='note'&&x.m.num===n});
- if(!mp){MAPS.push({m:{type:'note',ch:0,num:n},a:''});save();renderMaps()}refresh();toast('Elige la acción para la nota '+n+' en la lista')}
+function selPad(i){SEL=i;var el=$('grid').children[i];var n=+el.dataset.n;var mi=MAPS.findIndex(function(x){return x.m&&x.m.type==='note'&&x.m.num===n});
+ if(mi>=0)shOpen(mi);else shOpen(null,{type:'note',ch:CALCH|0,num:n})}
 $('grid').addEventListener('click',function(e){var p=e.target.closest('.pad');if(!p)return;var n=+p.dataset.n;var mp=MAPS.find(function(x){return x.m&&x.m.type==='note'&&x.m.num===n});
  if(mp&&mp.a){run(mp.a);return}selPad([].indexOf.call($('grid').children,p))});
 
-// ---------- lista de asignaciones ----------
-function actOptions(sel){var sc=(ST&&ST.scenes)||[];var h=ACTIONS.map(function(a){return '<option value="'+a[0]+'"'+(a[0]===sel?' selected':'')+'>'+esc(a[1])+'</option>'}).join('');
- h+='<optgroup label="Escenas de OBS">'+sc.map(function(n){var v='scene:'+n;return '<option value="'+esc(v)+'"'+(v===sel?' selected':'')+'>Escena: '+esc(n)+'</option>'}).join('');
- if(sel&&sel.indexOf('scene:')===0&&sc.indexOf(sel.slice(6))<0)h+='<option value="'+esc(sel)+'" selected>Escena: '+esc(sel.slice(6))+'</option>';
- return h+'</optgroup>'}
-function midLabel(m){if(!m)return '—';return (m.type==='note'?'Nota ':'CC ')+m.num+(m.ch?' · c'+(m.ch+1):'')}
-function renderMaps(){if(typeof isGrid==='function'&&!isGrid())setTimeout(function(){buildGrid();refresh()},0);$('maps').innerHTML=MAPS.length?MAPS.map(function(x,i){var c=colorFor(x.a);return '<tr data-mi="'+i+'"><td class="mid">'+midLabel(x.m)+'</td><td><select data-i="'+i+'">'+actOptions(x.a)+'</select></td><td><i class="led c-'+c[0]+'"></i></td><td><button data-learn="'+i+'" class="'+(LEARN===i?'learn':'')+'">'+(LEARN===i?'PRESIONA…':'APRENDER')+'</button> <button data-del="'+i+'">✕</button></td></tr>'}).join(''):'<tr><td colspan="4" class="hint">Sin asignaciones. Usa AUTO-ASIGNAR (APC mini / Launchpad) o + NUEVA y APRENDER.</td></tr>'}
-$('maps').addEventListener('change',function(e){var s=e.target.closest('select[data-i]');if(!s)return;MAPS[+s.dataset.i].a=s.value;save();SENT={};refresh()});
-$('maps').addEventListener('click',function(e){var l=e.target.closest('[data-learn]'),d=e.target.closest('[data-del]');
- if(l){var i=+l.dataset.learn;LEARN=(LEARN===i?null:i);renderMaps();if(LEARN!=null)toast('Presiona un botón en el controlador')}
- if(d){var m=MAPS[+d.dataset.del].m;if(m)sendLed(m,'off',false);MAPS.splice(+d.dataset.del,1);save();renderMaps();refresh()}});
-$('badd').onclick=function(){MAPS.push({m:null,a:''});LEARN=MAPS.length-1;save();renderMaps();toast('Presiona un botón en el controlador')};
-$('bclear').onclick=function(){MAPS.forEach(function(x){if(x.m)sendLed(x.m,'off',false)});MAPS=[];save();renderMaps();refresh()};
+// ---------- tarjetas "MIS BOTONES" ----------
+function midLabel(m){if(!m)return 'SIN PAD';return (m.type==='note'?'PAD ':'PERILLA/CC ')+m.num+(m.ch?' · canal '+(m.ch+1):'')}
+function cardsHtml(){var h=MAPS.map(function(x,i){var a=x.a;return '<div class="bt" data-mi="'+i+'"><div class="tile"><b>'+esc(a?actLabel(a):'SIN ACCIÓN')+'</b><small>'+esc(a?kindOf(a):'TOCA PARA ELEGIR')+'</small></div><div class="pid'+(x.m?'':' no')+'">'+midLabel(x.m)+'</div></div>'}).join('');
+ if(!MAPS.length)return '<div class="empty" style="grid-column:1/-1"><p>Todavía no tienes botones.<br>Toca <b>+ AGREGAR BOTÓN</b>, presiona un pad de tu controlador y elige qué hace.<br>O usa <b>ASIGNAR TODOS PASO A PASO</b> y el panel te va pidiendo cada pad.</p><div class="row"><button class="pri big" data-go="add">+ AGREGAR BOTÓN</button><button class="big" data-go="wiz">ASIGNAR TODOS PASO A PASO</button>'+(isGrid()?'<button class="big" data-go="auto">AUTO 8×8 ('+(prof()==='lp'?'LAUNCHPAD':'APC MINI')+')</button>':'')+'</div></div>';
+ return h+'<div class="bt addc" data-go="add"><div class="tile"><b>+ AGREGAR</b><small>NUEVO BOTÓN</small></div><div class="pid">&nbsp;</div></div>'}
+var lastCards='';function renderMaps(){if(typeof isGrid==='function'&&!isGrid())setTimeout(function(){buildGrid();refresh()},0);var h=cardsHtml();if(h!==lastCards){lastCards=h;$('cards').innerHTML=h}}
+$('cards').addEventListener('click',function(e){var g=e.target.closest('[data-go]');if(g){var k=g.dataset.go;if(k==='add')shOpen(null);else if(k==='wiz')$('bwiz').click();else if(k==='auto')$('bauto').click();return}
+ var c=e.target.closest('.bt[data-mi]');if(c)shOpen(+c.dataset.mi)});
+$('badd').onclick=function(){shOpen(null)};
+$('bclear').onclick=function(){MAPS.forEach(function(x){if(x.m)sendLed(x.m,'off',false)});MAPS=[];save();renderMaps();refresh();toast('Botones borrados')};
+
+// ---------- hoja: agregar / editar un botón ----------
+var SH=null;
+function shOpen(i,m){WIZ=null;wizShow();if(i!=null){var x=MAPS[i];SH={i:i,m:x.m,a:x.a}}else SH={i:null,m:m||null,a:''};$('sheet').className='sheet on';shRender()}
+function shClose(){SH=null;$('sheet').className='sheet'}
+function shActsHtml(){var sc=((ST&&ST.scenes)||[]).slice();if(SH.a&&SH.a.indexOf('scene:')===0&&sc.indexOf(SH.a.slice(6))<0)sc.push(SH.a.slice(6));
+ function btn(v,t){return '<button class="ab'+(SH.a===v?' sel':'')+'" data-a="'+esc(v)+'">'+esc(t)+'</button>'}
+ var h='<div class="grp">ESCENAS — PONER AL AIRE</div><div class="acts">'+(sc.length?sc.map(function(n){return btn('scene:'+n,n)}).join(''):'<span class="hint">Las escenas aparecen cuando CONTROL_EN_VIVO está abierto y conectado a OBS.</span>')+'</div>';
+ GROUPS.forEach(function(g){h+='<div class="grp">'+g[0]+'</div><div class="acts">'+g[1].map(function(a){return btn(a[0],a[1])}).join('')+'</div>'});return h}
+function shRender(){if(!SH)return;var other=SH.m?MAPS.findIndex(function(x,j){return j!==SH.i&&x.m&&key(x.m)===key(SH.m)}):-1;
+ $('shTitle').textContent=SH.i==null?'AGREGAR BOTÓN':'EDITAR BOTÓN';
+ $('ps1').className='ps'+(SH.m?' ok':'');$('ps2').className='ps'+(SH.a?' ok':'');
+ $('shPad').innerHTML=SH.m?'<div class="padok">'+midLabel(SH.m)+' ✓<small>¿Otro pad? Presiónalo ahora y se cambia.</small></div>'+(other>=0?'<div class="warnl">⚠ Este pad ya hace «'+esc(actLabel(MAPS[other].a)||'sin acción')+'». Al guardar, se reemplaza.</div>':''):'<div class="padwait">ESPERANDO… PRESIONA UN PAD AHORA</div>';
+ var sc=$('shActs').scrollTop;$('shActs').innerHTML=shActsHtml();
+ $('shDel').style.display=SH.i==null?'none':'';$('shOk').disabled=!(SH.m&&SH.a);$('shOk').style.opacity=(SH.m&&SH.a)?1:.4}
+function shCommit(){if(!SH||!SH.m||!SH.a)return;var k=key(SH.m),cur=SH.i!=null?MAPS[SH.i]:null;
+ if(cur&&cur.m&&key(cur.m)!==k)sendLed(cur.m,'off',false);
+ MAPS=MAPS.filter(function(x){return x===cur||!(x.m&&key(x.m)===k)});
+ if(cur){cur.m=SH.m;cur.a=SH.a}else MAPS.push({m:SH.m,a:SH.a});
+ save();SENT={};var t=midLabel(SH.m)+' → '+actLabel(SH.a);shClose();renderMaps();refresh();toast('✓ '+t)}
+$('shActs').addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b||!SH)return;SH.a=b.dataset.a;if(SH.m)shCommit();else{shRender();toast('Ahora presiona el pad en tu controlador')}});
+$('shOk').onclick=shCommit;$('shClose').onclick=shClose;
+$('sheet').addEventListener('click',function(e){if(e.target===$('sheet'))shClose()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')shClose()});
+$('shTest').onclick=function(){if(SH&&SH.a)run(SH.a);else toast('Primero elige una acción')};
+$('shDel').onclick=function(){if(!SH||SH.i==null)return;var x=MAPS[SH.i];if(x.m)sendLed(x.m,'off',false);MAPS.splice(SH.i,1);save();shClose();renderMaps();refresh();toast('Botón quitado')};
 
 // distribución automática para cuadrícula 8x8
 $('bauto').onclick=function(){var sc=((ST&&ST.scenes)||['INICIO','ESTUDIO','VS','GANADOR','REPLAY','PAUSA','AUSPICIADOR','FINAL']).slice(0,8);
@@ -244,8 +357,9 @@ $('btest').onclick=function(){if(!OUT)return toast('Elige la salida (LEDs)');var
 
 // ---------- refresco de LEDs y vista ----------
 function refresh(){var alive=Date.now()-lastST<2000;
- var cc=$('ch-ctl');cc.className='chip '+(alive?'ok':'bad');cc.querySelector('span').textContent=alive?'Control en vivo ✓':'Abre CONTROL_EN_VIVO.html';
- var co=$('ch-obs');var ob=alive&&ST&&ST.conn;co.className='chip '+(ob?'ok':'bad');co.querySelector('span').textContent=ob?('OBS ✓ · al aire: '+(ST.cur||'')):'OBS sin conexión';
+ var ob=alive&&ST&&ST.conn;var cc=$('ch-ctl');cc.className='step '+(ob?'ok':'bad');cc.querySelector('span').textContent=!alive?'Abre CONTROL_EN_VIVO.html en este mismo Chrome':ob?('Conectado a OBS · al aire: '+(ST.cur||'—')):'Está abierto, pero falta conectarlo a OBS (botón CONECTAR)';
+ $('ch-obs').querySelector('span').textContent=ob?('OBS ✓ · al aire: '+(ST.cur||'')):'OBS sin conexión';
+ var nm=MAPS.filter(function(x){return x.m&&x.a}).length,cm=$('ch-maps');cm.className='step '+(nm?'ok':'bad');cm.querySelector('span').textContent=nm?(nm+(nm===1?' botón listo':' botones listos')+' · toca una tarjeta para cambiarla'):'Toca + AGREGAR BOTÓN';
  var pads=$('grid').children;for(var i=0;i<pads.length;i++){var p=pads[i],n=+p.dataset.n;if(!p.classList.contains('pad'))continue;var mp=MAPS.find(function(x){return x.m&&x.m.type==='note'&&x.m.num===n});var a=mp?mp.a:'';var c=colorFor(a);
   var vc=a?c[0]:'off';if(OPT.allon&&(vc==='off'||vc==='dim'))vc=OPT.base;if(FLASH[n]>Date.now())vc=OPT.press;p.className='pad'+(vc!=='off'?' c-'+vc:'')+(c[1]&&a&&!(FLASH[n]>Date.now())?' blink':'')+(SEL===i?' sel':'');p.querySelector('.lb').textContent=actLabel(a)}
  var now=Date.now(),done={};
@@ -254,17 +368,17 @@ function refresh(){var alive=Date.now()-lastST<2000;
   sendLed(x.m,col,bl);if(x.m.type==='note')done[x.m.num]=1});
  var ch0=(MAPS.find(function(x){return x.m&&x.m.type==='note'})||{m:{ch:CALCH}}).m.ch|0;
  KNOWN.forEach(function(n){if(done[n])return;var col=OPT.allon?OPT.base:'off';if(FLASH[n]>now)col=OPT.press;sendLed({type:'note',ch:ch0,num:n},col,false)});
- document.querySelectorAll('#maps tr[data-mi]').forEach(function(tr){var x=MAPS[+tr.dataset.mi];var c=colorFor(x&&x.a);var l=tr.querySelector('.led');if(l)l.className='led c-'+c[0]})}
-var lastScenes='';setInterval(function(){var k=JSON.stringify(ST&&ST.scenes);if(k!==lastScenes){lastScenes=k;renderMaps()}refresh()},300);
+ document.querySelectorAll('#cards .bt[data-mi]').forEach(function(el){var x=MAPS[+el.dataset.mi];if(!x)return;var c=colorFor(x.a),t=el.querySelector('.tile');var pr=x.m&&x.m.type==='note'&&FLASH[x.m.num]>now;t.className='tile'+(x.a?' c-'+(pr?OPT.press:c[0]):'')+(c[1]&&x.a&&!pr?' blink':'')})}
+var lastScenes='';setInterval(function(){var k=JSON.stringify(ST&&ST.scenes);if(k!==lastScenes){lastScenes=k;renderMaps();if(SH&&!SH.a)shRender()}refresh()},300);
 
 // ---------- asistente: presiona los pads uno por uno ----------
 var WIZ=null;
 function wizList(){var sc=((ST&&ST.scenes)||['INICIO','ESTUDIO','VS','GANADOR','REPLAY','PAUSA','AUSPICIADOR','FINAL']).slice(0,8).map(function(n){return 'scene:'+n});
- return sc.concat(['trans','replay','moment','reel','stop','clock','reset','rminus','rplus','next','prev','tgl_marcador','tgl_lt','tgl_mosca','win_r','win_b'])}
+ return sc.concat(['trans','replay','replay5','moment','reel','stop','clock','reset','rminus','rplus','next','prev','tgl_marcador','tgl_lt','tgl_mosca','win_r','win_b'])}
 function wizShow(){var w=$('wiz');if(!WIZ){w.className='wiz';return}w.className='wiz on';var a=WIZ.list[WIZ.i];
- w.innerHTML='ASISTENTE ('+(WIZ.i+1)+'/'+WIZ.list.length+'): PRESIONA EL PAD PARA <span style="color:#fff">'+esc(actLabel(a)||a)+'</span> &nbsp; <button id="wskip">SALTAR</button> <button id="wend">TERMINAR</button>';
+ w.innerHTML='PASO '+(WIZ.i+1)+' DE '+WIZ.list.length+' · PRESIONA EL PAD QUE QUIERES PARA:<span class="act">'+esc(actLabel(a)||a)+'</span><button id="wskip">SALTAR ESTE</button> <button id="wend" class="pri">TERMINAR</button>';
  $('wskip').onclick=function(){WIZ.i++;if(WIZ.i>=WIZ.list.length)WIZ=null;wizShow()};$('wend').onclick=function(){WIZ=null;wizShow();toast('Asistente terminado')}}
-$('bwiz').onclick=function(){WIZ={list:wizList(),i:0};LEARN=null;wizShow()};
+$('bwiz').onclick=function(){shClose();WIZ={list:wizList(),i:0};LEARN=null;wizShow();$('wiz').scrollIntoView({block:'center',behavior:'smooth'})};
 function wizPress(m){if(!WIZ)return false;var a=WIZ.list[WIZ.i];MAPS=MAPS.filter(function(x){return !(x.m&&key(x.m)===key(m))});MAPS.push({m:m,a:a});save();renderMaps();
  WIZ.i++;if(WIZ.i>=WIZ.list.length){WIZ=null;toast('¡Listo! Todos los pads asignados')}wizShow();return true}
 // ---------- calibración de colores ----------
