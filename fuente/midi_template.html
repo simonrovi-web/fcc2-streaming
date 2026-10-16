@@ -87,6 +87,9 @@ td button{font-size:15px;padding:4px 8px 2px}
 
   <section class="card" id="calcard">
     <h2>COLORES DE LOS LEDS <span class="sp"><button id="calreset">RESTABLECER</button></span></h2>
+    <div class="wiz on" id="samsonNote" style="display:none;font-family:'Oswald';font-size:15px;letter-spacing:0;line-height:1.5">
+      <b>Samson Conspiracy:</b> probado en tu equipo — sus pads <b>no aceptan luces enviadas desde el computador</b> (solo se iluminan por dentro al presionarlos). Los pads igual controlan OBS normalmente y los colores de estado se ven en la pantalla de este panel.
+      Para que queden <b>encendidos</b>: en el menú de la Conspiracy pon los pads en modo <b>Toggle</b> (se quedan iluminados al presionarlos y se apagan al presionarlos de nuevo).</div>
     <p class="hint"><b>¿No se enciende nada?</b> Presiona un pad y pulsa <b>🔍 BUSCAR CÓMO SE ENCIENDEN</b>: se irán probando todas las salidas y canales; cuando el pad se ilumine pulsa <b>¡SE ENCENDIÓ!</b>. Si no se enciende con ninguna, en el menú de la Conspiracy revisa que la iluminación de los pads no esté en modo solo-al-presionar (busca la opción de LED/backlight del pad en la configuración del preset).</p>
     <p class="hint">Cada marca usa valores distintos para los colores. Presiona un pad en el controlador (o elige uno), mueve el deslizador y mira qué color toma el pad. Cuando veas el color, pulsa el botón de ese color para guardarlo.</p>
     <div class="row">
@@ -198,7 +201,7 @@ function openPorts(){if(IN)IN.onmidimessage=null;IN=MA.inputs.get($('min').value
 function initMidi(){if(!navigator.requestMIDIAccess){$('ch-midi').className='chip bad';$('ch-midi').querySelector('span').textContent='Usa Chrome para MIDI';return}
  navigator.requestMIDIAccess({sysex:false}).then(function(a){MA=a;fillPorts();a.onstatechange=function(){fillPorts()}},function(){$('ch-midi').className='chip bad';$('ch-midi').querySelector('span').textContent='Permiso MIDI denegado'})}
 $('min').onchange=openPorts;$('mout').onchange=openPorts;$('prof').onchange=function(){PROF=this.value;ls('fcc2-midi-prof',PROF);SENT={};buildGrid();calVis();refresh()};
-function calVis(){var p=prof();$('calcard').style.display=(p==='samson'||p==='custom'||p==='generic')?'':'none'}
+function calVis(){var p=prof();$('calcard').style.display=(p==='samson'||p==='custom'||p==='generic')?'':'none';$('samsonNote').style.display=p==='samson'?'block':'none'}
 PROF=ls('fcc2-midi-prof')||'auto';$('prof').value=PROF;
 
 // ---------- rejilla 8x8 (APC mini / Launchpad) ----------
