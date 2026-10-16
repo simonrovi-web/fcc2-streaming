@@ -48,8 +48,11 @@ td select{padding:4px 6px}
 td button{font-size:15px;padding:4px 8px 2px}
 .led{display:inline-block;width:12px;height:12px;border-radius:50%;background:#333;vertical-align:-1px;margin-right:6px}
 .led.c-red{background:#ff2a2a;box-shadow:0 0 8px #ff2a2a}.led.c-green{background:#2ecc71;box-shadow:0 0 8px #2ecc71}.led.c-yellow{background:#f5b301}.led.c-blue{background:#2f6bff}.led.c-dim{background:#6b5222}
-.log{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#000;border:1px solid var(--line);padding:8px;height:110px;overflow:auto;color:#9fd}
+.log{white-space:pre-line;font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#000;border:1px solid var(--line);padding:8px;height:110px;overflow:auto;color:#9fd}
 .leg{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:#ccc}
+#calcard{grid-column:1/-1}
+.wiz{border:1px solid var(--warn);background:#2a2100;padding:10px 12px;font-family:"Bebas";font-size:22px;letter-spacing:2px;display:none}
+.wiz.on{display:block}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(100px);background:var(--red);font-family:"Bebas";font-size:20px;letter-spacing:2px;padding:8px 20px 5px;transition:transform .2s;z-index:9}
 .toast.on{transform:translateX(-50%)}
 </style></head>
@@ -65,7 +68,7 @@ td button{font-size:15px;padding:4px 8px 2px}
 </header>
 <main>
   <section class="card">
-    <h2>CONTROLADOR <span class="sp"><button id="btest">PROBAR LEDS</button><button id="bauto" class="pri">AUTO-ASIGNAR</button></span></h2>
+    <h2>CONTROLADOR <span class="sp"><button id="btest">PROBAR LEDS</button><button id="bwiz" class="pri">ASISTENTE</button><button id="bauto">AUTO-ASIGNAR 8×8</button></span></h2>
     <div class="row">
       <div><label>ENTRADA (BOTONES)</label><select id="min"></select></div>
       <div><label>SALIDA (LEDS)</label><select id="mout"></select></div>
@@ -73,13 +76,26 @@ td button{font-size:15px;padding:4px 8px 2px}
         <option value="auto">Detectar automáticamente</option>
         <option value="apc1">Akai APC mini (mk1)</option>
         <option value="apc2">Akai APC mini mk2</option>
-        <option value="lp">Novation Launchpad (modo Programmer)</option>
-        <option value="generic">Genérico (LED encendido/apagado)</option>
+        <option value="samson">Samson Conspiracy</option><option value="lp">Novation Launchpad (modo Programmer)</option>
+        <option value="generic">Genérico (LED encendido/apagado)</option><option value="custom">Personalizado (calibrado)</option>
       </select></div>
     </div>
-    <div class="grid" id="grid"></div>
+    <div class="wiz" id="wiz"></div><div class="grid" id="grid"></div>
     <div class="leg"><span><i class="led c-red"></i>Al aire / activo</span><span><i class="led c-green"></i>En vista previa / encendido</span><span><i class="led c-yellow"></i>Disponible</span><span><i class="led c-blue"></i>Acción</span><span><i class="led c-dim"></i>Escena sin usar</span></div>
     <p class="hint">Clic en un cuadro = probar esa acción. Para asignar un botón: pulsa <b>APRENDER</b> en la lista y luego presiona el botón en tu controlador. Si tu controlador no es una cuadrícula 8×8, usa la lista de la derecha (sirve para cualquier MIDI).</p>
+  </section>
+
+  <section class="card" id="calcard">
+    <h2>COLORES DE LOS LEDS <span class="sp"><button id="calreset">RESTABLECER</button></span></h2>
+    <p class="hint">Cada marca usa valores distintos para los colores. Presiona un pad en el controlador (o elige uno), mueve el deslizador y mira qué color toma el pad. Cuando veas el color, pulsa el botón de ese color para guardarlo.</p>
+    <div class="row">
+      <div><label>PAD DE PRUEBA</label><select id="calpad"></select></div>
+      <div style="flex:2"><label>VALOR (VELOCIDAD) · <b id="calv">64</b></label><input type="range" id="calval" min="0" max="127" value="64"></div>
+    </div>
+    <div class="row">
+      <button data-cal="red" style="background:#c8101a">= ROJO</button><button data-cal="green" style="background:#13a34a">= VERDE</button><button data-cal="yellow" style="background:#c89300;color:#000">= AMARILLO</button><button data-cal="blue" style="background:#1d4fd8">= AZUL</button><button data-cal="dim">= TENUE</button><button data-cal="off">= APAGADO</button>
+    </div>
+    <div class="hint" id="calnow"></div>
   </section>
 
   <section class="card">
@@ -129,16 +145,17 @@ function colorFor(a){if(!a)return['off',false];var s=ST||{};
   case 'trans':return['yellow',false];default:return['blue',false]}}
 
 // ---------- MIDI ----------
-var MA=null,IN=null,OUT=null,MAPS=ls('fcc2-midi-maps')||[],LEARN=null,PROF='auto',SENT={};
+var CAL=ls('fcc2-midi-cal')||{off:0,dim:0,red:127,green:127,yellow:127,blue:127};var MA=null,IN=null,OUT=null,MAPS=ls('fcc2-midi-maps')||[],LEARN=null,PROF='auto',SENT={};
 function save(){ls('fcc2-midi-maps',MAPS)}
 function prof(){if(PROF!=='auto')return PROF;var n=((OUT&&OUT.name)||(IN&&IN.name)||'').toLowerCase();
- if(/apc mini mk2|apc mini 2|apcmini2/.test(n))return 'apc2';if(/apc mini|apc-mini|apcmini/.test(n))return 'apc1';if(/launchpad/.test(n))return 'lp';return 'generic'}
+ if(/apc mini mk2|apc mini 2|apcmini2/.test(n))return 'apc2';if(/apc mini|apc-mini|apcmini/.test(n))return 'apc1';if(/launchpad/.test(n))return 'lp';if(/conspiracy|samson/.test(n))return 'samson';return 'generic'}
 // traduce color lógico -> mensaje MIDI según el modelo
 function ledMsg(m,color,blink){var p=prof(),ch=m.ch|0,num=m.num;
  if(m.type==='cc'){return [0xB0|ch,num,color==='off'||color==='dim'?0:127]}
  if(p==='apc1'){var v={off:0,dim:0,green:1,red:3,yellow:5,blue:1}[color];if(blink&&v)v+=1;return [0x90,num,v]}
  if(p==='apc2'){var v2={off:0,dim:9,green:21,red:5,yellow:13,blue:45}[color];return [blink?0x9E:0x96,num,v2]}
  if(p==='lp'){var v3={off:0,dim:11,green:21,red:5,yellow:13,blue:45}[color];return [blink?0x91:0x90,num,v3]}
+ if(p==='samson'||p==='custom'){var v4=CAL[color];if(v4==null)v4=(color==='off'?0:127);return [0x90|ch,num,v4]}
  return [0x90|ch,num,(color==='off'||color==='dim')?0:127]}
 function sendLed(m,color,blink){if(!OUT)return;var msg=ledMsg(m,color,blink),k=m.type+m.ch+':'+m.num,sig=msg.join(',');if(SENT[k]===sig)return;SENT[k]=sig;try{OUT.send(msg)}catch(e){}}
 function key(m){return m.type+':'+m.ch+':'+m.num}
@@ -148,6 +165,8 @@ function onMidi(ev){var d=ev.data,st=d[0]&0xF0,ch=d[0]&0x0F,num=d[1],val=d[2];va
  else if(st===0xB0){m={type:'cc',ch:ch,num:num};press=val>63}
  if(!m)return;log((m.type==='note'?'NOTA ':'CC ')+num+' · canal '+(ch+1)+' · valor '+val);
  if(!press)return;
+ if(m.type==='note'){LASTN=num;CALCH=ch;calPads();$('calpad').value=num}
+ if(wizPress(m))return;
  if(LEARN!=null){MAPS[LEARN].m=m;LEARN=null;save();renderMaps();toast('Botón asignado');return}
  var mp=MAPS.find(function(x){return x.m&&key(x.m)===key(m)});if(mp&&mp.a){run(mp.a);flash(mp)}
  else{var gi=gridIndexOf(m);if(gi!=null)selPad(gi)}}
@@ -163,17 +182,20 @@ function openPorts(){if(IN)IN.onmidimessage=null;IN=MA.inputs.get($('min').value
  if(IN)IN.onmidimessage=onMidi;ls('fcc2-midi-in',$('min').value);ls('fcc2-midi-out',$('mout').value);
  var c=$('ch-midi');c.className='chip '+(IN?'ok':'bad');c.querySelector('span').textContent=IN?('MIDI: '+IN.name):'MIDI sin controlador';
  if(prof()==='lp')toast('Launchpad: ponlo en modo Programmer para que los LEDs respondan');
- buildGrid();refresh()}
+ buildGrid();calVis();refresh()}
 function initMidi(){if(!navigator.requestMIDIAccess){$('ch-midi').className='chip bad';$('ch-midi').querySelector('span').textContent='Usa Chrome para MIDI';return}
  navigator.requestMIDIAccess({sysex:false}).then(function(a){MA=a;fillPorts();a.onstatechange=function(){fillPorts()}},function(){$('ch-midi').className='chip bad';$('ch-midi').querySelector('span').textContent='Permiso MIDI denegado'})}
-$('min').onchange=openPorts;$('mout').onchange=openPorts;$('prof').onchange=function(){PROF=this.value;ls('fcc2-midi-prof',PROF);SENT={};buildGrid();refresh()};
+$('min').onchange=openPorts;$('mout').onchange=openPorts;$('prof').onchange=function(){PROF=this.value;ls('fcc2-midi-prof',PROF);SENT={};buildGrid();calVis();refresh()};
+function calVis(){var p=prof();$('calcard').style.display=(p==='samson'||p==='custom'||p==='generic')?'':'none'}
 PROF=ls('fcc2-midi-prof')||'auto';$('prof').value=PROF;
 
 // ---------- rejilla 8x8 (APC mini / Launchpad) ----------
 function gridNote(r,c){var p=prof();if(p==='lp')return (8-r)*10+(c+1);return (7-r)*8+c} // r=0 fila superior
 function gridIndexOf(m){if(m.type!=='note')return null;for(var r=0;r<8;r++)for(var c=0;c<8;c++)if(gridNote(r,c)===m.num)return r*8+c;return null}
 var SEL=null;
-function buildGrid(){var h='';for(var r=0;r<8;r++)for(var c=0;c<8;c++){var n=gridNote(r,c);h+='<div class="pad" data-r="'+r+'" data-c="'+c+'" data-n="'+n+'"><span class="id">'+n+'</span><span class="lb"></span></div>'}$('grid').innerHTML=h}
+function isGrid(){var p=prof();return p==='apc1'||p==='apc2'||p==='lp'}
+function buildGrid(){if(!isGrid()){var g=$('grid');g.style.gridTemplateColumns='repeat(5,1fr)';var h2='';MAPS.forEach(function(x){if(x.m&&x.m.type==='note')h2+='<div class="pad" data-n="'+x.m.num+'"><span class="id">'+x.m.num+'</span><span class="lb"></span></div>'});g.innerHTML=h2||'<p class="hint" style="grid-column:1/-1">Pulsa ASISTENTE y presiona tus pads uno por uno.</p>';return}
+ $('grid').style.gridTemplateColumns='';var h='';for(var r=0;r<8;r++)for(var c=0;c<8;c++){var n=gridNote(r,c);h+='<div class="pad" data-r="'+r+'" data-c="'+c+'" data-n="'+n+'"><span class="id">'+n+'</span><span class="lb"></span></div>'}$('grid').innerHTML=h}
 function selPad(i){SEL=i;var el=$('grid').children[i];var n=+el.dataset.n;var mp=MAPS.find(function(x){return x.m&&x.m.type==='note'&&x.m.num===n});
  if(!mp){MAPS.push({m:{type:'note',ch:0,num:n},a:''});save();renderMaps()}refresh();toast('Elige la acción para la nota '+n+' en la lista')}
 $('grid').addEventListener('click',function(e){var p=e.target.closest('.pad');if(!p)return;var n=+p.dataset.n;var mp=MAPS.find(function(x){return x.m&&x.m.type==='note'&&x.m.num===n});
@@ -185,7 +207,7 @@ function actOptions(sel){var sc=(ST&&ST.scenes)||[];var h=ACTIONS.map(function(a
  if(sel&&sel.indexOf('scene:')===0&&sc.indexOf(sel.slice(6))<0)h+='<option value="'+esc(sel)+'" selected>Escena: '+esc(sel.slice(6))+'</option>';
  return h+'</optgroup>'}
 function midLabel(m){if(!m)return '—';return (m.type==='note'?'Nota ':'CC ')+m.num+(m.ch?' · c'+(m.ch+1):'')}
-function renderMaps(){$('maps').innerHTML=MAPS.length?MAPS.map(function(x,i){var c=colorFor(x.a);return '<tr data-mi="'+i+'"><td class="mid">'+midLabel(x.m)+'</td><td><select data-i="'+i+'">'+actOptions(x.a)+'</select></td><td><i class="led c-'+c[0]+'"></i></td><td><button data-learn="'+i+'" class="'+(LEARN===i?'learn':'')+'">'+(LEARN===i?'PRESIONA…':'APRENDER')+'</button> <button data-del="'+i+'">✕</button></td></tr>'}).join(''):'<tr><td colspan="4" class="hint">Sin asignaciones. Usa AUTO-ASIGNAR (APC mini / Launchpad) o + NUEVA y APRENDER.</td></tr>'}
+function renderMaps(){if(typeof isGrid==='function'&&!isGrid())setTimeout(function(){buildGrid();refresh()},0);$('maps').innerHTML=MAPS.length?MAPS.map(function(x,i){var c=colorFor(x.a);return '<tr data-mi="'+i+'"><td class="mid">'+midLabel(x.m)+'</td><td><select data-i="'+i+'">'+actOptions(x.a)+'</select></td><td><i class="led c-'+c[0]+'"></i></td><td><button data-learn="'+i+'" class="'+(LEARN===i?'learn':'')+'">'+(LEARN===i?'PRESIONA…':'APRENDER')+'</button> <button data-del="'+i+'">✕</button></td></tr>'}).join(''):'<tr><td colspan="4" class="hint">Sin asignaciones. Usa AUTO-ASIGNAR (APC mini / Launchpad) o + NUEVA y APRENDER.</td></tr>'}
 $('maps').addEventListener('change',function(e){var s=e.target.closest('select[data-i]');if(!s)return;MAPS[+s.dataset.i].a=s.value;save();SENT={};refresh()});
 $('maps').addEventListener('click',function(e){var l=e.target.closest('[data-learn]'),d=e.target.closest('[data-del]');
  if(l){var i=+l.dataset.learn;LEARN=(LEARN===i?null:i);renderMaps();if(LEARN!=null)toast('Presiona un botón en el controlador')}
@@ -209,11 +231,32 @@ $('btest').onclick=function(){if(!OUT)return toast('Elige la salida (LEDs)');var
 function refresh(){var alive=Date.now()-lastST<2000;
  var cc=$('ch-ctl');cc.className='chip '+(alive?'ok':'bad');cc.querySelector('span').textContent=alive?'Control en vivo ✓':'Abre CONTROL_EN_VIVO.html';
  var co=$('ch-obs');var ob=alive&&ST&&ST.conn;co.className='chip '+(ob?'ok':'bad');co.querySelector('span').textContent=ob?('OBS ✓ · al aire: '+(ST.cur||'')):'OBS sin conexión';
- var pads=$('grid').children;for(var i=0;i<pads.length;i++){var p=pads[i],n=+p.dataset.n;var mp=MAPS.find(function(x){return x.m&&x.m.type==='note'&&x.m.num===n});var a=mp?mp.a:'';var c=colorFor(a);
+ var pads=$('grid').children;for(var i=0;i<pads.length;i++){var p=pads[i],n=+p.dataset.n;if(!p.classList.contains('pad'))continue;var mp=MAPS.find(function(x){return x.m&&x.m.type==='note'&&x.m.num===n});var a=mp?mp.a:'';var c=colorFor(a);
   p.className='pad'+(a?' c-'+c[0]:'')+(c[1]&&a?' blink':'')+(SEL===i?' sel':'');p.querySelector('.lb').textContent=actLabel(a)}
  MAPS.forEach(function(x,i){if(!x.m)return;var c=colorFor(x.a);sendLed(x.m,x.a?c[0]:'off',!!(x.a&&c[1]))});
  document.querySelectorAll('#maps tr[data-mi]').forEach(function(tr){var x=MAPS[+tr.dataset.mi];var c=colorFor(x&&x.a);var l=tr.querySelector('.led');if(l)l.className='led c-'+c[0]})}
 var lastScenes='';setInterval(function(){var k=JSON.stringify(ST&&ST.scenes);if(k!==lastScenes){lastScenes=k;renderMaps()}refresh()},300);
-buildGrid();renderMaps();initMidi();
+
+// ---------- asistente: presiona los pads uno por uno ----------
+var WIZ=null;
+function wizList(){var sc=((ST&&ST.scenes)||['INICIO','ESTUDIO','VS','GANADOR','REPLAY','PAUSA','AUSPICIADOR','FINAL']).slice(0,8).map(function(n){return 'scene:'+n});
+ return sc.concat(['trans','replay','moment','reel','stop','clock','reset','rminus','rplus','next','prev','tgl_marcador','tgl_lt','tgl_mosca','win_r','win_b'])}
+function wizShow(){var w=$('wiz');if(!WIZ){w.className='wiz';return}w.className='wiz on';var a=WIZ.list[WIZ.i];
+ w.innerHTML='ASISTENTE ('+(WIZ.i+1)+'/'+WIZ.list.length+'): PRESIONA EL PAD PARA <span style="color:#fff">'+esc(actLabel(a)||a)+'</span> &nbsp; <button id="wskip">SALTAR</button> <button id="wend">TERMINAR</button>';
+ $('wskip').onclick=function(){WIZ.i++;if(WIZ.i>=WIZ.list.length)WIZ=null;wizShow()};$('wend').onclick=function(){WIZ=null;wizShow();toast('Asistente terminado')}}
+$('bwiz').onclick=function(){WIZ={list:wizList(),i:0};LEARN=null;wizShow()};
+function wizPress(m){if(!WIZ)return false;var a=WIZ.list[WIZ.i];MAPS=MAPS.filter(function(x){return !(x.m&&key(x.m)===key(m))});MAPS.push({m:m,a:a});save();renderMaps();
+ WIZ.i++;if(WIZ.i>=WIZ.list.length){WIZ=null;toast('¡Listo! Todos los pads asignados')}wizShow();return true}
+// ---------- calibración de colores ----------
+function calPads(){var opts=MAPS.filter(function(x){return x.m&&x.m.type==='note'}).map(function(x){return x.m.num});if(LASTN!=null&&opts.indexOf(LASTN)<0)opts.unshift(LASTN);
+ var cur=$('calpad').value;$('calpad').innerHTML=opts.length?opts.map(function(n){return '<option value="'+n+'">Nota '+n+'</option>'}).join(''):'<option value="">(presiona un pad)</option>';if(cur&&opts.indexOf(+cur)>=0)$('calpad').value=cur}
+function calSend(){var n=$('calpad').value;$('calv').textContent=$('calval').value;if(n===''||!OUT)return;try{OUT.send([0x90|(CALCH|0),+n,+$('calval').value])}catch(e){}}
+function calText(){$('calnow').innerHTML='Guardado: '+['red','green','yellow','blue','dim','off'].map(function(k){return '<b>'+{red:'rojo',green:'verde',yellow:'amarillo',blue:'azul',dim:'tenue',off:'apagado'}[k]+'</b> '+CAL[k]}).join(' · ')}
+var LASTN=null,CALCH=0;
+$('calval').oninput=calSend;$('calpad').onchange=calSend;
+document.querySelectorAll('[data-cal]').forEach(function(b){b.onclick=function(){CAL[b.dataset.cal]=+$('calval').value;ls('fcc2-midi-cal',CAL);SENT={};calText();refresh();toast('Color guardado')}});
+$('calreset').onclick=function(){CAL={off:0,dim:0,red:127,green:127,yellow:127,blue:127};ls('fcc2-midi-cal',CAL);SENT={};calText();refresh()};
+calText();
+buildGrid();renderMaps();calPads();initMidi();
 window.addEventListener('beforeunload',function(){MAPS.forEach(function(x){if(x.m)try{OUT&&OUT.send(ledMsg(x.m,'off',false))}catch(e){}})});
 </script></body></html>
