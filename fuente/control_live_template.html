@@ -59,6 +59,18 @@ td.rn input{color:#ff8a8a}td.bn input{color:#9cb6ff}
 td button{font-size:15px;padding:4px 8px 2px}
 .fl{max-height:430px;overflow:auto;border:1px solid var(--line)}
 .scenes{display:flex;flex-wrap:wrap;gap:8px}
+.hlg{border-bottom:1px solid var(--line)}
+.hlg>.hh{display:flex;align-items:center;gap:8px;padding:6px 8px;cursor:pointer;background:#161616}
+.hlg.cur>.hh{background:rgba(227,18,27,.18);border-left:4px solid var(--red2)}
+.hlg>.hh .tt{flex:1;min-width:0;line-height:1.15}
+.hlg>.hh .tt b{font-family:"Bebas";font-size:20px;letter-spacing:1px;font-weight:400}
+.hlg>.hh .tt span{display:block;font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hlg>.hh .cnt{font-family:"Bebas";font-size:18px;background:#000;border:1px solid var(--line);padding:2px 8px 0;border-radius:10px}
+.hlg>.hh button{font-size:15px;padding:4px 8px 2px}
+.hlg .cl{display:none;padding:2px 8px 6px 20px}.hlg.open .cl{display:block}
+.hlg .ci{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:13px;border-top:1px dashed rgba(255,255,255,.07)}
+.hlg .ci span{flex:1}.hlg .ci button{font-size:14px;padding:3px 8px 1px}
+.hlg .car{color:var(--mute);width:14px}.hlg.open .car{transform:rotate(90deg)}
 .ltf{max-height:300px;overflow:auto;border:1px solid var(--line)}
 .ltf .fr{display:flex;align-items:center;gap:6px;padding:4px 6px;border-bottom:1px solid var(--line)}
 .ltf .fr.cur{background:rgba(227,18,27,.12)}
@@ -181,8 +193,10 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
       <button id="rb_start" style="align-self:flex-end">INICIAR BÚFER</button>
     </div>
     <div class="f"><label>AL TERMINAR LA REPETICIÓN</label><select id="rb_after"><option value="estudio" selected>Ir siempre a ESTUDIO (transición automática)</option><option value="preview">Pasar a la vista previa (transición automática)</option><option value="back">Volver a la escena anterior</option><option value="stay">Quedarse en REPLAY</option></select></div>
-    <div><label>MEJORES MOMENTOS <span id="rb_count"></span></label>
-      <div class="fl" style="max-height:200px"><table><tbody id="rb_list"><tr><td class="hint">Aún no hay momentos guardados.</td></tr></tbody></table></div></div>
+    <div><label>MOMENTOS POR COMBATE <span id="rb_count"></span></label>
+      <div class="fl" style="max-height:260px" id="rb_list"><p class="hint" style="padding:8px">Aún no hay momentos guardados.</p></div></div>
+    <label style="display:flex;align-items:center;gap:8px;margin:2px 0 0;letter-spacing:0;font-size:13px;color:#ccc;line-height:1.3"><input type="checkbox" id="rb_pref" style="width:auto;flex:none"> Guardar los archivos con el nombre del combate (FCC2 C07 NOMBRE vs NOMBRE)</label>
+    <div class="row"><button id="rb_clean">🗑 BORRAR COMBATES ANTERIORES</button></div>
     <div class="row"><button class="pri" id="rb_reel">▶ RESUMEN DEL COMBATE</button><button id="rb_reelall">▶ RESUMEN DE TODO</button><button id="rb_stop">■ DETENER</button></div>
     <p class="hint">Atajos: <kbd>P</kbd> repetir ahora · <kbd>M</kbd> guardar momento. OBS guarda siempre los últimos 30 s y aquí eliges cuánto de eso se repite. Requiere el búfer de repetición (se activa con INSTALAR o INICIAR BÚFER).</p>
   </section>
@@ -448,7 +462,7 @@ function loadFight(i){if(i<0||i>=S.fights.length)return;var f=S.fights[i];S.cur=
  var pm=(f.c||'').match(/(hasta\s*)?\d+\s*kg|peso\s+pesado/i);if(pm){if(!S.f.r_peso)S.f.r_peso=U(pm[0]);if(!S.f.b_peso)S.f.b_peso=U(pm[0])}
  if(f.d)S.f.disciplina=U(f.d);S.f.categoria=f.c||S.f.categoria||'';S.f.numero=i+1;
  var L=f.len||S.clock.len,T=f.tot||S.clock.total||3;S.clock={round:1,total:T,len:L,rem:L,running:false,at:Date.now()};$('len').value=String(L);$('tot').value=String(T);S.g=undefined;
- loadFields();renderFights();save();push();toast('Combate '+(i+1)+' cargado')}
+ loadFields();renderFights();save();push();toast('Combate '+(i+1)+' cargado');if(window.renderHL)renderHL();if(window.applyPrefix)setTimeout(applyPrefix,400)}
 // guarda los datos extra del combate actual en la cartelera
 setInterval(function(){var f=S.fights[S.cur];if(!f)return;f.x=f.x||{};['apodo','gym','record','peso','edad'].forEach(function(k){f.x['r_'+k]=S.f['r_'+k];f.x['b_'+k]=S.f['b_'+k]});save()},3000);
 $('bnext').onclick=function(){loadFight(S.cur+1)};$('bprev').onclick=function(){loadFight(S.cur-1)};
@@ -588,8 +602,15 @@ var RBIN='FCC2 Repeticion Video',RBINS=[RBIN,RBIN+' B'],RB={active:false,want:nu
 var RBSET={is_local_file:true,looping:false,restart_on_activate:false,close_when_inactive:false,clear_on_media_end:false,hw_decode:true};
 S.hl=S.hl||[];S.rb=S.rb||{speed:50,len:10,back:true};var RBMAX=30;
 function hlLabel(){var f=S.f,c=S.clock;return {c:S.cur,num:f.numero||S.cur+1,round:c.round,t:fmt(c.len-remain()),r:U(f.r_nombre),b:U(f.b_nombre)}}
-function renderHL(){$('rb_count').textContent=S.hl.length?'('+S.hl.length+')':'';
- $('rb_list').innerHTML=S.hl.length?S.hl.map(function(h,i){return '<tr><td class="n">'+(i+1)+'</td><td>C'+h.num+' · R'+h.round+' · '+h.t+'<br><span class="hint">'+esc((h.r||'?')+' vs '+(h.b||'?'))+'</span></td><td style="width:120px"><button data-hp="'+i+'">▶</button> <button data-hd="'+i+'">✕</button></td></tr>'}).reverse().join(''):'<tr><td class="hint">Aún no hay momentos guardados.</td></tr>'}
+S.hlOpen=S.hlOpen||{};
+function renderHL(){S.hlOpen=S.hlOpen||{};var G={},ord=[];S.hl.forEach(function(h,i){var k=h.c;if(!G[k]){G[k]={c:k,num:h.num,r:h.r,b:h.b,items:[]};ord.push(k)}G[k].items.push(i)});
+ if(G[S.cur]==null&&S.fights[S.cur]){var f=S.fights[S.cur];G[S.cur]={c:S.cur,num:S.cur+1,r:U(S.f.r_nombre||f.r),b:U(S.f.b_nombre||f.b),items:[]};ord.push(S.cur)}
+ ord.sort(function(a,b){return a===S.cur?-1:b===S.cur?1:b-a});
+ $('rb_count').textContent=S.hl.length?'('+S.hl.length+' en '+Object.keys(G).filter(function(k){return G[k].items.length}).length+' combates)':'';
+ $('rb_list').innerHTML=ord.map(function(k){var g=G[k],cur=k===S.cur,op=cur?S.hlOpen[k]!==false:!!S.hlOpen[k];
+  return '<div class="hlg'+(cur?' cur':'')+(op?' open':'')+'"><div class="hh" data-hg="'+k+'"><span class="car">▶</span><div class="tt"><b>COMBATE '+g.num+(cur?' · AL AIRE':'')+'</b><span>'+esc((g.r||'?')+' vs '+(g.b||'?'))+'</span></div><span class="cnt">'+g.items.length+'</span>'+
+   (g.items.length?'<button data-hr="'+k+'" title="Resumen de este combate">▶ RESUMEN</button><button data-hx="'+k+'" title="Borrar los clips de este combate">🗑</button>':'')+'</div>'+
+   '<div class="cl">'+(g.items.length?g.items.map(function(i,n){var h=S.hl[i];return '<div class="ci"><span>'+(n+1)+'. '+(h.kind==='rep'?'⏪ Repetición':'★ Momento')+' · R'+h.round+' · '+h.t+'</span><button data-hp="'+i+'">▶</button><button data-hd="'+i+'">✕</button></div>'}).join(''):'<div class="ci"><span class="hint">Sin clips todavía: usa ⏪ REPETIR o ★ GUARDAR MOMENTO.</span></div>')+'</div></div>'}).join('')||'<p class="hint" style="padding:8px">Aún no hay momentos guardados.</p>'}
 function rbBadge(){['m_rec','rb_rec'].forEach(function(id){var e=$(id);if(!e)return;e.className='rec'+(RB.saving?' save':RB.active?' on':'');e.querySelector('b').textContent=RB.saving?'GUARDANDO':'REC';e.title=RB.active?'Grabando repetición (búfer activo)':'Búfer apagado'});var e=$('rb-state');e.textContent=RB.playing?'REPRODUCIENDO':RB.active?'BÚFER ACTIVO':'BÚFER APAGADO';e.className='onair'+(RB.active||RB.playing?' v':'')}
 async function rbStatus(){var r=await reqP('GetReplayBufferStatus',{});RB.active=!!((r.responseData||{}).outputActive);rbBadge()}
 async function ensureReplay(install){
@@ -618,6 +639,15 @@ function saveClip(){return new Promise(async function(res0){var res=function(v){
  setTimeout(async function(){if(done)return;var g=await reqP('GetLastReplayBufferReplay',{});done=true;res((g.responseData||{}).savedReplayPath||null)},4000)})}
 async function itemId(nm){if(RB.ids[nm]==null){var r=((await reqP('GetSceneItemId',{sceneName:'REPLAY',sourceName:nm})).responseData||{}).sceneItemId;if(r!=null)RB.ids[nm]=r}return RB.ids[nm]}
 function wait(ms){return new Promise(function(r){setTimeout(r,ms)})}
+// nombre de archivo por combate: OBS guarda los clips como "C07 NOMBRE vs NOMBRE <fecha>.mkv"
+function rbPrefix(){var f=S.f,n=('0'+(S.cur+1)).slice(-2),ap=function(x){x=U(x).split(/\s+/);return x.length>1?x[x.length-1]:x[0]||''};
+ return ('FCC2 C'+n+' '+ap(f.r_nombre)+' vs '+ap(f.b_nombre)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9 ]+/g,'').replace(/\s+/g,' ').trim()}
+async function applyPrefix(){if(!S.rbPref||!WS.ok)return;if(RB.playing||RB.saving||RB.pfBusy){clearTimeout(RB.pfT);RB.pfT=setTimeout(applyPrefix,1500);return}RB.pfBusy=true;
+ try{var md=((await reqP('GetProfileParameter',{parameterCategory:'Output',parameterName:'Mode'})).responseData||{}).parameterValue||'Simple',ct=/adv/i.test(md)?'AdvOut':'SimpleOutput',want=rbPrefix();
+  var cur=((await reqP('GetProfileParameter',{parameterCategory:ct,parameterName:'RecRBPrefix'})).responseData||{}).parameterValue;
+  if(cur===want)return;await reqP('SetProfileParameter',{parameterCategory:ct,parameterName:'RecRBPrefix',parameterValue:want});
+  var st=await reqP('GetReplayBufferStatus',{});if((st.responseData||{}).outputActive){await reqP('StopReplayBuffer',{});for(var k=0;k<25;k++){await wait(120);if(!((await reqP('GetReplayBufferStatus',{})).responseData||{}).outputActive)break}await reqP('StartReplayBuffer',{});await wait(300);await rbStatus()}
+  toast('Clips se guardan como: '+want)}catch(e){}finally{RB.pfBusy=false}}
 // carga el clip en un reproductor, lo deja posicionado en los últimos N s y en pausa (sin mostrar negro)
 async function prepare(slot,path,want,spd){var nm=RBINS[slot];
  await reqP('SetInputSettings',{inputName:nm,inputSettings:Object.assign({local_file:path,speed_percent:spd||100},RBSET)});
@@ -675,18 +705,25 @@ window.onObsEvent=function(t,d){
  else if(t==='ReplayBufferStateChanged'){RB.active=!!d.outputActive;rbBadge()}
  else if(t==='MediaInputPlaybackEnded'&&d.inputName===RBINS[RB.slot]&&RB.playing)nextClip()};
 $('rb_play').onclick=async function(){var b=this;b.disabled=true;var lab=hlLabel();var p=await saveClip();b.disabled=false;if(!p)return;
- lab.path=p;S.hl.push(lab);save();renderHL();RB.back=SC.cur;await playClips([p],'REPETICIÓN')};
+ lab.path=p;lab.kind='rep';S.hl.push(lab);save();renderHL();RB.back=SC.cur;await playClips([p],'REPETICIÓN')};
 $('rb_save').onclick=async function(){var lab=hlLabel();var p=await saveClip();if(!p)return;lab.path=p;S.hl.push(lab);save();renderHL();toast('Momento guardado ('+S.hl.length+')')};
-$('rb_list').addEventListener('click',function(e){var a=e.target.closest('[data-hp]'),d=e.target.closest('[data-hd]');
- if(a){RB.back=SC.cur;playClips([S.hl[+a.dataset.hp].path],'REPETICIÓN')}
- if(d){S.hl.splice(+d.dataset.hd,1);save();renderHL()}});
-$('rb_reel').onclick=function(){var l=S.hl.filter(function(h){return h.c===S.cur}).map(function(h){return h.path});if(!l.length)return toast('No hay momentos de este combate');RB.back=SC.cur;playClips(l,'MEJORES MOMENTOS')};
-$('rb_reelall').onclick=function(){if(!S.hl.length)return toast('No hay momentos guardados');RB.back=SC.cur;playClips(S.hl.map(function(h){return h.path}),'MEJORES MOMENTOS')};
+function clipsOf(c){return S.hl.filter(function(h){return h.c===c}).map(function(h){return h.path})}
+$('rb_list').addEventListener('click',function(e){var a=e.target.closest('[data-hp]'),d=e.target.closest('[data-hd]'),r=e.target.closest('[data-hr]'),x=e.target.closest('[data-hx]'),g=e.target.closest('[data-hg]');
+ if(a){RB.back=SC.cur;playClips([S.hl[+a.dataset.hp].path],'REPETICIÓN');return}
+ if(d){S.hl.splice(+d.dataset.hd,1);save();renderHL();return}
+ if(r){RB.back=SC.cur;playClips(clipsOf(+r.dataset.hr),'MEJORES MOMENTOS');return}
+ if(x){var c=+x.dataset.hx;if(x.dataset.ok!=='1'){x.dataset.ok='1';x.textContent='¿SEGURO?';setTimeout(function(){if(x.isConnected){x.dataset.ok='';x.textContent='🗑'}},2500);return}S.hl=S.hl.filter(function(h){return h.c!==c});save();renderHL();toast('Clips del combate '+(c+1)+' quitados de la lista');return}
+ if(g){var k=+g.dataset.hg,isCur=k===S.cur,op=isCur?S.hlOpen[k]!==false:!!S.hlOpen[k];S.hlOpen[k]=!op;save();renderHL()}});
+$('rb_clean').onclick=function(){var b=this;if(b.dataset.ok!=='1'){b.dataset.ok='1';b.textContent='¿SEGURO? TOCA OTRA VEZ';setTimeout(function(){b.dataset.ok='';b.textContent='🗑 BORRAR COMBATES ANTERIORES'},2500);return}
+ b.dataset.ok='';b.textContent='🗑 BORRAR COMBATES ANTERIORES';var n=S.hl.length;S.hl=S.hl.filter(function(h){return h.c===S.cur});save();renderHL();toast((n-S.hl.length)+' clips de otros combates quitados de la lista')};
+$('rb_reel').onclick=function(){var l=clipsOf(S.cur);if(!l.length)return toast('No hay momentos de este combate');RB.back=SC.cur;playClips(l,'MEJORES MOMENTOS')};
+$('rb_reelall').onclick=function(){if(!S.hl.length)return toast('No hay momentos guardados');RB.back=SC.cur;playClips(S.hl.slice().sort(function(a,b){return a.c-b.c}).map(function(h){return h.path}),'MEJORES MOMENTOS')};
 $('rb_stop').onclick=async function(){RB.queue=[];RB.prep=null;await reqP('TriggerMediaInputAction',{inputName:RBINS[RB.slot],mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'});endReplay()};
-$('rb_start').onclick=async function(){if(!WS.ok)return toast('Conecta OBS primero');await ensureReplay(true);toast(RB.active?'Búfer de repetición activo':'No se pudo activar')};
+$('rb_start').onclick=async function(){if(!WS.ok)return toast('Conecta OBS primero');await ensureReplay(true);await applyPrefix();toast(RB.active?'Búfer de repetición activo':'No se pudo activar')};
 $('rb_speed').value=String(S.rb.speed);$('rb_len').value=String(S.rb.len);if(S.rbV!==2){S.rb.after='estudio';S.rbV=2;save()}$('rb_after').value=S.rb.after||'estudio';
 ['rb_speed','rb_len','rb_after'].forEach(function(id){$(id).onchange=function(){S.rb={speed:+$('rb_speed').value,len:+$('rb_len').value,after:$('rb_after').value};save()}});
 document.addEventListener('keydown',function(e){var t=e.target.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;if(e.key==='p'||e.key==='P')$('rb_play').click();else if(e.key==='m'||e.key==='M')$('rb_save').click()});
+S.rbPref=S.rbPref!==false;$('rb_pref').checked=S.rbPref;$('rb_pref').onchange=function(){S.rbPref=this.checked;save();if(S.rbPref)applyPrefix()};
 renderHL();
 if(S.cartV!=='fcc2-oficial-1'||!S.fights.some(function(f){return (f.r||'').trim()})){S.cartV='fcc2-oficial-1';setTimeout(function(){loadOficial();toast('Cartelera oficial FCC 2 cargada')},50)}
 
