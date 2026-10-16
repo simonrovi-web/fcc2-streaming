@@ -235,20 +235,21 @@ var GROUPS=[
  ['GRÁFICOS',[['lt_r','🔴 Lower third peleador rojo'],['lt_b','🔵 Lower third peleador azul'],['tgl_marcador','Mostrar/ocultar marcador'],['tgl_lt','Mostrar/ocultar lower third'],['tgl_mosca','Mostrar/ocultar mosca']]],
  ['COMBATE',[['prev','◀ Combate anterior'],['next','Combate siguiente ▶'],['win_r','🔴 Gana esquina roja'],['win_b','🔵 Gana esquina azul']]]];
 var KIND={trans:'CAMBIO',toprev:'CAMBIO',clock:'RELOJ',reset:'RELOJ',rminus:'RELOJ',rplus:'RELOJ',m10:'RELOJ',p10:'RELOJ',replay:'REPETICIÓN',replay3:'REPETICIÓN',replay5:'REPETICIÓN',replay10:'REPETICIÓN',replayslow:'REPETICIÓN',rb_pause:'CONTROL REPLAY',rb_rew:'CONTROL REPLAY',rb_backplay:'CONTROL REPLAY',rb_back2:'CONTROL REPLAY',rb_back5:'CONTROL REPLAY',rb_fwd2:'CONTROL REPLAY',rb_restart:'CONTROL REPLAY',rb_slow:'CONTROL REPLAY',rb_speed:'CONTROL REPLAY',rb_scrub:'PERILLA',moment:'REPETICIÓN',reel:'REPETICIÓN',reelall:'REPETICIÓN',stop:'REPETICIÓN',tgl_marcador:'GRÁFICO',lt_r:'LOWER THIRD',lt_b:'LOWER THIRD',tgl_lt:'GRÁFICO',tgl_mosca:'GRÁFICO',prev:'COMBATE',next:'COMBATE',win_r:'RESULTADO',win_b:'RESULTADO'};
-function kindOf(a){return a.indexOf('scene:')===0?'ESCENA':a.indexOf('trsel:')===0?'ELEGIR TRANSICIÓN':a.indexOf('trgo:')===0?'TRANSICIÓN AL AIRE':(KIND[a]||'')}
+function kindOf(a){return a.indexOf('scene:')===0?'ESCENA':a.indexOf('scenev:')===0?'A VISTA PREVIA':a.indexOf('scenep:')===0?'DIRECTO AL AIRE':a.indexOf('trsel:')===0?'ELEGIR TRANSICIÓN':a.indexOf('trgo:')===0?'TRANSICIÓN AL AIRE':(KIND[a]||'')}
 var SHORT={rb_rew:'◀◀ REBOBINAR',rb_backplay:'⏪▶ ATRÁS+PLAY',rb_pause:'❚❚ PAUSA',rb_back2:'◀◀ −2 S',rb_back5:'⏪ −5 S',rb_fwd2:'+2 S ▶▶',rb_restart:'↺ DE NUEVO',rb_slow:'🐢 LENTA',rb_speed:'⚡ VELOCIDAD',rb_scrub:'🎚 MOVER VIDEO',lt_r:'LT ROJO',lt_b:'LT AZUL',replay3:'REPETIR 3 S',replay5:'REPETIR 5 S',replay10:'REPETIR 10 S',replayslow:'REPETIR LENTA',trans:'TRANSICIÓN',toprev:'A PREVIA',clock:'RELOJ ▶❚❚',reset:'RELOJ ↺',rminus:'ROUND −',rplus:'ROUND +',m10:'−10 S',p10:'+10 S',replay:'REPETIR',moment:'★ MOMENTO',reel:'RESUMEN',reelall:'RESUMEN TODO',stop:'■ STOP',tgl_marcador:'MARCADOR',tgl_lt:'LOWER 3RD',tgl_mosca:'MOSCA',prev:'◀ COMBATE',next:'COMBATE ▶',win_r:'GANA ROJO',win_b:'GANA AZUL'};
 function trNm(n){return n.replace(/^FCC2\s*/i,'')}
-function actLabel(a){if(!a)return '';if(a.indexOf('scene:')===0)return a.slice(6);if(a.indexOf('trsel:')===0)return '🎬 '+trNm(a.slice(6));if(a.indexOf('trgo:')===0)return '🎬▶ '+trNm(a.slice(5));return SHORT[a]||a}
+function actLabel(a){if(!a)return '';if(a.indexOf('scene:')===0)return a.slice(6);if(a.indexOf('scenev:')===0)return '👁 '+a.slice(7);if(a.indexOf('scenep:')===0)return '🔴 '+a.slice(7);if(a.indexOf('trsel:')===0)return '🎬 '+trNm(a.slice(6));if(a.indexOf('trgo:')===0)return '🎬▶ '+trNm(a.slice(5));return SHORT[a]||a}
 
 // ---------- estado recibido del control ----------
 var ST=null,lastST=0;var CMD=null;try{CMD=new BroadcastChannel('fcc2-cmd')}catch(e){}
 if(CMD){CMD.onmessage=function(e){if(e.data&&e.data.type==='state'){ST=e.data;lastST=Date.now();refresh()}};CMD.postMessage({type:'hello'})}
 function send(cmd,arg){if(!CMD)return toast('Este navegador no permite comunicar paneles');if(Date.now()-lastST>2000)toast('Abre CONTROL_EN_VIVO.html en este Chrome');CMD.postMessage({type:'cmd',cmd:cmd,arg:arg})}
-function run(a){if(!a)return;if(a.indexOf('scene:')===0)send('scene',a.slice(6));else if(a.indexOf('trsel:')===0)send('trsel',a.slice(6));else if(a.indexOf('trgo:')===0)send('trgo',a.slice(5));else send(a)}
+function run(a){if(!a)return;if(a.indexOf('scene:')===0)send('scene',a.slice(6));else if(a.indexOf('scenev:')===0)send('sceneV',a.slice(7));else if(a.indexOf('scenep:')===0)send('sceneP',a.slice(7));else if(a.indexOf('trsel:')===0)send('trsel',a.slice(6));else if(a.indexOf('trgo:')===0)send('trgo',a.slice(5));else send(a)}
 
 // color lógico de cada acción según el estado
 function colorFor(a){if(!a)return['off',false];var s=ST||{};
  if(a.indexOf('trsel:')===0||a.indexOf('trgo:')===0){var tn=a.slice(a.indexOf(':')+1),ex=(s.trs||[]).indexOf(tn)>=0;if(tn===s.trcur)return['green',false];return[ex?(a[2]==='g'?'blue':'yellow'):'dim',false]}
+ if(a.indexOf('scenev:')===0||a.indexOf('scenep:')===0){var sn=a.slice(7);if(sn===s.cur)return['red',false];if(sn===s.prev)return['green',false];return[(s.scenes||[]).indexOf(sn)>=0?(a[5]==='v'?'yellow':'blue'):'dim',false]}
  if(a.indexOf('scene:')===0){var n=a.slice(6);if(n===s.cur)return['red',false];if(n===s.prev)return['green',false];return[(s.scenes||[]).indexOf(n)>=0?'yellow':'dim',false]}
  switch(a){case 'clock':return s.running?['green',true]:['yellow',false];
   case 'replay':case 'replay3':case 'replay5':case 'replay10':case 'replayslow':return s.saving?['yellow',true]:s.playing?['red',true]:s.rb?['red',false]:['dim',false];
@@ -349,8 +350,9 @@ function shActsHtml(){var sc=((ST&&ST.scenes)||[]).slice();if(SH.a&&SH.a.indexOf
  var TRD=['FCC2 Golpe','FCC2 Golpe Corta','FCC2 Rapida','FCC2 Rapida Corta','FCC2 Replay','Corte','Desvanecer'],tr=((ST&&ST.trs&&ST.trs.length)?ST.trs:TRD).slice();[SH.a].forEach(function(x){if(x&&/^tr(sel|go):/.test(x)){var n=x.slice(x.indexOf(':')+1);if(tr.indexOf(n)<0)tr.push(n)}});
  var trh='<div class="grp">TRANSICIONES — ELEGIR (queda lista para el próximo cambio)</div><div class="acts">'+tr.map(function(n){return btn('trsel:'+n,'🎬 '+trNm(n))}).join('')+'</div>'+
   '<div class="grp">TRANSICIONES — ELEGIR Y PASAR AL AIRE (hace la transición de inmediato)</div><div class="acts">'+tr.map(function(n){return btn('trgo:'+n,'🎬▶ '+trNm(n))}).join('')+'</div>'+((ST&&ST.trs&&ST.trs.length)?'':'<span class="hint">Lista sugerida: crea estas transiciones en OBS y pulsa AJUSTAR TRANSICIONES en el control.</span>');
- var h='<div class="grp">ESCENAS — PONER AL AIRE</div><div class="acts">'+(sc.length?sc.map(function(n){return btn('scene:'+n,n)}).join(''):'<span class="hint">Las escenas aparecen cuando CONTROL_EN_VIVO está abierto y conectado a OBS.</span>')+'</div>';
- h+=trh;GROUPS.forEach(function(g){h+='<div class="grp">'+g[0]+'</div><div class="acts">'+g[1].map(function(a){return btn(a[0],a[1])}).join('')+'</div>'});return h}
+ var pvh=sc.length?'<div class="grp">ESCENAS — A VISTA PREVIA (siempre a la previa; luego TRANSICIÓN)</div><div class="acts">'+sc.map(function(n){return btn('scenev:'+n,'👁 '+n)}).join('')+'</div><div class="grp">ESCENAS — DIRECTO AL AIRE (sin pasar por la previa)</div><div class="acts">'+sc.map(function(n){return btn('scenep:'+n,'🔴 '+n)}).join('')+'</div>':'';
+ var h='<div class="grp">ESCENAS — SEGÚN LA CASILLA "A VISTA PREVIA" DEL CONTROL</div><div class="acts">'+(sc.length?sc.map(function(n){return btn('scene:'+n,n)}).join(''):'<span class="hint">Las escenas aparecen cuando CONTROL_EN_VIVO está abierto y conectado a OBS.</span>')+'</div>';
+ h+=pvh+trh;GROUPS.forEach(function(g){h+='<div class="grp">'+g[0]+'</div><div class="acts">'+g[1].map(function(a){return btn(a[0],a[1])}).join('')+'</div>'});return h}
 function shRender(){if(!SH)return;var other=SH.m?MAPS.findIndex(function(x,j){return j!==SH.i&&x.m&&key(x.m)===key(SH.m)}):-1;
  $('shTitle').textContent=SH.i==null?'AGREGAR BOTÓN':'EDITAR BOTÓN';
  $('ps1').className='ps'+(SH.m?' ok':'');$('ps2').className='ps'+(SH.a?' ok':'');

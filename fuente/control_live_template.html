@@ -59,6 +59,10 @@ td.rn input{color:#ff8a8a}td.bn input{color:#9cb6ff}
 td button{font-size:15px;padding:4px 8px 2px}
 .fl{max-height:430px;overflow:auto;border:1px solid var(--line)}
 .scenes{display:flex;flex-wrap:wrap;gap:8px}
+.scenes.pvw button{border-color:rgba(46,204,113,.45)}
+.scenes.pvw button.prev{background:var(--ok);color:#000;border-color:var(--ok)}
+.scenes.pvw button.cur{background:transparent;border-color:var(--red2);color:var(--red2)}
+.scenes.pvw button i{font-style:normal;font-size:12px;opacity:.7;margin-right:6px;border:1px solid currentColor;padding:0 4px;border-radius:3px}
 .tp{display:flex;gap:6px;flex-wrap:wrap;align-items:stretch;padding:8px;border:1px solid var(--line);background:#0c0c0c}
 .tp button{flex:1;min-width:70px;font-size:17px;padding:8px 6px 5px}
 .tp button.on{background:var(--warn);color:#000;border-color:var(--warn)}
@@ -158,6 +162,8 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
     </div>
     <div class="mon-row" style="align-items:center"><span class="lbl2">ESCENAS</span><label class="sw" style="margin-left:auto"><input type="checkbox" id="toprev"> A vista previa (modo estudio)</label></div>
     <div class="scenes" id="scenes"><span class="hint">Conecta OBS para ver tus escenas aquí.</span></div>
+    <div class="mon-row" style="align-items:center;margin-top:6px"><span class="lbl2" style="color:var(--ok)">A VISTA PREVIA</span><span class="hint" style="margin-left:auto">teclas <kbd>1</kbd>–<kbd>9</kbd> · con <kbd>Shift</kbd> va directo al aire</span></div>
+    <div class="scenes pvw" id="scenesPv"></div>
     <div class="mon-row"><button class="pri" id="btrans" style="flex:1">TRANSICIÓN (MODO ESTUDIO)</button></div>
     <div class="scenes" id="trsel" style="margin-top:6px"></div>
   </div>
@@ -424,13 +430,18 @@ var SC={list:[],cur:'',prev:''};
 function loadScenes(){req('GetSceneList',{},function(d){var r=d.responseData||{};SC.list=(r.scenes||[]).slice().sort(function(a,b){return b.sceneIndex-a.sceneIndex}).map(function(x){return x.sceneName});
  SC.cur=r.currentProgramSceneName||'';SC.prev=r.currentPreviewSceneName||'';renderScenes()})}
 function renderScenes(){var h=SC.list.map(function(n){return '<button data-scene="'+n.replace(/"/g,'&quot;')+'" class="'+(n===SC.cur?'cur':n===SC.prev?'prev':'')+'">'+n.replace(/</g,'&lt;')+'</button>'}).join('');
- $('scenes').innerHTML=h||'<span class="hint">Conecta OBS para ver tus escenas aquí.</span>'}
+ $('scenes').innerHTML=h||'<span class="hint">Conecta OBS para ver tus escenas aquí.</span>';
+ $('scenesPv').innerHTML=SC.list.map(function(n,i){return '<button data-pv="'+n.replace(/"/g,'&quot;')+'" class="'+(n===SC.prev?'prev':n===SC.cur?'cur':'')+'" title="'+(n===SC.cur?'Está al aire':'Poner en vista previa')+'">'+(i<9?'<i>'+(i+1)+'</i>':'')+n.replace(/</g,'&lt;')+'</button>'}).join('')}
+function toPreview(n){if(!WS.ok)return toast('Conecta OBS primero');req('SetCurrentPreviewScene',{sceneName:n},function(d){if(!d.requestStatus.result){req('SetStudioModeEnabled',{studioModeEnabled:true},function(){req('SetCurrentPreviewScene',{sceneName:n},function(){loadScenes()});toast('Modo Estudio activado')})}else loadScenes()})}
 function goScene(n,toPrev){if(!WS.ok)return;if(toPrev==null)toPrev=$('toprev').checked;
  if(toPrev)req('SetCurrentPreviewScene',{sceneName:n},function(d){if(!d.requestStatus.result)toast('Activa el Modo Estudio');loadScenes()});
  else req('SetCurrentProgramScene',{sceneName:n},function(){loadScenes()})}
 $('scenes').addEventListener('click',function(e){var b=e.target.closest('[data-scene]');if(!b)return;var n=b.dataset.scene;
  if($('toprev').checked)req('SetCurrentPreviewScene',{sceneName:n},function(d){if(!d.requestStatus.result)toast('Activa el Modo Estudio');loadScenes()});
  else req('SetCurrentProgramScene',{sceneName:n},function(){loadScenes()})});
+$('scenesPv').addEventListener('click',function(e){var b=e.target.closest('[data-pv]');if(b)toPreview(b.dataset.pv)});
+document.addEventListener('keydown',function(e){var t=e.target.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||e.ctrlKey||e.altKey||e.metaKey)return;var m=/^(Digit|Numpad)([1-9])$/.exec(e.code);if(!m)return;var n=SC.list[+m[2]-1];if(!n)return;e.preventDefault();
+ if(e.shiftKey)goScene(n,false);else toPreview(n)});
 $('btrans').onclick=function(){if(!WS.ok)return toast('Conecta OBS primero');req('TriggerStudioModeTransition',{},function(d){if(!d.requestStatus.result)toast('El Modo Estudio no está activo');loadScenes()})};
 $('bconn').onclick=connect;
 (function(){var c=ls('fcc2-ws');if(c){$('host').value=c.host;$('port').value=c.port;$('pass').value=c.pass||'';if(c.pass!==undefined)setTimeout(connect,300)}})();
@@ -849,7 +860,7 @@ function midiState(){return{type:'state',ts:Date.now(),conn:WS.ok,trs:TRS.list,t
  r:S.f.r_nombre||'',b:S.f.b_nombre||''}}
 function doCmd(c,a){switch(c){
  case 'trsel':case 'trgo':if(!WS.ok)return toast('Conecta OBS primero');reqP('SetCurrentSceneTransition',{transitionName:a}).then(function(r){if(!(r.requestStatus&&r.requestStatus.result))return toast('No existe la transición «'+a+'» en OBS (créala y pulsa AJUSTAR TRANSICIONES)');TRS.cur=a;loadTrans();toast('Transición: '+a);if(c==='trgo')setTimeout(function(){$('btrans').click()},80)});break;
- case 'scene':goScene(a);break; case 'sceneP':goScene(a,false);break; case 'sceneV':goScene(a,true);break;
+ case 'scene':goScene(a);break; case 'sceneP':goScene(a,false);break; case 'sceneV':toPreview(a);break;
  case 'trans':$('btrans').click();break;
  case 'clock':$('bstart').click();break; case 'reset':$('breset').click();break;
  case 'rplus':$('brp').click();break; case 'rminus':$('brm').click();break;
