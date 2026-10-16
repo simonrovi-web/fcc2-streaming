@@ -155,7 +155,7 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
     </div>
     <div class="row">
       <div class="f"><label>TAMAÑO DEL MARCADOR</label><select id="mk_scale"><option value="0.85">Pequeño</option><option value="1" selected>Normal</option><option value="1.15">Grande</option><option value="1.3">Muy grande</option></select></div>
-      <div class="f"><label>POSICIÓN</label><select id="mk_pos"><option value="tc">Arriba</option><option value="bc">Abajo</option></select></div>
+      <div class="f"><label>POSICIÓN</label><select id="mk_pos"><option value="bc">Abajo</option><option value="tc">Arriba</option></select></div>
       <button id="tg-marcador" style="align-self:flex-end">OCULTAR MARCADOR</button>
     </div>
     <p class="hint">Atajos (con esta ventana activa y fuera de un campo de texto): <kbd>Espacio</kbd> iniciar/pausar · <kbd>R</kbd> reiniciar · <kbd>↑</kbd><kbd>↓</kbd> round · <kbd>←</kbd><kbd>→</kbd> ±10 s</p>
@@ -214,7 +214,7 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
     </div>
     <div class="row">
       <div class="f"><label>POSICIÓN</label><select id="mo_pos"><option value="br">Abajo derecha</option><option value="bl">Abajo izquierda</option><option value="tr">Arriba derecha</option><option value="tl">Arriba izquierda</option></select></div>
-      <div class="f"><label>TAMAÑO</label><select id="mo_scale"><option value="0.7">Pequeña</option><option value="0.85">Mediana</option><option value="1" selected>Normal</option><option value="1.2">Grande</option></select></div>
+      <div class="f"><label>TAMAÑO</label><select id="mo_scale"><option value="0.4">Mini</option><option value="0.5">Muy pequeña</option><option value="0.6">Pequeña</option><option value="0.75">Mediana</option><option value="1" selected>Normal</option><option value="1.2">Grande</option></select></div>
       <div class="f"><label>OPACIDAD</label><input type="range" id="mo_op" min="0.3" max="1" step="0.05" value="1"></div>
     </div>
     <div class="row">
@@ -323,7 +323,7 @@ function utf8(s){return unescape(encodeURIComponent(s))}
 var S=ls('fcc2-ctl')||{};
 S.clock=S.clock||{round:1,len:180,rem:180,running:false,at:Date.now()};
 S.fights=S.fights||Array.from({length:27},function(_,i){return{r:'',b:'',d:'MMA',c:''}});
-S.cur=S.cur||0;if(!S.ltpInit){S.ltp=(S.ltp||[]).concat([{n:'Matiedu',c:'Artista invitado · Show en vivo'}]);S.ltpInit=1}S.mo=S.mo||{pos:'br',scale:1,op:1,live:true,msgs:true,estado:'EN VIVO',list:['FCC 2 · FIGHTING CHAMPIONSHIP CHILE','BLACK HOUSE · SANTIAGO','AUSPICIA DI PIPINO PIZZA']};S.layout=S.layout||{scale:1,pos:'tc'};if(['tc','bc'].indexOf(S.layout.pos)<0)S.layout.pos='tc';S.theme=S.theme||{main:'#e3121b',a:'#e3121b',b:'#1f5fff'};S.lbl=S.lbl||{a:'ESQUINA ROJA',b:'ESQUINA AZUL'};S.show=S.show||{marcador:true,lt:false};if(S.show.mosca==null)S.show.mosca=true;S.ltp=S.ltp||[];
+S.cur=S.cur||0;if(!S.ltpInit){S.ltp=(S.ltp||[]).concat([{n:'Matiedu',c:'Artista invitado · Show en vivo'}]);S.ltpInit=1}S.mo=S.mo||{pos:'br',scale:1,op:1,live:true,msgs:true,estado:'EN VIVO',list:['FCC 2 · FIGHTING CHAMPIONSHIP CHILE','BLACK HOUSE · SANTIAGO','AUSPICIA DI PIPINO PIZZA']};S.layout=S.layout||{scale:1,pos:'bc'};if(S.layoutV!==2){S.layout.pos='bc';S.layoutV=2}if(['tc','bc'].indexOf(S.layout.pos)<0)S.layout.pos='tc';S.theme=S.theme||{main:'#e3121b',a:'#e3121b',b:'#1f5fff'};S.lbl=S.lbl||{a:'ESQUINA ROJA',b:'ESQUINA AZUL'};S.show=S.show||{marcador:true,lt:false};if(S.show.mosca==null)S.show.mosca=true;S.ltp=S.ltp||[];
 var FIELDS=['r_nombre','r_gym','b_gym','r_apodo','r_record','r_peso','r_edad','b_nombre','b_apodo','b_record','b_peso','b_edad','disciplina','categoria','numero','total'];
 S.f=S.f||{};
 function save(){ls('fcc2-ctl',S)}

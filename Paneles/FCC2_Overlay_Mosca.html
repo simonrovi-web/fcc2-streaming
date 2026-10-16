@@ -42,7 +42,7 @@ document.querySelectorAll('[data-k]').forEach(function(el){var k=el.dataset.k,s=
  el.addEventListener('blur',function(){var o=st();o[k]=el.textContent.trim();save(o);if(window.fitAll)fitAll()});});
 var MS=['FCC 2 · FIGHTING CHAMPIONSHIP CHILE','BLACK HOUSE · SANTIAGO','AUSPICIA DI PIPINO PIZZA'],mi=0,CFG={pos:'br',scale:1,op:1,live:true,msgs:true};
 try{var c0=JSON.parse(localStorage.getItem('fcc2-mosca')||'null');if(c0)CFG=c0}catch(e){}
-function applyM(){var m=document.getElementById('mosca');m.className='mosca pos-'+(CFG.pos||'br');var top=/^t/.test(CFG.pos||'br');m.style.top=top?(CFG.avoid==='top'?'330px':''):'';m.style.bottom=!top?(CFG.avoid==='bottom'?'330px':''):'';m.style.transform='scale('+(+CFG.scale||1)+')';m.style.opacity=CFG.op==null?1:CFG.op;
+function applyM(){var m=document.getElementById('mosca');m.className='mosca pos-'+(CFG.pos||'br');var top=/^t/.test(CFG.pos||'br');m.style.top=top?(CFG.avoid==='top'?'190px':''):'';m.style.bottom=!top?(CFG.avoid==='bottom'?'190px':''):'';m.style.transform='scale('+(+CFG.scale||1)+')';m.style.opacity=CFG.op==null?1:CFG.op;
  document.getElementById('live').classList.toggle('hide',!CFG.live);document.getElementById('msg').classList.toggle('hide',!CFG.msgs||!MS.length);
  if(CFG.list&&CFG.list.length)MS=CFG.list}
 window.onMosca=function(c){CFG=c;try{localStorage.setItem('fcc2-mosca',JSON.stringify(c))}catch(e){}applyM();if(mi>=MS.length)mi=0;document.getElementById('msgt').textContent=MS[mi]||''};

@@ -262,59 +262,40 @@ P['FCC2_Auspiciador'] = page('FCC 2 Auspiciador', '''
 
 # ---------- OVERLAYS (fondo transparente) ----------
 P['FCC2_Overlay_Marcador'] = page('FCC 2 Marcador', '''
-.hud{position:absolute;left:50%;top:30px;width:1840px;height:236px;transform:translateX(-50%);transform-origin:center top;transition:transform .35s ease,top .35s ease}
-.hud.pos-bc{top:auto;bottom:30px;transform-origin:center bottom}
-.hud.pos-bc .sub{top:-52px}.hud.pos-bc .st{top:-90px}
-/* ---- lados ---- */
-.side{position:absolute;top:34px;width:790px}
-.side.l{left:0}.side.r{right:0}
-.lbl{font-family:"Bebas";font-size:24px;letter-spacing:6px;color:#fff;opacity:.85;margin:0 26px 4px;text-shadow:0 2px 4px #000}
-.side.r .lbl{text-align:right}
-.bar{position:relative;height:54px;transform:skewX(-24deg);background:#050505;border:3px solid rgba(255,255,255,.85);box-shadow:0 0 0 3px #000,0 8px 24px rgba(0,0,0,.6)}
-.side.r .bar{transform:skewX(24deg)}
-.fill{position:absolute;top:3px;bottom:3px;left:3px;right:3px;overflow:hidden}
-.fill i{position:absolute;inset:0;display:block}
-.side.l .fill i{background:linear-gradient(180deg,rgba(255,255,255,.55) 0,rgba(255,255,255,.12) 38%,rgba(0,0,0,0) 40%),linear-gradient(90deg,var(--ca-dk),var(--ca) 60%,#fff 140%)}
-.side.r .fill i{background:linear-gradient(180deg,rgba(255,255,255,.55) 0,rgba(255,255,255,.12) 38%,rgba(0,0,0,0) 40%),linear-gradient(-90deg,var(--cb-dk),var(--cb) 60%,#fff 140%)}
-.fill b{position:absolute;top:0;bottom:0;width:120px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:shine 3.2s linear infinite}
-.side.r .fill b{animation-direction:reverse}
-@keyframes shine{from{left:-140px}to{left:110%}}
-.plate{display:flex;align-items:center;gap:16px;margin-top:10px;height:86px;transform:skewX(-24deg);background:linear-gradient(90deg,rgba(0,0,0,.92),rgba(0,0,0,.55));border-left:10px solid var(--ca);padding:0 26px 0 22px;width:610px}
-.side.r .plate{transform:skewX(24deg);margin-left:auto;flex-direction:row-reverse;border-left:0;border-right:10px solid var(--cb);background:linear-gradient(-90deg,rgba(0,0,0,.92),rgba(0,0,0,.55))}
-.plate>*{transform:skewX(24deg)}.side.r .plate>*{transform:skewX(-24deg)}
-.nm{flex:1;min-width:0;font-family:"Bebas";font-size:72px;line-height:1.15;padding-top:6px;padding-right:18px;white-space:nowrap;overflow:hidden;color:#fff;font-style:italic;letter-spacing:1px;text-shadow:3px 3px 0 #000,0 0 18px rgba(var(--ca-rgb),.8)}
-.side.r .nm{text-align:right;padding-right:26px;padding-left:4px;text-shadow:3px 3px 0 #000,0 0 18px rgba(var(--cb-rgb),.8)}
-.rec{font-family:"Bebas";font-size:34px;color:#fff;background:rgba(255,255,255,.12);padding:4px 12px 0;letter-spacing:2px;white-space:nowrap}
-.rec:empty{display:none}
-/* ---- centro ---- */
-.ctr{position:absolute;left:50%;top:0;width:290px;height:228px;margin-left:-145px}
-.oct{position:absolute;inset:0;clip-path:polygon(22% 0,78% 0,100% 22%,100% 78%,78% 100%,22% 100%,0 78%,0 22%);background:linear-gradient(160deg,#fff,var(--red) 35%,var(--red-dk))}
-.oct.in{inset:6px;background:radial-gradient(circle at 50% 30%,#1c1c1c,#020202 75%)}
-.ctx{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.ctx img{width:118px;margin-top:-14px}
-.tm{font-family:"Bebas";font-size:104px;line-height:.86;color:#fff;font-variant-numeric:tabular-nums;text-shadow:0 0 22px rgba(var(--red2-rgb),.55),3px 3px 0 #000}
+.bug{position:absolute;left:0;right:0;margin:0 auto;width:max-content;bottom:46px;transform-origin:center bottom;display:flex;flex-direction:column;align-items:center;transition:transform .35s ease}
+.bug>*{animation:fadeUp .5s ease both}@keyframes fadeUp{from{opacity:0;translate:0 24px}to{opacity:1;translate:0 0}}
+.bug.pos-tc{bottom:auto;top:40px;transform-origin:center top}
+.sub{font-family:"Oswald";font-weight:600;font-size:15px;letter-spacing:5px;color:#fff;background:var(--red);padding:3px 16px 2px;margin-bottom:0;text-transform:uppercase;white-space:nowrap}
+.sub:empty{display:none}
+.bar{display:flex;align-items:stretch;height:60px;background:rgba(46,48,54,.86);box-shadow:0 8px 22px rgba(0,0,0,.45)}
+.f{width:430px;display:flex;align-items:center;justify-content:center;gap:14px;padding:0 24px;min-width:0}
+.badge{flex:none;min-width:30px;height:30px;padding:0 8px;display:flex;align-items:center;justify-content:center;font-family:"Oswald";font-weight:600;font-size:16px;letter-spacing:1px;color:#fff;border-radius:2px}
+.f.l .badge{background:var(--ca)}.f.r .badge{background:var(--cb)}
+.badge:empty{min-width:14px;width:14px;height:14px;padding:0}
+.nm{min-width:0;max-width:330px;padding-right:4px;font-family:"Oswald";font-weight:600;font-size:30px;line-height:1.3;letter-spacing:3px;color:#fff;white-space:nowrap;overflow:hidden;text-transform:uppercase}
+.ctr{display:flex;align-items:center;gap:16px;padding:0 26px;background:rgba(14,14,16,.96);position:relative}
+.ctr:before,.ctr:after{content:"";position:absolute;top:14px;bottom:14px;width:6px}
+.ctr:before{left:0;background:var(--ca)}.ctr:after{right:0;background:var(--cb)}
+.ctr img{height:46px}
+.tm{font-family:"Oswald";font-weight:600;font-size:38px;line-height:1;letter-spacing:1px;color:#fff;min-width:96px;text-align:center;font-variant-numeric:tabular-nums}
 .tm.low{color:var(--red2);animation:pulse .8s steps(1) infinite}
-.rd{font-family:"Bebas";font-size:26px;line-height:1.1;letter-spacing:5px;color:#ddd;margin-top:4px}
-.pips{position:absolute;left:50%;bottom:-24px;transform:translateX(-50%);display:flex;gap:8px}
-.pips s{display:block;width:30px;height:12px;transform:skewX(-24deg);background:#111;border:2px solid rgba(255,255,255,.7)}
-.pips s.on{background:var(--red2);box-shadow:0 0 10px var(--red2)}
-.pips s.cur{background:#fff;animation:pulse 1.2s ease-in-out infinite}
-.pb{position:absolute;left:24%;right:24%;bottom:12px;height:5px;background:rgba(255,255,255,.12)}
-.pb i{display:block;height:100%;background:var(--red2);box-shadow:0 0 8px var(--red2)}
-.sub{position:absolute;left:50%;top:262px;transform:translateX(-50%) skewX(-20deg);background:var(--red);padding:4px 26px 1px;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.5)}
-.sub span{display:inline-block;transform:skewX(20deg);font-family:"Bebas";font-size:28px;letter-spacing:6px;color:#fff}
-.st{position:absolute;left:50%;top:-30px;transform:translateX(-50%);font-family:"Bebas";font-size:26px;letter-spacing:6px;color:#f5b301;display:none;text-shadow:0 2px 4px #000}
-.hud .side.l{animation:inL .6s ease both}.hud .side.r{animation:inR .6s ease both}.hud .ctr{animation:inUp .6s .15s ease both}
-.help{position:absolute;bottom:20px;left:20px;font-size:18px;background:rgba(0,0,0,.85);padding:10px 16px;display:none;line-height:1.5}
-''', f'''<div class="hud" id="bug">
- <div class="side l"><div class="lbl" data-k="r_corner">ESQUINA ROJA</div><div class="bar"><div class="fill"><i></i><b></b></div></div>
-  <div class="plate"><div class="nm" data-k="rojo" data-fit="w" data-max="72" data-min="34">PELEADOR ROJO</div><div class="rec" data-k="rrec"></div></div></div>
- <div class="side r"><div class="lbl" data-k="b_corner">ESQUINA AZUL</div><div class="bar"><div class="fill"><i></i><b></b></div></div>
-  <div class="plate"><div class="nm" data-k="azul" data-fit="w" data-max="72" data-min="34">PELEADOR AZUL</div><div class="rec" data-k="brec"></div></div></div>
- <div class="ctr"><div class="st" id="st">PAUSA</div><div class="oct"></div><div class="oct in"></div>
-  <div class="ctx"><img src="{LOGOA}"><div class="tm" id="tm">3:00</div><div class="rd">ROUND <span id="rd">1</span><span id="tot"> / 3</span></div></div>
-  <div class="pb"><i id="pb"></i></div><div class="pips" id="pips"></div></div>
- <div class="sub"><span data-k="sub">MMA · CATEGORÍA</span></div>
+.pips{display:flex;gap:6px;margin-top:6px}
+.pips s{display:block;width:44px;height:5px;background:rgba(40,40,44,.85);box-shadow:0 1px 3px rgba(0,0,0,.5)}
+.pips s.on{background:rgba(200,200,205,.9)}
+.pips s.cur{background:#fff}
+.st{position:absolute;left:50%;top:-26px;transform:translateX(-50%);font-family:"Oswald";font-weight:600;font-size:16px;letter-spacing:4px;color:#f5b301;display:none;text-shadow:0 1px 3px #000}
+.pos-tc .st{top:auto;bottom:-30px}
+.hidden{display:none}
+.help{position:absolute;top:20px;left:20px;font-size:18px;background:rgba(0,0,0,.85);padding:10px 16px;display:none;line-height:1.5}
+''', f'''<div class="bug" id="bug">
+ <div class="sub" data-k="sub">MMA · CATEGORÍA</div>
+ <div class="bar">
+  <div class="f l"><div class="badge" data-k="rrec"></div><div class="nm" data-k="rojo" data-fit="w" data-max="30" data-min="18">PELEADOR ROJO</div></div>
+  <div class="ctr"><img src="{LOGOA}"><div class="tm" id="tm">3:00</div><div class="st" id="st">PAUSA</div></div>
+  <div class="f r"><div class="badge" data-k="brec"></div><div class="nm" data-k="azul" data-fit="w" data-max="30" data-min="18">PELEADOR AZUL</div></div>
+ </div>
+ <div class="pips" id="pips"></div>
+ <div class="hidden"><span data-k="r_corner"></span><span data-k="b_corner"></span><span id="rd">1</span><span id="tot"></span><i id="pb"></i></div>
 </div>
 <div class="help" id="help">ESPACIO iniciar/pausar · R reiniciar · ← → round · + − 10 s · H ayuda · (lo normal es manejarlo desde CONTROL_EN_VIVO)</div>''', '''
 var RL=parseFloat(Q.get('min')||'3')*60,tm=document.getElementById('tm');
@@ -322,15 +303,13 @@ var C={round:1,total:3,len:RL,rem:RL,running:false,at:Date.now()};
 try{var sc=JSON.parse(localStorage.getItem('fcc2-clock-local')||'null');if(sc)C=sc}catch(e){}
 function rem(){return C.running?Math.max(0,C.rem-(Date.now()-C.at)/1000):C.rem}
 function setC(o){var r=rem();for(var k in o)C[k]=o[k];if(!('rem' in o))C.rem=r;C.at=Date.now();try{localStorage.setItem('fcc2-clock-local',JSON.stringify(C))}catch(e){}}
-window.onLayout=function(l){var g=document.getElementById('bug');if(!g||!l)return;var pos=/^b/.test(l.pos||'')?'bc':'tc';
- g.className='hud pos-'+pos;g.style.transform='translateX(-50%) scale('+(+l.scale||1)+')';try{localStorage.setItem('fcc2-layout',JSON.stringify(l))}catch(e){}};
+window.onLayout=function(l){var g=document.getElementById('bug');if(!g||!l)return;var pos=/^t/.test(l.pos||'')?'tc':'bc';
+ g.className='bug pos-'+pos;g.style.transform='scale('+(+l.scale||1)+')';try{localStorage.setItem('fcc2-layout',JSON.stringify(l))}catch(e){}};
 try{window.onLayout(JSON.parse(localStorage.getItem('fcc2-layout')||'null'))}catch(e){}
 window.onClock=function(c){C={round:c.round,total:c.total||3,len:c.len,rem:c.rem,running:c.running,at:Date.now()};try{localStorage.setItem('fcc2-clock-local',JSON.stringify(C))}catch(e){}};
 var lastP='';
 function draw(){var r=rem();if(C.running&&r<=0){C.running=false;C.rem=0}var s=Math.ceil(r);
  tm.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');tm.classList.toggle('low',s<=10&&s>0);
- document.getElementById('rd').textContent=C.round;document.getElementById('tot').textContent=C.total?' / '+C.total:'';
- document.getElementById('pb').style.width=(C.len?Math.max(0,Math.min(100,100*r/C.len)):0)+'%';
  document.getElementById('st').style.display=(!C.running&&r>0&&r<C.len)?'block':'none';
  var key=C.round+'/'+C.total;if(key!==lastP){lastP=key;var h='';for(var i=1;i<=(C.total||3);i++)h+='<s class="'+(i<C.round?'on':i===C.round?'cur':'')+'"></s>';document.getElementById('pips').innerHTML=h}
  requestAnimationFrame(draw)}
@@ -376,7 +355,7 @@ P['FCC2_Overlay_Mosca'] = page('FCC 2 Mosca', """
 """, f"""<div class="mosca" id="mosca"><img src="{LOGOA}"><div class="live" id="live"><i></i><b data-k="estado">EN VIVO</b></div><div class="msg" id="msg"><span id="msgt">FCC 2 · FIGHTING CHAMPIONSHIP CHILE</span></div></div>""", """
 var MS=['FCC 2 · FIGHTING CHAMPIONSHIP CHILE','BLACK HOUSE · SANTIAGO','AUSPICIA DI PIPINO PIZZA'],mi=0,CFG={pos:'br',scale:1,op:1,live:true,msgs:true};
 try{var c0=JSON.parse(localStorage.getItem('fcc2-mosca')||'null');if(c0)CFG=c0}catch(e){}
-function applyM(){var m=document.getElementById('mosca');m.className='mosca pos-'+(CFG.pos||'br');var top=/^t/.test(CFG.pos||'br');m.style.top=top?(CFG.avoid==='top'?'330px':''):'';m.style.bottom=!top?(CFG.avoid==='bottom'?'330px':''):'';m.style.transform='scale('+(+CFG.scale||1)+')';m.style.opacity=CFG.op==null?1:CFG.op;
+function applyM(){var m=document.getElementById('mosca');m.className='mosca pos-'+(CFG.pos||'br');var top=/^t/.test(CFG.pos||'br');m.style.top=top?(CFG.avoid==='top'?'190px':''):'';m.style.bottom=!top?(CFG.avoid==='bottom'?'190px':''):'';m.style.transform='scale('+(+CFG.scale||1)+')';m.style.opacity=CFG.op==null?1:CFG.op;
  document.getElementById('live').classList.toggle('hide',!CFG.live);document.getElementById('msg').classList.toggle('hide',!CFG.msgs||!MS.length);
  if(CFG.list&&CFG.list.length)MS=CFG.list}
 window.onMosca=function(c){CFG=c;try{localStorage.setItem('fcc2-mosca',JSON.stringify(c))}catch(e){}applyM();if(mi>=MS.length)mi=0;document.getElementById('msgt').textContent=MS[mi]||''};
