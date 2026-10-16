@@ -207,7 +207,8 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
     <label>CONTROL DE LA REPETICIÓN EN PANTALLA</label>
     <div class="tp off" id="tp">
       <div class="tpst"><span id="tp_st">SIN REPETICIÓN</span><span>VELOCIDAD <b id="tp_sp">—</b></span></div>
-      <button id="tp_back5" title="Retroceder 5 s">⏪ −5 S</button><button id="tp_back2" title="Retroceder 2 s">◀◀ −2 S</button>
+      <button id="tp_rew" title="La imagen corre hacia atrás; toca de nuevo para seguir reproduciendo" style="flex-basis:100%">◀◀ REBOBINAR</button>
+      <button id="tp_back5" title="Retroceder 5 s">⏪ −5 S</button><button id="tp_back2" title="Retroceder 2 s">◀ −2 S</button><button id="tp_backplay" title="Retrocede 3 s y sigue reproduciendo">⏪▶ ATRÁS Y PLAY</button>
       <button id="tp_pause" title="Pausar / seguir">❚❚ PAUSA</button>
       <button id="tp_fwd2" title="Adelantar 2 s">+2 S ▶▶</button><button id="tp_restart" title="Repetir este clip desde el inicio">↺ DE NUEVO</button>
       <button id="tp_slow" title="Alternar cámara lenta">🐢 LENTA</button><button id="tp_speed" title="Cambiar velocidad: 100 → 50 → 35 → 25 %">⚡ VELOCIDAD</button>
@@ -644,8 +645,8 @@ async function ensureReplay(install){
  if(install){var sl=((await reqP('GetSceneList',{})).responseData||{}).scenes||[];if(!sl.some(function(x){return x.sceneName==='REPLAY'}))await reqP('CreateScene',{sceneName:'REPLAY'});
   var ins=((await reqP('GetInputList',{})).responseData||{}).inputs||[];
   for(var q=0;q<2;q++){var nm=RBINS[q];var set=Object.assign({local_file:''},RBSET);
-   if(!ins.some(function(x){return x.inputName===nm}))await reqP('CreateInput',{sceneName:'REPLAY',inputName:nm,inputKind:'ffmpeg_source',inputSettings:set,sceneItemEnabled:q===0});
-   else{await reqP('SetInputSettings',{inputName:nm,inputSettings:RBSET,overlay:true});var it=((await reqP('GetSceneItemList',{sceneName:'REPLAY'})).responseData||{}).sceneItems||[];if(!it.some(function(x){return x.sourceName===nm}))await reqP('CreateSceneItem',{sceneName:'REPLAY',sourceName:nm,sceneItemEnabled:q===0})}
+   if(!ins.some(function(x){return x.inputName===nm}))await reqP('CreateInput',{sceneName:'REPLAY',inputName:nm,inputKind:'ffmpeg_source',inputSettings:set,sceneItemEnabled:true});
+   else{await reqP('SetInputSettings',{inputName:nm,inputSettings:RBSET,overlay:true});var it=((await reqP('GetSceneItemList',{sceneName:'REPLAY'})).responseData||{}).sceneItems||[];if(!it.some(function(x){return x.sourceName===nm}))await reqP('CreateSceneItem',{sceneName:'REPLAY',sourceName:nm,sceneItemEnabled:true})}
    var id=((await reqP('GetSceneItemId',{sceneName:'REPLAY',sourceName:nm})).responseData||{}).sceneItemId;if(id!=null){RB.ids[nm]=id;await reqP('SetSceneItemIndex',{sceneName:'REPLAY',sceneItemId:id,sceneItemIndex:0})}}}
  await rbStatus()}
 function saveClip(){return new Promise(async function(res0){var res=function(v){RB.saving=false;rbBadge();res0(v)};RB.saving=true;rbBadge();if(!WS.ok){toast('Conecta OBS primero');return res(null)}
@@ -664,79 +665,106 @@ async function applyPrefix(){if(!S.rbPref||!WS.ok)return;if(RB.playing||RB.savin
   if(cur===want)return;await reqP('SetProfileParameter',{parameterCategory:ct,parameterName:'RecRBPrefix',parameterValue:want});
   var st=await reqP('GetReplayBufferStatus',{});if((st.responseData||{}).outputActive){await reqP('StopReplayBuffer',{});for(var k=0;k<25;k++){await wait(120);if(!((await reqP('GetReplayBufferStatus',{})).responseData||{}).outputActive)break}await reqP('StartReplayBuffer',{});await wait(300);await rbStatus()}
   toast('Clips se guardan como: '+want)}catch(e){}finally{RB.pfBusy=false}}
-// carga el clip en un reproductor, lo deja posicionado en los últimos N s y en pausa (sin mostrar negro)
-async function prepare(slot,path,want,spd){var nm=RBINS[slot];
+// ===== doble reproductor: los dos están SIEMPRE activos en la escena REPLAY; el de adelante tapa al de atrás.
+// Todo lo que puede mostrar negro (cargar, buscar, cambiar velocidad) se hace en el de ATRÁS y luego se pasa adelante.
+RB.bk=[null,null];
+async function bothOn(){for(var q=0;q<2;q++){var id=await itemId(RBINS[q]);if(id!=null)await reqP('SetSceneItemEnabled',{sceneName:'REPLAY',sceneItemId:id,sceneItemEnabled:true})}}
+async function raise(slot){var a=await itemId(RBINS[slot]),b=await itemId(RBINS[1-slot]);
+ if(b!=null)await reqP('SetSceneItemIndex',{sceneName:'REPLAY',sceneItemId:b,sceneItemIndex:0});
+ if(a!=null)await reqP('SetSceneItemIndex',{sceneName:'REPLAY',sceneItemId:a,sceneItemIndex:1})}
+// carga un clip en un reproductor (o reutiliza el que ya tiene) y lo deja en pausa en el punto pedido
+async function loadIn(slot,path,spd){var nm=RBINS[slot],k=RB.bk[slot];
+ if(k&&k.path===path&&k.spd===spd){var s0=await mstat(nm);if(s0.mediaDuration>0)return s0}
  await reqP('SetInputSettings',{inputName:nm,inputSettings:Object.assign({local_file:path,speed_percent:spd||100},RBSET)});
  await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART'});
- var st={};for(var k=0;k<20;k++){await wait(100);st=(await reqP('GetMediaInputStatus',{inputName:nm})).responseData||{};if(st.mediaDuration>0)break}
- var ok=st.mediaDuration>0;
- if(ok&&st.mediaDuration>want+300){await reqP('SetMediaInputCursor',{inputName:nm,mediaCursor:Math.max(0,st.mediaDuration-want)});await wait(160)}
+ var st={};for(var i=0;i<25;i++){await wait(80);st=await mstat(nm);if(st.mediaDuration>0)break}
+ await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'});
+ RB.bk[slot]=st.mediaDuration>0?{path:path,spd:spd}:null;return st}
+// espera a que el reproductor tenga una imagen real (no negro): se le saca una mini-captura a la fuente y se mira si tiene píxeles
+function imgLit(src){return new Promise(function(res){var im=new Image();im.onload=function(){try{var c=document.createElement('canvas');c.width=16;c.height=9;var x=c.getContext('2d');x.drawImage(im,0,0,16,9);var d=x.getImageData(0,0,16,9).data,mx=0;for(var i=0;i<d.length;i+=4){var v=d[i]+d[i+1]+d[i+2];if(d[i+3]>0&&v>mx)mx=v}res(mx>24)}catch(e){res(true)}};im.onerror=function(){res(true)};im.src=src})}
+async function frameReady(nm){for(var i=0;i<16;i++){var r=await reqP('GetSourceScreenshot',{sourceName:nm,imageFormat:'png',imageWidth:16,imageHeight:9});
+  var d=(r.responseData||{}).imageData;if(!(r.requestStatus&&r.requestStatus.result)||!d)return;if(await imgLit(d))return;await wait(40)}}
+async function seekWait(nm,ms){await reqP('SetMediaInputCursor',{inputName:nm,mediaCursor:Math.max(0,Math.round(ms))});
+ for(var i=0;i<10;i++){await wait(40);var st=await mstat(nm);if(st.mediaCursor!=null&&Math.abs(st.mediaCursor-ms)<450)break}await frameReady(nm)}
+async function prepare(slot,path,want,spd){var nm=RBINS[slot],st=await loadIn(slot,path,spd),ok=st.mediaDuration>0;
+ if(ok&&st.mediaDuration>want+300)await seekWait(nm,st.mediaDuration-want);else if(ok)await frameReady(nm);
  await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'});
  return {slot:slot,path:path,want:want,spd:spd,ok:ok}}
 function clipOpts(){var o={want:((RB.len1||+$('rb_len').value)||10)*1000,spd:(RB.spd1||+$('rb_speed').value)||100};RB.len1=0;RB.spd1=0;return o}
 async function mstat(nm){return (await reqP('GetMediaInputStatus',{inputName:nm})).responseData||{}}
-// muestra un reproductor ya preparado y oculta el otro, sin cortes; si no quedó cargado (estaba oculto), lo carga ya visible
-async function showSlot(p){var slot=p.slot,on=RBINS[slot],off=RBINS[1-slot];
- var a=await itemId(on),b=await itemId(off);
- if(a!=null)await reqP('SetSceneItemEnabled',{sceneName:'REPLAY',sceneItemId:a,sceneItemEnabled:true});
+// pasa adelante un reproductor ya preparado (el otro queda atrás, tapado): sin cortes ni negro
+async function showSlot(p,paused){var slot=p.slot,on=RBINS[slot],off=RBINS[1-slot];
  if(!p.ok)p=await prepare(slot,p.path,p.want,p.spd);
- await reqP('TriggerMediaInputAction',{inputName:on,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'});
- await wait(60);if(b!=null)await reqP('SetSceneItemEnabled',{sceneName:'REPLAY',sceneItemId:b,sceneItemEnabled:false});
- reqP('TriggerMediaInputAction',{inputName:off,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'});RB.slot=slot;RB.cur=p;RB.userPause=false;RB.spdNow=p.spd||100;RB.wd={c:-1,n:0,t:Date.now()}}
-function prepNext(){var p=RB.queue.shift();if(!p){RB.prep=null;return}var sl=1-RB.slot;RB.prep=prepare(sl,p.path,p.want,p.spd)}
-async function playClips(list,label){if(!list.length)return;RB.loading=true;RB.wasPlaying=RB.playing;var o=clipOpts();
- RB.queue=list.map(function(x){return{path:x,want:o.want,spd:o.spd}});RB.back=RB.back||SC.cur;RB.playing=true;rbBadge();
- S.rp=label||'REPETICIÓN';push();
- RB.prep=null;var first=RB.queue.shift();var sl=(SC.cur==='REPLAY'||RB.wasPlaying)?1-RB.slot:RB.slot;var p=await prepare(sl,first.path,first.want,first.spd); // listo y en pausa ANTES de cambiar de escena
- if(SC.cur!=='REPLAY')await reqP('SetCurrentProgramScene',{sceneName:'REPLAY'});
- await showSlot(p);RB.loading=false;setTimeout(function(){if(RB.playing&&!RB.prep)prepNext()},700)}  // el siguiente se prepara cuando el actual ya corre
-async function nextClip(){if(RB.loading||RB.switching||!RB.playing)return;RB.switching=true;
- try{if(!RB.prep&&RB.queue.length)prepNext();if(!RB.prep){RB.switching=false;return endReplay()}var p=await RB.prep;RB.prep=null;await showSlot(p);setTimeout(function(){if(RB.playing&&!RB.prep)prepNext()},700)}
+ if(!paused)await reqP('TriggerMediaInputAction',{inputName:on,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'});
+ await raise(slot);await wait(80);
+ reqP('TriggerMediaInputAction',{inputName:off,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'});
+ RB.slot=slot;RB.cur=p;RB.spdNow=p.spd||100;RB.wd={c:-1,n:0,t:Date.now()}}
+function prepNext(){var it=RB.queue.shift();if(!it){RB.prep=null;RB.prepItem=null;return}RB.prepItem=it;RB.prep=prepare(1-RB.slot,it.path,it.want,it.spd)}
+async function playClips(list,label){if(!list.length)return;RB.loading=true;RB.rew=false;RB.wasPlaying=RB.playing;var o=clipOpts();
+ RB.queue=list.map(function(x){return{path:x,want:o.want,spd:o.spd}});RB.back=RB.back||SC.cur;RB.playing=true;RB.userPause=false;rbBadge();
+ S.rp=label||'REPETICIÓN';push();RB.prep=null;RB.prepItem=null;await bothOn();
+ var first=RB.queue.shift();var sl=(SC.cur==='REPLAY'||RB.wasPlaying)?1-RB.slot:RB.slot;var p=await prepare(sl,first.path,first.want,first.spd); // listo y en pausa ANTES de cambiar de escena
+ if(SC.cur!=='REPLAY'){await raise(sl);await reqP('SetCurrentProgramScene',{sceneName:'REPLAY'})}
+ await showSlot(p);RB.loading=false;setTimeout(function(){if(RB.playing&&!RB.prep&&!RB.switching)prepNext()},900)}
+async function nextClip(){if(RB.loading||RB.switching||!RB.playing||RB.userPause)return;RB.switching=true;
+ try{if(!RB.prep&&RB.queue.length)prepNext();if(!RB.prep){RB.switching=false;return endReplay()}var p=await RB.prep;RB.prep=null;RB.prepItem=null;await showSlot(p);setTimeout(function(){if(RB.playing&&!RB.prep&&!RB.switching)prepNext()},900)}
  finally{RB.switching=false}}
 // vigilante: si el video se queda pegado (no avanza) o terminó sin aviso, lo reanuda o pasa al siguiente
-setInterval(async function(){if(!RB.playing||RB.loading||RB.switching||!WS.ok||RB.wdBusy||RB.userPause||RB.tpBusy||Date.now()<(RB.tpHold||0))return;RB.wdBusy=true;
+setInterval(async function(){if(!RB.playing||RB.loading||RB.switching||!WS.ok||RB.wdBusy||RB.userPause||RB.rew||Date.now()<(RB.tpHold||0))return;RB.wdBusy=true;
  try{var nm=RBINS[RB.slot],st=await mstat(nm),w=RB.wd||(RB.wd={c:-1,n:0,t:Date.now()}),s=st.mediaState||'';
   if(/ENDED|STOPPED|ERROR/.test(s)){if(Date.now()-w.t>800)nextClip();return}
   if(/PAUSED/.test(s)){await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'});return}
   var c=st.mediaCursor;if(c==null)return;
   if(c===w.c){w.n++;
    if(w.n===3){await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'})}
-   else if(w.n===5&&RB.cur){var p=await prepare(RB.slot,RB.cur.path,RB.cur.want,RB.cur.spd);RB.cur=p;await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'})}
    else if(w.n>=8){w.n=0;nextClip()}}
   else{w.c=c;w.n=0}}
  catch(e){}finally{RB.wdBusy=false}},600);
-// ---------- control de la repetición en pantalla (pausa, retroceder, cámara lenta) ----------
+
+// ---------- control de la repetición en pantalla (pausa, retroceder, rebobinar, cámara lenta) ----------
 var TPN=function(){return RBINS[RB.slot]};
-function tpOk(){if(!RB.playing||RB.loading||RB.switching){toast('No hay una repetición en pantalla');return false}return true}
-async function tpPause(force){if(!tpOk())return;var nm=TPN(),p=force!=null?force:!RB.userPause;RB.userPause=p;
- await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_'+(p?'PAUSE':'PLAY')});tpUI()}
+function tpOk(){if(!RB.playing||RB.loading){toast('No hay una repetición en pantalla');return false}return true}
 function winStart(st){var c=RB.cur||{};return Math.max(0,(st.mediaDuration||0)-(c.want||10000))}
-async function tpSeek(delta,abs){if(!tpOk())return;RB.tpBusy=true;try{var nm=TPN(),st=await mstat(nm),d=st.mediaDuration||0;if(!d)return;
- var lo=winStart(st),to=abs!=null?abs:(st.mediaCursor||0)+delta;to=Math.max(lo,Math.min(d-250,to));
- await reqP('SetMediaInputCursor',{inputName:nm,mediaCursor:Math.round(to)});RB.tpHold=Date.now()+1500;RB.wd={c:-1,n:0,t:Date.now()};
- if(/ENDED/.test(st.mediaState||'')&&!RB.userPause)await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'})}finally{RB.tpBusy=false}}
-async function tpSpeed(v){if(!tpOk())return;if(RB.tpBusy)return;RB.tpBusy=true;try{var nm=TPN(),st=await mstat(nm),c=st.mediaCursor||0,paused=RB.userPause;
- await reqP('SetInputSettings',{inputName:nm,inputSettings:{speed_percent:v}});RB.spdNow=v;if(RB.cur)RB.cur.spd=v;
- for(var k=0;k<15;k++){await wait(80);var s2=await mstat(nm);if(s2.mediaDuration>0)break}
- await reqP('SetMediaInputCursor',{inputName:nm,mediaCursor:c});
- await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_'+(paused?'PAUSE':'PLAY')});RB.tpHold=Date.now()+1500;RB.wd={c:-1,n:0,t:Date.now()};
- toast('Velocidad '+v+' %')}finally{RB.tpBusy=false;tpUI()}}
+// "corte limpio": prepara el mismo clip en el reproductor de atrás en el punto/velocidad pedidos y lo pasa adelante
+async function cutTo(ms,spd,play){if(!RB.cur)return;var wasSw=RB.switching;RB.switching=true;
+ try{if(RB.prep){try{await RB.prep}catch(e){}if(RB.prepItem)RB.queue.unshift(RB.prepItem);RB.prep=null;RB.prepItem=null}
+  var bk=1-RB.slot,nm=RBINS[bk],c=RB.cur,st=await loadIn(bk,c.path,spd);if(!(st.mediaDuration>0))return;
+  var lo=Math.max(0,st.mediaDuration-(c.want||10000));ms=Math.max(lo,Math.min(st.mediaDuration-200,ms));
+  await seekWait(nm,ms);
+  if(play)await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'});
+  var old=RBINS[RB.slot];await raise(bk);await wait(60);reqP('TriggerMediaInputAction',{inputName:old,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'});
+  RB.slot=bk;RB.cur=Object.assign({},c,{slot:bk,spd:spd,ok:true});RB.spdNow=spd;RB.userPause=!play;RB.tpHold=Date.now()+1200;RB.wd={c:-1,n:0,t:Date.now()};
+  clearTimeout(RB.pnT);RB.pnT=setTimeout(function(){if(RB.playing&&!RB.prep&&!RB.switching&&!RB.rew&&RB.queue.length)prepNext()},2500)}
+ finally{RB.switching=wasSw;tpUI()}}
+var TPQ=Promise.resolve();function tpq(fn){TPQ=TPQ.then(fn).catch(function(){});return TPQ}   // las órdenes se ejecutan en fila, sin pisarse
+async function curPos(){var st=await mstat(TPN());return {st:st,c:st.mediaCursor||0,lo:winStart(st)}}
+function tpPause(force){if(!tpOk())return;RB.rew=false;return tpq(async function(){var p=force!=null?force:!RB.userPause;RB.userPause=p;
+ await reqP('TriggerMediaInputAction',{inputName:TPN(),mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_'+(p?'PAUSE':'PLAY')});RB.wd={c:-1,n:0,t:Date.now()};tpUI()})}
+function tpSeek(delta,abs,play){if(!tpOk())return;RB.rew=false;return tpq(async function(){var q=await curPos(),to=abs!=null?abs:q.c+delta;await cutTo(to,RB.spdNow||100,play!=null?play:!RB.userPause)})}
+function tpSpeed(v){if(!tpOk())return;RB.rew=false;return tpq(async function(){var q=await curPos();await cutTo(q.c,v,!RB.userPause);toast('Velocidad '+v+' %')})}
 var SPDS=[100,50,35,25];
 function tpCycle(){var i=SPDS.indexOf(RB.spdNow||100);tpSpeed(SPDS[(i+1)%SPDS.length])}
 function tpSlow(){var slow=(+$('rb_speed').value)<100?+$('rb_speed').value:50;tpSpeed((RB.spdNow||100)<100?100:slow)}
-var SCRUB={t:0,v:null,busy:false};
-async function tpScrub(f){if(!RB.playing||RB.loading||RB.switching)return;SCRUB.v=f;if(SCRUB.busy)return;SCRUB.busy=true;
- try{if(!RB.userPause)await tpPause(true);while(SCRUB.v!=null){var v=SCRUB.v;SCRUB.v=null;var st=await mstat(TPN()),d=st.mediaDuration||0;if(!d)break;var lo=winStart(st);
-  await reqP('SetMediaInputCursor',{inputName:TPN(),mediaCursor:Math.round(lo+(d-250-lo)*v)});await wait(60)}}finally{SCRUB.busy=false}}
+function tpBackPlay(){tpSeek(-3000,null,true)}                                    // retrocede 3 s y sigue reproduciendo
+// rebobinar: la imagen corre hacia atrás (como VHS) hasta que vuelvas a tocar; entonces sigue reproduciendo desde ahí
+function tpRewind(){if(!tpOk())return;if(RB.rew){RB.rew=false;return}RB.rew=true;tpUI();
+ tpq(async function(){var q=await curPos(),t=q.c,lo=q.lo;await reqP('TriggerMediaInputAction',{inputName:TPN(),mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'});RB.userPause=true;
+  while(RB.rew&&RB.playing){t-=400;if(t<=lo){t=lo;RB.rew=false}await cutTo(t,RB.spdNow||100,false)}
+  RB.rew=false;if(RB.playing){RB.userPause=false;await reqP('TriggerMediaInputAction',{inputName:TPN(),mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'});RB.wd={c:-1,n:0,t:Date.now()}}tpUI()})}
+var SCRUB={v:null,run:false};
+function tpScrub(f){if(!RB.playing||RB.loading)return;RB.rew=false;SCRUB.v=f;if(SCRUB.run)return;SCRUB.run=true;
+ tpq(async function(){try{while(SCRUB.v!=null){var v=SCRUB.v;SCRUB.v=null;var q=await curPos(),d=q.st.mediaDuration||0;if(!d)break;await cutTo(q.lo+(d-250-q.lo)*v,RB.spdNow||100,false)}}finally{SCRUB.run=false}})}
 function tpUI(){var on=RB.playing&&!RB.loading;$('tp').className='tp'+(on?'':' off');
- $('tp_pause').textContent=RB.userPause?'▶ SEGUIR':'❚❚ PAUSA';$('tp_pause').className=RB.userPause?'on':'';
+ $('tp_pause').textContent=RB.userPause&&!RB.rew?'▶ SEGUIR':'❚❚ PAUSA';$('tp_pause').className=RB.userPause&&!RB.rew?'on':'';
+ $('tp_rew').className=RB.rew?'on':'';$('tp_rew').textContent=RB.rew?'◀ REBOBINANDO… (TOCA PARA SEGUIR)':'◀◀ REBOBINAR';
  $('tp_slow').className=(RB.spdNow||100)<100&&on?'on':'';$('tp_sp').textContent=on?(RB.spdNow||100)+' %':'—';
- $('tp_st').textContent=!on?'SIN REPETICIÓN':RB.userPause?'⏸ EN PAUSA':'▶ REPRODUCIENDO'+(RB.queue&&RB.queue.length?' · faltan '+RB.queue.length+' clips':'')}
+ $('tp_st').textContent=!on?'SIN REPETICIÓN':RB.rew?'◀ REBOBINANDO':RB.userPause?'⏸ EN PAUSA':'▶ REPRODUCIENDO'+(RB.queue&&RB.queue.length?' · faltan '+RB.queue.length+' clips':'')}
 $('tp_pause').onclick=function(){tpPause()};$('tp_back5').onclick=function(){tpSeek(-5000)};$('tp_back2').onclick=function(){tpSeek(-2000)};$('tp_fwd2').onclick=function(){tpSeek(2000)};
-$('tp_restart').onclick=async function(){if(!tpOk())return;var st=await mstat(TPN());tpSeek(0,winStart(st))};
+$('tp_backplay').onclick=tpBackPlay;$('tp_rew').onclick=tpRewind;
+$('tp_restart').onclick=function(){if(!tpOk())return;tpq(async function(){var q=await curPos();await cutTo(q.lo,RB.spdNow||100,true)})};
 $('tp_slow').onclick=tpSlow;$('tp_speed').onclick=tpCycle;
 $('tp_pos').addEventListener('input',function(){tpScrub(+this.value/1000)});
-setInterval(async function(){tpUI();if(!RB.playing||RB.loading||!WS.ok||SCRUB.busy||document.activeElement===$('tp_pos'))return;try{var st=await mstat(TPN()),d=st.mediaDuration||0;if(d){var lo=winStart(st);$('tp_pos').value=String(Math.round(1000*Math.max(0,(st.mediaCursor||0)-lo)/Math.max(1,d-lo)))}}catch(e){}},500);
+setInterval(async function(){tpUI();if(!RB.playing||RB.loading||!WS.ok||SCRUB.run||RB.switching||document.activeElement===$('tp_pos'))return;try{var st=await mstat(TPN()),d=st.mediaDuration||0;if(d){var lo=winStart(st);$('tp_pos').value=String(Math.round(1000*Math.max(0,(st.mediaCursor||0)-lo)/Math.max(1,d-lo)))}}catch(e){}},500);
 async function endReplay(){RB.userPause=false;RB.playing=false;RB.queue=[];rbBadge();S.rp='REPETICIÓN';push();var b=RB.back;RB.back='';var mode=$('rb_after').value;
  if(mode==='estudio'){var sm0=((await reqP('GetStudioModeEnabled',{})).responseData||{}).studioModeEnabled;
   if(sm0){await reqP('SetCurrentPreviewScene',{sceneName:'ESTUDIO'});await reqP('TriggerStudioModeTransition',{})}
@@ -784,7 +812,7 @@ $('m_rb').onclick=function(){$('rb_play').click()};$('m_hl').onclick=function(){
 // ---------- puente con PANEL_MIDI (misma PC, mismo Chrome) ----------
 var CMD=null;try{CMD=new BroadcastChannel('fcc2-cmd')}catch(e){}
 function midiState(){return{type:'state',ts:Date.now(),conn:WS.ok,scenes:SC.list,cur:SC.cur,prev:SC.prev,toprev:$('toprev').checked,
- running:S.clock.running,rem:remain(),round:S.clock.round,total:S.clock.total,rb:RB.active,playing:RB.playing,saving:!!RB.saving,rbpause:!!RB.userPause,rbspd:RB.spdNow||100,
+ running:S.clock.running,rem:remain(),round:S.clock.round,total:S.clock.total,rb:RB.active,playing:RB.playing,saving:!!RB.saving,rbpause:!!RB.userPause&&!RB.rew,rbrew:!!RB.rew,rbspd:RB.spdNow||100,
  show:{marcador:!!S.show.marcador,lt:!!S.show.lt,mosca:!!S.show.mosca},fight:S.cur+1,nf:S.fights.length,
  r:S.f.r_nombre||'',b:S.f.b_nombre||''}}
 function doCmd(c,a){switch(c){
@@ -793,7 +821,7 @@ function doCmd(c,a){switch(c){
  case 'clock':$('bstart').click();break; case 'reset':$('breset').click();break;
  case 'rplus':$('brp').click();break; case 'rminus':$('brm').click();break;
  case 'p10':$('bp10').click();break; case 'm10':$('bm10').click();break;
- case 'replay':$('rb_play').click();break; case 'rb_pause':tpPause();break; case 'rb_back2':tpSeek(-2000);break; case 'rb_back5':tpSeek(-5000);break; case 'rb_fwd2':tpSeek(2000);break; case 'rb_restart':$('tp_restart').click();break; case 'rb_slow':tpSlow();break; case 'rb_speed':tpCycle();break; case 'rb_scrub':tpScrub(+a||0);break; case 'replay3':case 'replay5':case 'replay10':RB.len1=+c.slice(6);$('rb_play').click();break; case 'replayslow':RB.spd1=35;$('rb_play').click();break; case 'moment':$('rb_save').click();break;
+ case 'replay':$('rb_play').click();break; case 'rb_pause':tpPause();break; case 'rb_backplay':tpBackPlay();break; case 'rb_rew':tpRewind();break; case 'rb_back2':tpSeek(-2000);break; case 'rb_back5':tpSeek(-5000);break; case 'rb_fwd2':tpSeek(2000);break; case 'rb_restart':$('tp_restart').click();break; case 'rb_slow':tpSlow();break; case 'rb_speed':tpCycle();break; case 'rb_scrub':tpScrub(+a||0);break; case 'replay3':case 'replay5':case 'replay10':RB.len1=+c.slice(6);$('rb_play').click();break; case 'replayslow':RB.spd1=35;$('rb_play').click();break; case 'moment':$('rb_save').click();break;
  case 'reel':$('rb_reel').click();break; case 'reelall':$('rb_reelall').click();break; case 'stop':$('rb_stop').click();break;
  case 'tgl_marcador':$('tg-marcador').click();break;
  case 'lt_r':$('blt_r').click();break; case 'lt_b':$('blt_b').click();break; case 'tgl_lt':(S.show.lt?$('blth'):$('blt')).click();break;
