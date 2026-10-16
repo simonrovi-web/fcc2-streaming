@@ -34,8 +34,3 @@ Más detalles en `Paneles/LEEME.txt`.
 Desde `CONTROL_EN_VIVO.html`: **⏪ REPETIR AHORA** (tecla P) guarda los últimos segundos con el búfer de repetición de OBS,
 los reproduce en la escena REPLAY (opcional en cámara lenta) y vuelve sola a la escena anterior.
 **★ GUARDAR MOMENTO** (tecla M) arma una lista de mejores momentos, y **▶ RESUMEN** los reproduce seguidos.
-
-## Panel MIDI
-
-`PANEL_MIDI.html` convierte un controlador MIDI (APC mini, APC mini mk2, Launchpad o cualquier otro) en una consola:
-escenas, transición, reloj, repeticiones y gráficos, con los LEDs encendidos según el estado. Se abre en el mismo Chrome que `CONTROL_EN_VIVO.html`.

@@ -50,15 +50,3 @@ REPETICIONES Y MEJORES MOMENTOS (en CONTROL_EN_VIVO)
   Velocidad: normal, 75 %, cámara lenta 50 % o súper lenta 35 %.
   Duración: repite los últimos 3, 5, 10, 15, 20 o 30 s (OBS guarda siempre 30 s).
   Los clips quedan guardados en la carpeta de grabaciones de OBS (Ajustes > Salida).
-
-PANEL MIDI (PANEL_MIDI.html, en la carpeta principal)
-  Controla OBS con un controlador MIDI y enciende sus LEDs según el estado.
-  1. Abre CONTROL_EN_VIVO.html (conectado a OBS) y PANEL_MIDI.html en el MISMO Chrome.
-  2. Acepta el permiso MIDI. Cierra Ableton u otros programas que usen el controlador.
-  3. Elige entrada/salida. APC mini / APC mini mk2 / Launchpad: pulsa AUTO-ASIGNAR.
-     Samson Conspiracy y otros: pulsa ASISTENTE y presiona los pads en el orden que pide.
-     Luego, en COLORES DE LOS LEDS, presiona un pad, mueve el deslizador hasta ver cada
-     color y pulsa = ROJO / = VERDE / = AMARILLO para guardarlo.
-     También: + NUEVA > APRENDER > presiona el botón > elige la acción.
-  LEDs: rojo = al aire/activo, verde = vista previa/encendido, amarillo = disponible,
-        azul = acción, parpadeo = en curso (reloj corriendo, repetición, guardando).
