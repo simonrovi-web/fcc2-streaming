@@ -229,13 +229,14 @@ var ACTIONS=[
  ['prev','◀ Combate anterior'],['next','Combate siguiente ▶'],['win_r','Gana esquina roja (enviar)'],['win_b','Gana esquina azul (enviar)']];
 var GROUPS=[
  ['REPETICIONES',[['replay','⏪ Repetir ahora'],['replay3','⏪ Repetir 3 s'],['replay5','⏪ Repetir 5 s'],['replay10','⏪ Repetir 10 s'],['replayslow','🐢 Repetir súper lenta'],['moment','★ Guardar momento'],['reel','▶ Resumen del combate'],['reelall','▶ Resumen de todo'],['stop','■ Detener repetición']]],
+ ['CONTROL DE LA REPETICIÓN EN PANTALLA',[['rb_pause','❚❚ Pausar / seguir'],['rb_back2','◀◀ Retroceder 2 s'],['rb_back5','⏪ Retroceder 5 s'],['rb_fwd2','▶▶ Adelantar 2 s'],['rb_restart','↺ Repetir clip de nuevo'],['rb_slow','🐢 Cámara lenta (activar/quitar)'],['rb_speed','⚡ Cambiar velocidad'],['rb_scrub','🎚 Perilla o fader: mover el video']]],
  ['CAMBIO DE ESCENA',[['trans','⇄ Transición (modo estudio)'],['toprev','Alternar "a vista previa"']]],
  ['RELOJ',[['clock','▶❚❚ Iniciar / pausar'],['reset','↺ Reiniciar'],['rminus','Round −'],['rplus','Round +'],['m10','−10 s'],['p10','+10 s']]],
  ['GRÁFICOS',[['lt_r','🔴 Lower third peleador rojo'],['lt_b','🔵 Lower third peleador azul'],['tgl_marcador','Mostrar/ocultar marcador'],['tgl_lt','Mostrar/ocultar lower third'],['tgl_mosca','Mostrar/ocultar mosca']]],
  ['COMBATE',[['prev','◀ Combate anterior'],['next','Combate siguiente ▶'],['win_r','🔴 Gana esquina roja'],['win_b','🔵 Gana esquina azul']]]];
-var KIND={trans:'CAMBIO',toprev:'CAMBIO',clock:'RELOJ',reset:'RELOJ',rminus:'RELOJ',rplus:'RELOJ',m10:'RELOJ',p10:'RELOJ',replay:'REPETICIÓN',replay3:'REPETICIÓN',replay5:'REPETICIÓN',replay10:'REPETICIÓN',replayslow:'REPETICIÓN',moment:'REPETICIÓN',reel:'REPETICIÓN',reelall:'REPETICIÓN',stop:'REPETICIÓN',tgl_marcador:'GRÁFICO',lt_r:'LOWER THIRD',lt_b:'LOWER THIRD',tgl_lt:'GRÁFICO',tgl_mosca:'GRÁFICO',prev:'COMBATE',next:'COMBATE',win_r:'RESULTADO',win_b:'RESULTADO'};
+var KIND={trans:'CAMBIO',toprev:'CAMBIO',clock:'RELOJ',reset:'RELOJ',rminus:'RELOJ',rplus:'RELOJ',m10:'RELOJ',p10:'RELOJ',replay:'REPETICIÓN',replay3:'REPETICIÓN',replay5:'REPETICIÓN',replay10:'REPETICIÓN',replayslow:'REPETICIÓN',rb_pause:'CONTROL REPLAY',rb_back2:'CONTROL REPLAY',rb_back5:'CONTROL REPLAY',rb_fwd2:'CONTROL REPLAY',rb_restart:'CONTROL REPLAY',rb_slow:'CONTROL REPLAY',rb_speed:'CONTROL REPLAY',rb_scrub:'PERILLA',moment:'REPETICIÓN',reel:'REPETICIÓN',reelall:'REPETICIÓN',stop:'REPETICIÓN',tgl_marcador:'GRÁFICO',lt_r:'LOWER THIRD',lt_b:'LOWER THIRD',tgl_lt:'GRÁFICO',tgl_mosca:'GRÁFICO',prev:'COMBATE',next:'COMBATE',win_r:'RESULTADO',win_b:'RESULTADO'};
 function kindOf(a){return a.indexOf('scene:')===0?'ESCENA':(KIND[a]||'')}
-var SHORT={lt_r:'LT ROJO',lt_b:'LT AZUL',replay3:'REPETIR 3 S',replay5:'REPETIR 5 S',replay10:'REPETIR 10 S',replayslow:'REPETIR LENTA',trans:'TRANSICIÓN',toprev:'A PREVIA',clock:'RELOJ ▶❚❚',reset:'RELOJ ↺',rminus:'ROUND −',rplus:'ROUND +',m10:'−10 S',p10:'+10 S',replay:'REPETIR',moment:'★ MOMENTO',reel:'RESUMEN',reelall:'RESUMEN TODO',stop:'■ STOP',tgl_marcador:'MARCADOR',tgl_lt:'LOWER 3RD',tgl_mosca:'MOSCA',prev:'◀ COMBATE',next:'COMBATE ▶',win_r:'GANA ROJO',win_b:'GANA AZUL'};
+var SHORT={rb_pause:'❚❚ PAUSA',rb_back2:'◀◀ −2 S',rb_back5:'⏪ −5 S',rb_fwd2:'+2 S ▶▶',rb_restart:'↺ DE NUEVO',rb_slow:'🐢 LENTA',rb_speed:'⚡ VELOCIDAD',rb_scrub:'🎚 MOVER VIDEO',lt_r:'LT ROJO',lt_b:'LT AZUL',replay3:'REPETIR 3 S',replay5:'REPETIR 5 S',replay10:'REPETIR 10 S',replayslow:'REPETIR LENTA',trans:'TRANSICIÓN',toprev:'A PREVIA',clock:'RELOJ ▶❚❚',reset:'RELOJ ↺',rminus:'ROUND −',rplus:'ROUND +',m10:'−10 S',p10:'+10 S',replay:'REPETIR',moment:'★ MOMENTO',reel:'RESUMEN',reelall:'RESUMEN TODO',stop:'■ STOP',tgl_marcador:'MARCADOR',tgl_lt:'LOWER 3RD',tgl_mosca:'MOSCA',prev:'◀ COMBATE',next:'COMBATE ▶',win_r:'GANA ROJO',win_b:'GANA AZUL'};
 function actLabel(a){if(!a)return '';if(a.indexOf('scene:')===0)return a.slice(6);return SHORT[a]||a}
 
 // ---------- estado recibido del control ----------
@@ -257,6 +258,10 @@ function colorFor(a){if(!a)return['off',false];var s=ST||{};
   case 'tgl_mosca':return s.show&&s.show.mosca?['green',false]:['dim',false];
   case 'toprev':return s.toprev?['green',false]:['dim',false];
   case 'lt_r':return s.show&&s.show.lt?['green',false]:['red',false];case 'lt_b':return s.show&&s.show.lt?['green',false]:['blue',false];
+  case 'rb_pause':return !s.playing?['dim',false]:s.rbpause?['yellow',true]:['green',false];
+  case 'rb_back2':case 'rb_back5':case 'rb_fwd2':case 'rb_restart':case 'rb_scrub':return s.playing?['blue',false]:['dim',false];
+  case 'rb_slow':return !s.playing?['dim',false]:(s.rbspd<100?['red',false]:['blue',false]);
+  case 'rb_speed':return s.playing?['blue',false]:['dim',false];
   case 'win_r':return['red',false];case 'win_b':return['blue',false];
   case 'trans':return['yellow',false];default:return['blue',false]}}
 
@@ -280,7 +285,9 @@ function log(t){var l=$('log');l.textContent=(t+'\n'+l.textContent).slice(0,3000
 function onMidi(ev){var d=ev.data,st=d[0]&0xF0,ch=d[0]&0x0F,num=d[1],val=d[2];var m=null,press=false;
  if(st===0x90){m={type:'note',ch:ch,num:num};press=val>0}else if(st===0x80){m={type:'note',ch:ch,num:num};press=false}
  else if(st===0xB0){m={type:'cc',ch:ch,num:num};press=val>63}
- if(!m)return;log((m.type==='note'?'NOTA ':'CC ')+num+' · canal '+(ch+1)+' · valor '+val);
+ if(!m)return;
+ if(m.type==='cc'&&!WIZ&&!SH){var sc=MAPS.find(function(x){return x.m&&x.a==='rb_scrub'&&key(x.m)===key(m)});if(sc){send('rb_scrub',val/127);return}}
+ log((m.type==='note'?'NOTA ':'CC ')+num+' · canal '+(ch+1)+' · valor '+val);
  if(!press)return;
  if(m.type==='note'){LASTN=num;CALCH=ch;calPads();$('calpad').value=num;if(KNOWN.indexOf(num)<0){KNOWN.push(num);ls('fcc2-midi-known',KNOWN);$('nknown').textContent=KNOWN.length}
   FLASH[num]=Date.now()+280;SENT={};refresh();setTimeout(function(){SENT={};refresh()},300)}

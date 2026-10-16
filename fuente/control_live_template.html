@@ -59,6 +59,13 @@ td.rn input{color:#ff8a8a}td.bn input{color:#9cb6ff}
 td button{font-size:15px;padding:4px 8px 2px}
 .fl{max-height:430px;overflow:auto;border:1px solid var(--line)}
 .scenes{display:flex;flex-wrap:wrap;gap:8px}
+.tp{display:flex;gap:6px;flex-wrap:wrap;align-items:stretch;padding:8px;border:1px solid var(--line);background:#0c0c0c}
+.tp button{flex:1;min-width:70px;font-size:17px;padding:8px 6px 5px}
+.tp button.on{background:var(--warn);color:#000;border-color:var(--warn)}
+.tp .tpst{flex-basis:100%;display:flex;justify-content:space-between;font-size:12px;letter-spacing:2px;color:var(--mute)}
+.tp .tpst b{color:#fff;font-weight:400}
+.tp input[type=range]{flex-basis:100%;accent-color:var(--red2)}
+.tp.off{opacity:.45}
 .hlg{border-bottom:1px solid var(--line)}
 .hlg>.hh{display:flex;align-items:center;gap:8px;padding:6px 8px;cursor:pointer;background:#161616}
 .hlg.cur>.hh{background:rgba(227,18,27,.18);border-left:4px solid var(--red2)}
@@ -197,6 +204,15 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
       <div class="fl" style="max-height:260px" id="rb_list"><p class="hint" style="padding:8px">Aún no hay momentos guardados.</p></div></div>
     <label style="display:flex;align-items:center;gap:8px;margin:2px 0 0;letter-spacing:0;font-size:13px;color:#ccc;line-height:1.3"><input type="checkbox" id="rb_pref" style="width:auto;flex:none"> Guardar los archivos con el nombre del combate (FCC2 C07 NOMBRE vs NOMBRE)</label>
     <div class="row"><button id="rb_clean">🗑 BORRAR COMBATES ANTERIORES</button></div>
+    <label>CONTROL DE LA REPETICIÓN EN PANTALLA</label>
+    <div class="tp off" id="tp">
+      <div class="tpst"><span id="tp_st">SIN REPETICIÓN</span><span>VELOCIDAD <b id="tp_sp">—</b></span></div>
+      <button id="tp_back5" title="Retroceder 5 s">⏪ −5 S</button><button id="tp_back2" title="Retroceder 2 s">◀◀ −2 S</button>
+      <button id="tp_pause" title="Pausar / seguir">❚❚ PAUSA</button>
+      <button id="tp_fwd2" title="Adelantar 2 s">+2 S ▶▶</button><button id="tp_restart" title="Repetir este clip desde el inicio">↺ DE NUEVO</button>
+      <button id="tp_slow" title="Alternar cámara lenta">🐢 LENTA</button><button id="tp_speed" title="Cambiar velocidad: 100 → 50 → 35 → 25 %">⚡ VELOCIDAD</button>
+      <input type="range" id="tp_pos" min="0" max="1000" value="0" title="Mover el video">
+    </div>
     <div class="row"><button class="pri" id="rb_reel">▶ RESUMEN DEL COMBATE</button><button id="rb_reelall">▶ RESUMEN DE TODO</button><button id="rb_stop">■ DETENER</button></div>
     <p class="hint">Atajos: <kbd>P</kbd> repetir ahora · <kbd>M</kbd> guardar momento. OBS guarda siempre los últimos 30 s y aquí eliges cuánto de eso se repite. Requiere el búfer de repetición (se activa con INSTALAR o INICIAR BÚFER).</p>
   </section>
@@ -666,7 +682,7 @@ async function showSlot(p){var slot=p.slot,on=RBINS[slot],off=RBINS[1-slot];
  if(!p.ok)p=await prepare(slot,p.path,p.want,p.spd);
  await reqP('TriggerMediaInputAction',{inputName:on,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'});
  await wait(60);if(b!=null)await reqP('SetSceneItemEnabled',{sceneName:'REPLAY',sceneItemId:b,sceneItemEnabled:false});
- reqP('TriggerMediaInputAction',{inputName:off,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'});RB.slot=slot;RB.cur=p;RB.wd={c:-1,n:0,t:Date.now()}}
+ reqP('TriggerMediaInputAction',{inputName:off,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'});RB.slot=slot;RB.cur=p;RB.userPause=false;RB.spdNow=p.spd||100;RB.wd={c:-1,n:0,t:Date.now()}}
 function prepNext(){var p=RB.queue.shift();if(!p){RB.prep=null;return}var sl=1-RB.slot;RB.prep=prepare(sl,p.path,p.want,p.spd)}
 async function playClips(list,label){if(!list.length)return;RB.loading=true;RB.wasPlaying=RB.playing;var o=clipOpts();
  RB.queue=list.map(function(x){return{path:x,want:o.want,spd:o.spd}});RB.back=RB.back||SC.cur;RB.playing=true;rbBadge();
@@ -678,7 +694,7 @@ async function nextClip(){if(RB.loading||RB.switching||!RB.playing)return;RB.swi
  try{if(!RB.prep&&RB.queue.length)prepNext();if(!RB.prep){RB.switching=false;return endReplay()}var p=await RB.prep;RB.prep=null;await showSlot(p);setTimeout(function(){if(RB.playing&&!RB.prep)prepNext()},700)}
  finally{RB.switching=false}}
 // vigilante: si el video se queda pegado (no avanza) o terminó sin aviso, lo reanuda o pasa al siguiente
-setInterval(async function(){if(!RB.playing||RB.loading||RB.switching||!WS.ok||RB.wdBusy)return;RB.wdBusy=true;
+setInterval(async function(){if(!RB.playing||RB.loading||RB.switching||!WS.ok||RB.wdBusy||RB.userPause||RB.tpBusy||Date.now()<(RB.tpHold||0))return;RB.wdBusy=true;
  try{var nm=RBINS[RB.slot],st=await mstat(nm),w=RB.wd||(RB.wd={c:-1,n:0,t:Date.now()}),s=st.mediaState||'';
   if(/ENDED|STOPPED|ERROR/.test(s)){if(Date.now()-w.t>800)nextClip();return}
   if(/PAUSED/.test(s)){await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'});return}
@@ -689,7 +705,39 @@ setInterval(async function(){if(!RB.playing||RB.loading||RB.switching||!WS.ok||R
    else if(w.n>=8){w.n=0;nextClip()}}
   else{w.c=c;w.n=0}}
  catch(e){}finally{RB.wdBusy=false}},600);
-async function endReplay(){RB.playing=false;RB.queue=[];rbBadge();S.rp='REPETICIÓN';push();var b=RB.back;RB.back='';var mode=$('rb_after').value;
+// ---------- control de la repetición en pantalla (pausa, retroceder, cámara lenta) ----------
+var TPN=function(){return RBINS[RB.slot]};
+function tpOk(){if(!RB.playing||RB.loading||RB.switching){toast('No hay una repetición en pantalla');return false}return true}
+async function tpPause(force){if(!tpOk())return;var nm=TPN(),p=force!=null?force:!RB.userPause;RB.userPause=p;
+ await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_'+(p?'PAUSE':'PLAY')});tpUI()}
+function winStart(st){var c=RB.cur||{};return Math.max(0,(st.mediaDuration||0)-(c.want||10000))}
+async function tpSeek(delta,abs){if(!tpOk())return;RB.tpBusy=true;try{var nm=TPN(),st=await mstat(nm),d=st.mediaDuration||0;if(!d)return;
+ var lo=winStart(st),to=abs!=null?abs:(st.mediaCursor||0)+delta;to=Math.max(lo,Math.min(d-250,to));
+ await reqP('SetMediaInputCursor',{inputName:nm,mediaCursor:Math.round(to)});RB.tpHold=Date.now()+1500;RB.wd={c:-1,n:0,t:Date.now()};
+ if(/ENDED/.test(st.mediaState||'')&&!RB.userPause)await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'})}finally{RB.tpBusy=false}}
+async function tpSpeed(v){if(!tpOk())return;if(RB.tpBusy)return;RB.tpBusy=true;try{var nm=TPN(),st=await mstat(nm),c=st.mediaCursor||0,paused=RB.userPause;
+ await reqP('SetInputSettings',{inputName:nm,inputSettings:{speed_percent:v}});RB.spdNow=v;if(RB.cur)RB.cur.spd=v;
+ for(var k=0;k<15;k++){await wait(80);var s2=await mstat(nm);if(s2.mediaDuration>0)break}
+ await reqP('SetMediaInputCursor',{inputName:nm,mediaCursor:c});
+ await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_'+(paused?'PAUSE':'PLAY')});RB.tpHold=Date.now()+1500;RB.wd={c:-1,n:0,t:Date.now()};
+ toast('Velocidad '+v+' %')}finally{RB.tpBusy=false;tpUI()}}
+var SPDS=[100,50,35,25];
+function tpCycle(){var i=SPDS.indexOf(RB.spdNow||100);tpSpeed(SPDS[(i+1)%SPDS.length])}
+function tpSlow(){var slow=(+$('rb_speed').value)<100?+$('rb_speed').value:50;tpSpeed((RB.spdNow||100)<100?100:slow)}
+var SCRUB={t:0,v:null,busy:false};
+async function tpScrub(f){if(!RB.playing||RB.loading||RB.switching)return;SCRUB.v=f;if(SCRUB.busy)return;SCRUB.busy=true;
+ try{if(!RB.userPause)await tpPause(true);while(SCRUB.v!=null){var v=SCRUB.v;SCRUB.v=null;var st=await mstat(TPN()),d=st.mediaDuration||0;if(!d)break;var lo=winStart(st);
+  await reqP('SetMediaInputCursor',{inputName:TPN(),mediaCursor:Math.round(lo+(d-250-lo)*v)});await wait(60)}}finally{SCRUB.busy=false}}
+function tpUI(){var on=RB.playing&&!RB.loading;$('tp').className='tp'+(on?'':' off');
+ $('tp_pause').textContent=RB.userPause?'▶ SEGUIR':'❚❚ PAUSA';$('tp_pause').className=RB.userPause?'on':'';
+ $('tp_slow').className=(RB.spdNow||100)<100&&on?'on':'';$('tp_sp').textContent=on?(RB.spdNow||100)+' %':'—';
+ $('tp_st').textContent=!on?'SIN REPETICIÓN':RB.userPause?'⏸ EN PAUSA':'▶ REPRODUCIENDO'+(RB.queue&&RB.queue.length?' · faltan '+RB.queue.length+' clips':'')}
+$('tp_pause').onclick=function(){tpPause()};$('tp_back5').onclick=function(){tpSeek(-5000)};$('tp_back2').onclick=function(){tpSeek(-2000)};$('tp_fwd2').onclick=function(){tpSeek(2000)};
+$('tp_restart').onclick=async function(){if(!tpOk())return;var st=await mstat(TPN());tpSeek(0,winStart(st))};
+$('tp_slow').onclick=tpSlow;$('tp_speed').onclick=tpCycle;
+$('tp_pos').addEventListener('input',function(){tpScrub(+this.value/1000)});
+setInterval(async function(){tpUI();if(!RB.playing||RB.loading||!WS.ok||SCRUB.busy||document.activeElement===$('tp_pos'))return;try{var st=await mstat(TPN()),d=st.mediaDuration||0;if(d){var lo=winStart(st);$('tp_pos').value=String(Math.round(1000*Math.max(0,(st.mediaCursor||0)-lo)/Math.max(1,d-lo)))}}catch(e){}},500);
+async function endReplay(){RB.userPause=false;RB.playing=false;RB.queue=[];rbBadge();S.rp='REPETICIÓN';push();var b=RB.back;RB.back='';var mode=$('rb_after').value;
  if(mode==='estudio'){var sm0=((await reqP('GetStudioModeEnabled',{})).responseData||{}).studioModeEnabled;
   if(sm0){await reqP('SetCurrentPreviewScene',{sceneName:'ESTUDIO'});await reqP('TriggerStudioModeTransition',{})}
   else await reqP('SetCurrentProgramScene',{sceneName:'ESTUDIO'});
@@ -736,7 +784,7 @@ $('m_rb').onclick=function(){$('rb_play').click()};$('m_hl').onclick=function(){
 // ---------- puente con PANEL_MIDI (misma PC, mismo Chrome) ----------
 var CMD=null;try{CMD=new BroadcastChannel('fcc2-cmd')}catch(e){}
 function midiState(){return{type:'state',ts:Date.now(),conn:WS.ok,scenes:SC.list,cur:SC.cur,prev:SC.prev,toprev:$('toprev').checked,
- running:S.clock.running,rem:remain(),round:S.clock.round,total:S.clock.total,rb:RB.active,playing:RB.playing,saving:!!RB.saving,
+ running:S.clock.running,rem:remain(),round:S.clock.round,total:S.clock.total,rb:RB.active,playing:RB.playing,saving:!!RB.saving,rbpause:!!RB.userPause,rbspd:RB.spdNow||100,
  show:{marcador:!!S.show.marcador,lt:!!S.show.lt,mosca:!!S.show.mosca},fight:S.cur+1,nf:S.fights.length,
  r:S.f.r_nombre||'',b:S.f.b_nombre||''}}
 function doCmd(c,a){switch(c){
@@ -745,7 +793,7 @@ function doCmd(c,a){switch(c){
  case 'clock':$('bstart').click();break; case 'reset':$('breset').click();break;
  case 'rplus':$('brp').click();break; case 'rminus':$('brm').click();break;
  case 'p10':$('bp10').click();break; case 'm10':$('bm10').click();break;
- case 'replay':$('rb_play').click();break; case 'replay3':case 'replay5':case 'replay10':RB.len1=+c.slice(6);$('rb_play').click();break; case 'replayslow':RB.spd1=35;$('rb_play').click();break; case 'moment':$('rb_save').click();break;
+ case 'replay':$('rb_play').click();break; case 'rb_pause':tpPause();break; case 'rb_back2':tpSeek(-2000);break; case 'rb_back5':tpSeek(-5000);break; case 'rb_fwd2':tpSeek(2000);break; case 'rb_restart':$('tp_restart').click();break; case 'rb_slow':tpSlow();break; case 'rb_speed':tpCycle();break; case 'rb_scrub':tpScrub(+a||0);break; case 'replay3':case 'replay5':case 'replay10':RB.len1=+c.slice(6);$('rb_play').click();break; case 'replayslow':RB.spd1=35;$('rb_play').click();break; case 'moment':$('rb_save').click();break;
  case 'reel':$('rb_reel').click();break; case 'reelall':$('rb_reelall').click();break; case 'stop':$('rb_stop').click();break;
  case 'tgl_marcador':$('tg-marcador').click();break;
  case 'lt_r':$('blt_r').click();break; case 'lt_b':$('blt_b').click();break; case 'tgl_lt':(S.show.lt?$('blth'):$('blt')).click();break;
