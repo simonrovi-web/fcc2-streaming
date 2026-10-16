@@ -460,11 +460,11 @@ $('bpaste').onclick=function(){var L=$('paste').value.split(/\n/).map(function(l
  S.cur=0;S.f.total=String(S.fights.length);$('total').value=S.f.total;save();renderFights();push();toast(S.fights.length+' combates cargados')};
 
 // ---------- resultado ----------
-function win(c){var f=S.f;var el=S.clock.len-remain();
+function win(c){var f=S.f;S.gside=c;var el=S.clock.len-remain();
  $('g_nombre').value=c==='r'?U(f.r_nombre):c==='b'?U(f.b_nombre):'EMPATE';$('g_esquina').value=c==='r'?U(S.lbl.a):c==='b'?U(S.lbl.b):U(f.r_nombre)+' · '+U(f.b_nombre);
  $('g_round').value='ROUND '+S.clock.round;$('g_tiempo').value=fmt(el);if(c==='d')$('g_metodo').value='EMPATE'}
 $('wr').onclick=function(){win('r')};$('wb').onclick=function(){win('b')};$('wd').onclick=function(){win('d')};
-$('bwin').onclick=function(){S.g={nombre:U($('g_nombre').value),esquina:U($('g_esquina').value),metodo:U($('g_metodo').value),round:U($('g_round').value),tiempo:U($('g_tiempo').value),disciplina:U(S.f.disciplina)};
+$('bwin').onclick=function(){var gn=U($('g_nombre').value),sd=gn&&gn===U(S.f.b_nombre)?'b':gn&&gn===U(S.f.r_nombre)?'r':(S.gside||'r');S.g={lado:sd,nombre:gn,esquina:U($('g_esquina').value),metodo:U($('g_metodo').value),round:U($('g_round').value),tiempo:U($('g_tiempo').value),disciplina:U(S.f.disciplina)};
  if(!S.g.nombre)return toast('Elige el ganador');save();push();toast('Resultado enviado')};
 
 // ---------- lower third y replay ----------

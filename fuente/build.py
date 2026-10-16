@@ -73,7 +73,7 @@ SPARKS = '''var c=document.getElementById('fx');if(c){var x=c.getContext('2d'),P
 function spawn(a){return{x:Math.random()*1920,y:a?Math.random()*1080:1090,v:.3+Math.random()*1.1,r:.6+Math.random()*2.2,a:.2+Math.random()*.6,w:Math.random()*6.28}}
 for(var i=0;i<70;i++)P.push(spawn(true));
 (function loop(){x.clearRect(0,0,1920,1080);for(var i=0;i<P.length;i++){var p=P[i];p.y-=p.v;p.w+=.02;p.x+=Math.sin(p.w)*.4;if(p.y<-10)P[i]=p=spawn(false);
-x.beginPath();var RC=(getComputedStyle(document.documentElement).getPropertyValue('--red2-rgb')||'255,42,42').trim();x.fillStyle='rgba('+RC+','+p.a+')';x.shadowColor='rgb('+RC+')';x.shadowBlur=8;x.arc(p.x,p.y,p.r,0,6.28);x.fill();}requestAnimationFrame(loop)})();}'''
+x.beginPath();var RC=(getComputedStyle(document.body).getPropertyValue('--red2-rgb')||'255,42,42').trim();x.fillStyle='rgba('+RC+','+p.a+')';x.shadowColor='rgb('+RC+')';x.shadowBlur=8;x.arc(p.x,p.y,p.r,0,6.28);x.fill();}requestAnimationFrame(loop)})();}'''
 # Editable text: click in OBS "Interactuar" to edit; saved per file in localStorage. ?param=value also works.
 EDIT = '''var Q=new URLSearchParams(location.search),KEY='fcc2:'+location.pathname.split('/').pop();
 function st(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}}
@@ -106,7 +106,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitAll);setTim
 var LAST=0;
 function applyLive(d){if(!d||!d.ts||d.ts<LAST)return;LAST=d.ts;var m=d[PANEL],big=false;
  if(m)for(var k in m){var el=document.querySelector('[data-k="'+k+'"]');if(el&&document.activeElement!==el&&m[k]!=null&&el.textContent!==String(m[k])){if(/nombre$|^rojo$|^azul$/.test(k))big=true;el.textContent=m[k]}}
- if(d.theme)applyTheme(d.theme);document.querySelectorAll('.gym').forEach(function(g){var t=g.querySelector('b');g.classList.toggle('empty',!t||!t.textContent.trim())});fitAll();
+ if(d.theme)applyTheme(d.theme);if(m&&window.onData)window.onData(m);document.querySelectorAll('.gym').forEach(function(g){var t=g.querySelector('b');g.classList.toggle('empty',!t||!t.textContent.trim())});fitAll();
  if(big&&PANEL!=='marcador'&&document.getAnimations)document.getAnimations().forEach(function(a){try{a.cancel();a.play()}catch(e){}});
  if(d.clock&&window.onClock&&PANEL==='marcador')window.onClock(d.clock);
  if(d.layout&&window.onLayout&&PANEL==='marcador')window.onLayout(d.layout);
@@ -238,7 +238,15 @@ P['FCC2_Ganador'] = page('FCC 2 Ganador', '''
 <div class="name" data-k="nombre" data-fit="w" data-max="220" data-min="80">NOMBRE APELLIDO</div>
 <div class="corner" data-k="esquina">ESQUINA ROJA</div>
 <div class="row"><div><b data-k="metodo">KO / TKO</b><span>MÉTODO</span></div><div><b data-k="round">ROUND 2</b><span>ROUND</span></div><div><b data-k="tiempo">1:45</b><span>TIEMPO</span></div><div><b data-k="disciplina">MMA</b><span>DISCIPLINA</span></div></div></div>
-<div class="vig"></div>{BAR}</div>''')
+<div class="vig"></div>{BAR}</div>''', '''
+// si gana la esquina azul (u otra), todo el panel toma el color de esa esquina
+var SIDE='r';
+function sideVars(){var cs=getComputedStyle(document.documentElement),b=document.body.style;
+ ['--red','--red2','--red-dk','--red-rgb','--red2-rgb'].forEach(function(k){b.removeProperty(k)});
+ if(SIDE==='r'||SIDE==='d'){var a=hx(cs.getPropertyValue('--ca').trim());if(!a||SIDE==='d')return;var c=a}else{var c=hx(cs.getPropertyValue('--cb').trim());if(!c)return}
+ var l=mixc(c,[255,255,255],.22);b.setProperty('--red',css(c));b.setProperty('--red2',css(l));b.setProperty('--red-dk',css(mixc(c,[0,0,0],.45)));b.setProperty('--red-rgb',c.join(','));b.setProperty('--red2-rgb',l.join(','))}
+window.onData=function(m){if(m&&m.lado&&m.lado!==SIDE){SIDE=m.lado;document.body.dataset.side=SIDE}sideVars()};
+if(Q.get('lado')){SIDE=Q.get('lado');setTimeout(sideVars,50)}''')
 
 # ---------- AUSPICIADOR ----------
 P['FCC2_Auspiciador'] = page('FCC 2 Auspiciador', '''
