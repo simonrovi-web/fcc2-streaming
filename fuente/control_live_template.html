@@ -159,6 +159,7 @@ details summary{cursor:pointer;color:var(--mute);font-size:14px;letter-spacing:1
     <div class="mon-row" style="align-items:center"><span class="lbl2">ESCENAS</span><label class="sw" style="margin-left:auto"><input type="checkbox" id="toprev"> A vista previa (modo estudio)</label></div>
     <div class="scenes" id="scenes"><span class="hint">Conecta OBS para ver tus escenas aquí.</span></div>
     <div class="mon-row"><button class="pri" id="btrans" style="flex:1">TRANSICIÓN (MODO ESTUDIO)</button></div>
+    <div class="scenes" id="trsel" style="margin-top:6px"></div>
   </div>
 </div>
 </div>
@@ -331,6 +332,10 @@ AUSPICIA DI PIPINO PIZZA</textarea></div>
           <button class="big" id="breload">↻ RECARGAR GRÁFICOS</button>
           <button class="big" id="btest">✓ PROBAR</button>
         </div>
+        <h3 style="font-family:Bebas;font-size:22px;letter-spacing:2px;font-weight:400;margin-top:14px">TRANSICIONES (STINGERS)</h3>
+        <ul class="chk" id="trl"><li class="pend">Pulsa AJUSTAR TRANSICIONES con OBS conectado.</li></ul>
+        <div class="row" style="margin-top:8px"><button class="pri big" id="btrfix">🎬 AJUSTAR TRANSICIONES</button></div>
+        <p class="hint">Revisa la resolución de OBS y deja cada stinger FCC2 con el video correcto (1080p o 720p según tu lienzo), punto de corte en <b>2000 ms</b> (cuando el logo tapa toda la pantalla) y decodificación por hardware. Primero crea en OBS, en <b>Transiciones de escena → + → Stinger</b>, tres transiciones llamadas <b>FCC2 Golpe</b>, <b>FCC2 Rapida</b> y <b>FCC2 Replay</b> (puedes dejarlas vacías: este botón les pone el video).</p>
         <p class="hint" style="margin-top:8px"><b>INSTALAR</b> crea (si faltan) las escenas INICIO, ESTUDIO, VS, GANADOR, REPLAY, PAUSA, AUSPICIADOR y FINAL en la colección de escenas que tengas abierta, y pone cada gráfico FCC2 apuntando a esta carpeta. Si ya existen, solo corrige las rutas. No borra nada.</p>
       </div>
     </div>
@@ -404,12 +409,12 @@ function connect(){WS.want=true;var conf={host:$('host').value.trim()||'localhos
  cstat('Conectando…','wait');var s;try{s=new WebSocket('ws://'+conf.host+':'+conf.port)}catch(e){cstat('Dirección inválida','err');return}
  WS.s=s;
  s.onmessage=function(ev){var m=JSON.parse(ev.data);
-  if(m.op===0){var d={rpcVersion:1,eventSubscriptions:4|64|256};var a=m.d.authentication;
+  if(m.op===0){var d={rpcVersion:1,eventSubscriptions:4|16|64|256};var a=m.d.authentication;
    if(a){if(!conf.pass){cstat('Falta la contraseña','err');s.close();return}d.authentication=sha256(sha256(utf8(conf.pass)+a.salt)+a.challenge)}
    s.send(JSON.stringify({op:1,d:d}))}
-  else if(m.op===2){WS.ok=true;cstat('Conectado a OBS','ok');toast('Conectado a OBS');loadScenes();push();runDiag();if(window.rbStatus)rbStatus()}
+  else if(m.op===2){WS.ok=true;cstat('Conectado a OBS','ok');toast('Conectado a OBS');loadScenes();push();runDiag();if(window.loadTrans)loadTrans();if(window.rbStatus)rbStatus()}
   else if(m.op===7){var f=WS.cb[m.d.requestId];if(f){delete WS.cb[m.d.requestId];f(m.d)}}
-  else if(m.op===5){var t=m.d.eventType;if(window.onObsEvent)onObsEvent(t,m.d.eventData||{});if(t==='CurrentProgramSceneChanged'||t==='SceneListChanged'||t==='CurrentPreviewSceneChanged'||t==='StudioModeStateChanged')loadScenes()}};
+  else if(m.op===5){var t=m.d.eventType;if(window.onObsEvent)onObsEvent(t,m.d.eventData||{});if(t==='CurrentProgramSceneChanged'||t==='SceneListChanged'||t==='CurrentPreviewSceneChanged'||t==='StudioModeStateChanged')loadScenes();if(/^CurrentSceneTransition|^SceneTransition/.test(t)&&window.loadTrans)loadTrans()}};
  s.onclose=function(e){var was=WS.ok;WS.ok=false;
   if(e.code===4009)cstat('Contraseña incorrecta','err');else cstat(was?'Conexión perdida · reintentando':'No se pudo conectar · reintentando','err');
   if(WS.want&&e.code!==4009){clearTimeout(WS.retry);WS.retry=setTimeout(connect,3000)}};
@@ -559,6 +564,30 @@ async function runDiag(){var L=[];
  if(wrong.length)L.push(li('bad','Fuentes con archivos antiguos o de otra carpeta: '+esc(wrong.join(', ')),'Pulsa INSTALAR GRÁFICOS EN OBS para corregir las rutas (estas no reciben el control en vivo).'));
  $('chk').innerHTML=L.join('');return {found:found,wrong:wrong,miss:miss}}
 $('bdiag').onclick=function(){runDiag()};
+// ---------- transiciones: ajustar stingers y elegir la transición activa ----------
+function trFile(name,path){var t=(name+' '+(path||'')).toLowerCase();if(/golpe/.test(t))return 'Golpe';if(/r[aá]pid/.test(t))return 'Rapida';if(/replay|repetic/.test(t))return 'Replay';return null}
+async function trFix(){if(!WS.ok)return toast('Conecta OBS primero');var L=[],out=$('trl');out.innerHTML='<li class="pend">Revisando…</li>';
+ var vs=(await reqP('GetVideoSettings',{})).responseData||{},bw=vs.baseWidth,bh=vs.baseHeight,sub='';
+ if(bw===1920&&bh===1080)L.push(li('ok','Lienzo de OBS 1920×1080','Se usan los stingers en 1080p.'));
+ else if(bw===1280&&bh===720){sub='720p/';L.push(li('ok','Lienzo de OBS 1280×720','Se usan los stingers en 720p (carpeta Transiciones/720p).'))}
+ else L.push(li('bad','Lienzo de OBS '+bw+'×'+bh,'Los stingers son 1920×1080 y OBS no los ajusta solo. Recomendado: Ajustes → Video → Resolución base 1920×1080 (o 1280×720) y vuelve a pulsar AJUSTAR.'));
+ var dir=isRemote()?'':ctlPath().replace(/[^\/]*$/,'')+'Transiciones/'+sub;
+ var tl=(await reqP('GetSceneTransitionList',{})).responseData||{},prevT=tl.currentSceneTransitionName,list=(tl.transitions||[]).filter(function(x){return /stinger/.test(x.transitionKind||'')}),n=0;
+ if(!list.length)L.push(li('bad','No hay transiciones Stinger en OBS','En OBS: panel <b>Transiciones de escena</b> → <b>+</b> → <b>Stinger</b> → nómbrala <b>FCC2 Golpe</b> (repite para <b>FCC2 Rapida</b> y <b>FCC2 Replay</b>) y acepta aunque esté vacía. Luego pulsa AJUSTAR otra vez.'));
+ for(var i=0;i<list.length;i++){var nm=list[i].transitionName;await reqP('SetCurrentSceneTransition',{transitionName:nm});
+  var cur=(await reqP('GetCurrentSceneTransition',{})).responseData||{},se=cur.transitionSettings||{},f=trFile(nm,se.path);
+  if(!f){L.push(li('pend','«'+esc(nm)+'»: no es de FCC2, no se tocó','Si quieres que use un video FCC2, ponle Golpe, Rapida o Replay en el nombre.'));continue}
+  var ns={transition_point_type:0,tp_type:0,transition_point:2000,hw_decode:true};
+  if(dir)ns.path=dir+'FCC2_Transicion_'+f+'.webm';
+  var r=await reqP('SetCurrentSceneTransitionSettings',{transitionSettings:ns,overlay:true});n++;
+  L.push(r.requestStatus&&r.requestStatus.result?li('ok','«'+esc(nm)+'» → FCC2_Transicion_'+f+'.webm'+(sub?' (720p)':''),'Corte a 2000 ms · el video tapa la pantalla de 0,3 s a 3,7 s, así que el cambio de escena nunca se ve.'+(dir?'':' (control remoto: la ruta del video no se cambió, solo el punto de corte)')):li('bad','«'+esc(nm)+'»: OBS no aceptó el ajuste',esc((r.requestStatus||{}).comment||'')))}
+ if(prevT)await reqP('SetCurrentSceneTransition',{transitionName:prevT});
+ if(n)L.push(li('ok','Listo','En el control, elige la transición con los botones bajo TRANSICIÓN. En OBS no hace falta cambiar la duración: el stinger usa su propio largo (4 s).'));
+ out.innerHTML=L.join('');loadTrans()}
+$('btrfix').onclick=trFix;
+function loadTrans(){if(!WS.ok)return;req('GetSceneTransitionList',{},function(d){var r=d.responseData||{},cur=r.currentSceneTransitionName;
+ $('trsel').innerHTML=(r.transitions||[]).map(function(t){var nm=t.transitionName;return '<button data-tr="'+esc(nm)+'" class="'+(nm===cur?'cur':'')+'" title="Transición activa">'+(/stinger/.test(t.transitionKind||'')?'🎬 ':'')+esc(nm)+'</button>'}).join('')})}
+$('trsel').addEventListener('click',function(e){var b=e.target.closest('[data-tr]');if(!b)return;reqP('SetCurrentSceneTransition',{transitionName:b.dataset.tr}).then(function(){loadTrans();toast('Transición: '+b.dataset.tr)})});
 $('binstall').onclick=async function(){if(!WS.ok)return toast('Conecta OBS primero');if(isRemote())return toast('INSTALAR se usa en el PC donde está OBS (una sola vez)');if(badPath())return toast('Descomprime el zip primero');
  var b=this;b.disabled=true;b.textContent='INSTALANDO…';
  try{var sl=await reqP('GetSceneList',{});var have=((sl.responseData||{}).scenes||[]).map(function(x){return x.sceneName});
