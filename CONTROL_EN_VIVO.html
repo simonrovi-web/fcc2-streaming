@@ -585,7 +585,8 @@ async function trFix(){if(!WS.ok)return toast('Conecta OBS primero');var L=[],ou
  if(n)L.push(li('ok','Listo','En el control, elige la transición con los botones bajo TRANSICIÓN. En OBS no hace falta cambiar la duración: el stinger usa su propio largo (4 s).'));
  out.innerHTML=L.join('');loadTrans()}
 $('btrfix').onclick=trFix;
-function loadTrans(){if(!WS.ok)return;req('GetSceneTransitionList',{},function(d){var r=d.responseData||{},cur=r.currentSceneTransitionName;
+var TRS={list:[],cur:''};
+function loadTrans(){if(!WS.ok)return;req('GetSceneTransitionList',{},function(d){var r=d.responseData||{},cur=r.currentSceneTransitionName;TRS.list=(r.transitions||[]).map(function(t){return t.transitionName});TRS.cur=cur||'';
  $('trsel').innerHTML=(r.transitions||[]).map(function(t){var nm=t.transitionName;return '<button data-tr="'+esc(nm)+'" class="'+(nm===cur?'cur':'')+'" title="Transición activa">'+(/stinger/.test(t.transitionKind||'')?'🎬 ':'')+esc(nm)+'</button>'}).join('')})}
 $('trsel').addEventListener('click',function(e){var b=e.target.closest('[data-tr]');if(!b)return;reqP('SetCurrentSceneTransition',{transitionName:b.dataset.tr}).then(function(){loadTrans();toast('Transición: '+b.dataset.tr)})});
 $('binstall').onclick=async function(){if(!WS.ok)return toast('Conecta OBS primero');if(isRemote())return toast('INSTALAR se usa en el PC donde está OBS (una sola vez)');if(badPath())return toast('Descomprime el zip primero');
@@ -840,11 +841,12 @@ $('m_rb').onclick=function(){$('rb_play').click()};$('m_hl').onclick=function(){
 
 // ---------- puente con PANEL_MIDI (misma PC, mismo Chrome) ----------
 var CMD=null;try{CMD=new BroadcastChannel('fcc2-cmd')}catch(e){}
-function midiState(){return{type:'state',ts:Date.now(),conn:WS.ok,scenes:SC.list,cur:SC.cur,prev:SC.prev,toprev:$('toprev').checked,
+function midiState(){return{type:'state',ts:Date.now(),conn:WS.ok,trs:TRS.list,trcur:TRS.cur,scenes:SC.list,cur:SC.cur,prev:SC.prev,toprev:$('toprev').checked,
  running:S.clock.running,rem:remain(),round:S.clock.round,total:S.clock.total,rb:RB.active,playing:RB.playing,saving:!!RB.saving,rbpause:!!RB.userPause&&!RB.rew,rbrew:!!RB.rew,rbspd:RB.spdNow||100,
  show:{marcador:!!S.show.marcador,lt:!!S.show.lt,mosca:!!S.show.mosca},fight:S.cur+1,nf:S.fights.length,
  r:S.f.r_nombre||'',b:S.f.b_nombre||''}}
 function doCmd(c,a){switch(c){
+ case 'trsel':case 'trgo':if(!WS.ok)return toast('Conecta OBS primero');reqP('SetCurrentSceneTransition',{transitionName:a}).then(function(r){if(!(r.requestStatus&&r.requestStatus.result))return toast('No existe la transición «'+a+'» en OBS (créala y pulsa AJUSTAR TRANSICIONES)');TRS.cur=a;loadTrans();toast('Transición: '+a);if(c==='trgo')setTimeout(function(){$('btrans').click()},80)});break;
  case 'scene':goScene(a);break; case 'sceneP':goScene(a,false);break; case 'sceneV':goScene(a,true);break;
  case 'trans':$('btrans').click();break;
  case 'clock':$('bstart').click();break; case 'reset':$('breset').click();break;
