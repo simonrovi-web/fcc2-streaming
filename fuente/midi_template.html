@@ -97,6 +97,13 @@ td button{font-size:15px;padding:4px 8px 2px}
       <button data-cal="red" style="background:#c8101a">= ROJO</button><button data-cal="green" style="background:#13a34a">= VERDE</button><button data-cal="yellow" style="background:#c89300;color:#000">= AMARILLO</button><button data-cal="blue" style="background:#1d4fd8">= AZUL</button><button data-cal="dim">= TENUE</button><button data-cal="off">= APAGADO</button>
     </div>
     <div class="hint" id="calnow"></div>
+    <div class="row">
+      <label class="sw" style="flex:0 0 auto;display:flex;align-items:center;gap:8px;font-size:14px;letter-spacing:0;color:#ddd"><input type="checkbox" id="allon" style="width:auto" checked> Mantener TODOS los pads encendidos</label>
+      <div><label>COLOR BASE</label><select id="basec"><option value="dim">Tenue</option><option value="yellow">Amarillo</option><option value="blue">Azul</option><option value="red">Rojo</option><option value="green">Verde</option></select></div>
+      <div><label>COLOR AL PRESIONAR</label><select id="pressc"><option value="green">Verde</option><option value="red">Rojo</option><option value="yellow">Amarillo</option><option value="blue">Azul</option><option value="off">Apagar</option></select></div>
+      <button id="bknown">PADS CONOCIDOS: <span id="nknown">0</span> · BORRAR</button>
+    </div>
+    <p class="hint">Presiona una vez cada pad de tu controlador para que el panel lo conozca y lo mantenga encendido.</p>
     <div class="row"><button class="pri" id="bfind">🔍 BUSCAR CÓMO SE ENCIENDEN</button><button id="bfound" style="display:none;background:#13a34a;border-color:#2ecc71">¡SE ENCENDIÓ!</button><button id="bfstop" style="display:none">CANCELAR</button></div>
     <div class="wiz" id="findst"></div>
   </section>
@@ -148,6 +155,7 @@ function colorFor(a){if(!a)return['off',false];var s=ST||{};
   case 'trans':return['yellow',false];default:return['blue',false]}}
 
 // ---------- MIDI ----------
+var OPT=ls('fcc2-midi-opt')||{allon:true,base:'dim',press:'green'};var KNOWN=ls('fcc2-midi-known')||[];var FLASH={};
 var CAL=ls('fcc2-midi-cal')||{off:0,dim:127,red:127,green:127,yellow:127,blue:127};var MA=null,IN=null,OUT=null,MAPS=ls('fcc2-midi-maps')||[],LEARN=null,PROF='auto',SENT={};
 function save(){ls('fcc2-midi-maps',MAPS)}
 function prof(){if(PROF!=='auto')return PROF;var n=((OUT&&OUT.name)||(IN&&IN.name)||'').toLowerCase();
@@ -168,11 +176,12 @@ function onMidi(ev){var d=ev.data,st=d[0]&0xF0,ch=d[0]&0x0F,num=d[1],val=d[2];va
  else if(st===0xB0){m={type:'cc',ch:ch,num:num};press=val>63}
  if(!m)return;log((m.type==='note'?'NOTA ':'CC ')+num+' · canal '+(ch+1)+' · valor '+val);
  if(!press)return;
- if(m.type==='note'){LASTN=num;CALCH=ch;calPads();$('calpad').value=num}
+ if(m.type==='note'){LASTN=num;CALCH=ch;calPads();$('calpad').value=num;if(KNOWN.indexOf(num)<0){KNOWN.push(num);ls('fcc2-midi-known',KNOWN);$('nknown').textContent=KNOWN.length}
+  FLASH[num]=Date.now()+280;SENT={};refresh();setTimeout(function(){SENT={};refresh()},300)}
  if(wizPress(m))return;
  if(LEARN!=null){MAPS[LEARN].m=m;LEARN=null;save();renderMaps();toast('Botón asignado');return}
  var mp=MAPS.find(function(x){return x.m&&key(x.m)===key(m)});if(mp&&mp.a){run(mp.a);flash(mp)}
- else{var gi=gridIndexOf(m);if(gi!=null)selPad(gi)}}
+ else if(isGrid()){var gi=gridIndexOf(m);if(gi!=null)selPad(gi)}else buildGrid()}
 function flash(mp){var i=MAPS.indexOf(mp),el=document.querySelector('[data-mi="'+i+'"]');if(el){el.style.transform='scale(.92)';setTimeout(function(){el.style.transform=''},120)}}
 function fillPorts(){var si=$('min'),so=$('mout'),ins=[],outs=[];MA.inputs.forEach(function(p){ins.push(p)});MA.outputs.forEach(function(p){outs.push(p)});
  var savedIn=ls('fcc2-midi-in'),savedOut=ls('fcc2-midi-out');
@@ -197,7 +206,7 @@ function gridNote(r,c){var p=prof();if(p==='lp')return (8-r)*10+(c+1);return (7-
 function gridIndexOf(m){if(m.type!=='note')return null;for(var r=0;r<8;r++)for(var c=0;c<8;c++)if(gridNote(r,c)===m.num)return r*8+c;return null}
 var SEL=null;
 function isGrid(){var p=prof();return p==='apc1'||p==='apc2'||p==='lp'}
-function buildGrid(){if(!isGrid()){var g=$('grid');g.style.gridTemplateColumns='repeat(5,1fr)';var h2='';MAPS.forEach(function(x){if(x.m&&x.m.type==='note')h2+='<div class="pad" data-n="'+x.m.num+'"><span class="id">'+x.m.num+'</span><span class="lb"></span></div>'});g.innerHTML=h2||'<p class="hint" style="grid-column:1/-1">Pulsa ASISTENTE y presiona tus pads uno por uno.</p>';return}
+function buildGrid(){if(!isGrid()){var g=$('grid');g.style.gridTemplateColumns='repeat(5,1fr)';var h2='',seen={};MAPS.forEach(function(x){if(x.m&&x.m.type==='note'){seen[x.m.num]=1;h2+='<div class="pad" data-n="'+x.m.num+'"><span class="id">'+x.m.num+'</span><span class="lb"></span></div>'}});KNOWN.slice().sort(function(a,b){return a-b}).forEach(function(n){if(!seen[n])h2+='<div class="pad" data-n="'+n+'"><span class="id">'+n+'</span><span class="lb"></span></div>'});g.innerHTML=h2||'<p class="hint" style="grid-column:1/-1">Pulsa ASISTENTE y presiona tus pads uno por uno.</p>';return}
  $('grid').style.gridTemplateColumns='';var h='';for(var r=0;r<8;r++)for(var c=0;c<8;c++){var n=gridNote(r,c);h+='<div class="pad" data-r="'+r+'" data-c="'+c+'" data-n="'+n+'"><span class="id">'+n+'</span><span class="lb"></span></div>'}$('grid').innerHTML=h}
 function selPad(i){SEL=i;var el=$('grid').children[i];var n=+el.dataset.n;var mp=MAPS.find(function(x){return x.m&&x.m.type==='note'&&x.m.num===n});
  if(!mp){MAPS.push({m:{type:'note',ch:0,num:n},a:''});save();renderMaps()}refresh();toast('Elige la acción para la nota '+n+' en la lista')}
@@ -235,8 +244,13 @@ function refresh(){var alive=Date.now()-lastST<2000;
  var cc=$('ch-ctl');cc.className='chip '+(alive?'ok':'bad');cc.querySelector('span').textContent=alive?'Control en vivo ✓':'Abre CONTROL_EN_VIVO.html';
  var co=$('ch-obs');var ob=alive&&ST&&ST.conn;co.className='chip '+(ob?'ok':'bad');co.querySelector('span').textContent=ob?('OBS ✓ · al aire: '+(ST.cur||'')):'OBS sin conexión';
  var pads=$('grid').children;for(var i=0;i<pads.length;i++){var p=pads[i],n=+p.dataset.n;if(!p.classList.contains('pad'))continue;var mp=MAPS.find(function(x){return x.m&&x.m.type==='note'&&x.m.num===n});var a=mp?mp.a:'';var c=colorFor(a);
-  p.className='pad'+(a?' c-'+c[0]:'')+(c[1]&&a?' blink':'')+(SEL===i?' sel':'');p.querySelector('.lb').textContent=actLabel(a)}
- MAPS.forEach(function(x,i){if(!x.m)return;var c=colorFor(x.a);sendLed(x.m,x.a?c[0]:'off',!!(x.a&&c[1]))});
+  var vc=a?c[0]:'off';if(OPT.allon&&(vc==='off'||vc==='dim'))vc=OPT.base;if(FLASH[n]>Date.now())vc=OPT.press;p.className='pad'+(vc!=='off'?' c-'+vc:'')+(c[1]&&a&&!(FLASH[n]>Date.now())?' blink':'')+(SEL===i?' sel':'');p.querySelector('.lb').textContent=actLabel(a)}
+ var now=Date.now(),done={};
+ MAPS.forEach(function(x){if(!x.m)return;var c=colorFor(x.a),col=x.a?c[0]:'off',bl=!!(x.a&&c[1]);
+  if(OPT.allon&&(col==='off'||col==='dim'))col=OPT.base;if(x.m.type==='note'&&FLASH[x.m.num]>now){col=OPT.press;bl=false}
+  sendLed(x.m,col,bl);if(x.m.type==='note')done[x.m.num]=1});
+ var ch0=(MAPS.find(function(x){return x.m&&x.m.type==='note'})||{m:{ch:CALCH}}).m.ch|0;
+ KNOWN.forEach(function(n){if(done[n])return;var col=OPT.allon?OPT.base:'off';if(FLASH[n]>now)col=OPT.press;sendLed({type:'note',ch:ch0,num:n},col,false)});
  document.querySelectorAll('#maps tr[data-mi]').forEach(function(tr){var x=MAPS[+tr.dataset.mi];var c=colorFor(x&&x.a);var l=tr.querySelector('.led');if(l)l.className='led c-'+c[0]})}
 var lastScenes='';setInterval(function(){var k=JSON.stringify(ST&&ST.scenes);if(k!==lastScenes){lastScenes=k;renderMaps()}refresh()},300);
 
@@ -276,6 +290,9 @@ $('bfind').onclick=function(){var n=+$('calpad').value;if(!MA)return toast('Cone
  step();FIND.t=setInterval(step,700)};
 $('bfound').onclick=function(){findStop(true)};$('bfstop').onclick=function(){findStop(false)};
 calText();
+$('allon').checked=OPT.allon;$('basec').value=OPT.base;$('pressc').value=OPT.press;$('nknown').textContent=KNOWN.length;
+['allon','basec','pressc'].forEach(function(id){$(id).onchange=function(){OPT={allon:$('allon').checked,base:$('basec').value,press:$('pressc').value};ls('fcc2-midi-opt',OPT);SENT={};refresh()}});
+$('bknown').onclick=function(){KNOWN.forEach(function(n){sendLed({type:'note',ch:CALCH,num:n},'off',false)});KNOWN=[];ls('fcc2-midi-known',KNOWN);$('nknown').textContent=0;SENT={};refresh()};
 buildGrid();renderMaps();calPads();initMidi();
 window.addEventListener('beforeunload',function(){MAPS.forEach(function(x){if(x.m)try{OUT&&OUT.send(ledMsg(x.m,'off',false))}catch(e){}})});
 </script></body></html>
