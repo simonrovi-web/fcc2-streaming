@@ -376,6 +376,9 @@ function loadScenes(){req('GetSceneList',{},function(d){var r=d.responseData||{}
  SC.cur=r.currentProgramSceneName||'';SC.prev=r.currentPreviewSceneName||'';renderScenes()})}
 function renderScenes(){var h=SC.list.map(function(n){return '<button data-scene="'+n.replace(/"/g,'&quot;')+'" class="'+(n===SC.cur?'cur':n===SC.prev?'prev':'')+'">'+n.replace(/</g,'&lt;')+'</button>'}).join('');
  $('scenes').innerHTML=h||'<span class="hint">Conecta OBS para ver tus escenas aquí.</span>'}
+function goScene(n,toPrev){if(!WS.ok)return;if(toPrev==null)toPrev=$('toprev').checked;
+ if(toPrev)req('SetCurrentPreviewScene',{sceneName:n},function(d){if(!d.requestStatus.result)toast('Activa el Modo Estudio');loadScenes()});
+ else req('SetCurrentProgramScene',{sceneName:n},function(){loadScenes()})}
 $('scenes').addEventListener('click',function(e){var b=e.target.closest('[data-scene]');if(!b)return;var n=b.dataset.scene;
  if($('toprev').checked)req('SetCurrentPreviewScene',{sceneName:n},function(d){if(!d.requestStatus.result)toast('Activa el Modo Estudio');loadScenes()});
  else req('SetCurrentProgramScene',{sceneName:n},function(){loadScenes()})});
@@ -651,5 +654,29 @@ $('m_start').onclick=function(){$('bstart').click()};$('m_reset').onclick=functi
 $('m_rb').onclick=function(){$('rb_play').click()};$('m_hl').onclick=function(){$('rb_save').click()};
 (function mini(){var r=remain();$('m_tm').textContent=fmt(r);$('m_tm').className=Math.ceil(r)<=10?'low':'';$('m_rd').textContent=S.clock.round+(S.clock.total?' / '+S.clock.total:'');
  $('m_start').textContent=S.clock.running?'❚❚ PAUSAR':'▶ INICIAR';$('m_start').className=S.clock.running?'':'pri';requestAnimationFrame(mini)})();
+
+// ---------- puente con PANEL_MIDI (misma PC, mismo Chrome) ----------
+var CMD=null;try{CMD=new BroadcastChannel('fcc2-cmd')}catch(e){}
+function midiState(){return{type:'state',ts:Date.now(),conn:WS.ok,scenes:SC.list,cur:SC.cur,prev:SC.prev,toprev:$('toprev').checked,
+ running:S.clock.running,rem:remain(),round:S.clock.round,total:S.clock.total,rb:RB.active,playing:RB.playing,saving:!!RB.saving,
+ show:{marcador:!!S.show.marcador,lt:!!S.show.lt,mosca:!!S.show.mosca},fight:S.cur+1,nf:S.fights.length,
+ r:S.f.r_nombre||'',b:S.f.b_nombre||''}}
+function doCmd(c,a){switch(c){
+ case 'scene':goScene(a);break; case 'sceneP':goScene(a,false);break; case 'sceneV':goScene(a,true);break;
+ case 'trans':$('btrans').click();break;
+ case 'clock':$('bstart').click();break; case 'reset':$('breset').click();break;
+ case 'rplus':$('brp').click();break; case 'rminus':$('brm').click();break;
+ case 'p10':$('bp10').click();break; case 'm10':$('bm10').click();break;
+ case 'replay':$('rb_play').click();break; case 'moment':$('rb_save').click();break;
+ case 'reel':$('rb_reel').click();break; case 'reelall':$('rb_reelall').click();break; case 'stop':$('rb_stop').click();break;
+ case 'tgl_marcador':$('tg-marcador').click();break;
+ case 'tgl_lt':(S.show.lt?$('blth'):$('blt')).click();break;
+ case 'tgl_mosca':(S.show.mosca?$('mo_hide'):$('mo_show')).click();break;
+ case 'next':$('bnext').click();break; case 'prev':$('bprev').click();break;
+ case 'win_r':$('wr').click();$('bwin').click();break; case 'win_b':$('wb').click();$('bwin').click();break;
+ case 'toprev':$('toprev').checked=!$('toprev').checked;break}
+ if(CMD)setTimeout(function(){CMD.postMessage(midiState())},120)}
+if(CMD){CMD.onmessage=function(e){var m=e.data;if(m&&m.type==='cmd')doCmd(m.cmd,m.arg);else if(m&&m.type==='hello')CMD.postMessage(midiState())};
+ setInterval(function(){CMD.postMessage(midiState())},300)}
 renderMo();renderTheme();loadFields();renderFights();renderLtp();renderAir();push();runDiag();
 </script></body></html>
