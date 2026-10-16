@@ -559,7 +559,8 @@ function readMo(){S.mo={pos:$('mo_pos').value,scale:+$('mo_scale').value,op:+$('
 $('mo_show').onclick=function(){S.show.mosca=true;save();push()};$('mo_hide').onclick=function(){S.show.mosca=false;save();push()};
 
 // ---------- repeticiones (búfer de repetición de OBS) ----------
-var RBIN='FCC2 Repeticion Video',RB={active:false,want:null,playing:false,queue:[],back:'',waitSave:null};
+var RBIN='FCC2 Repeticion Video',RBINS=[RBIN,RBIN+' B'],RB={active:false,want:null,playing:false,queue:[],back:'',waitSave:null,slot:0,prep:null,prepSlot:null,ids:{}};
+var RBSET={is_local_file:true,looping:false,restart_on_activate:false,close_when_inactive:false,clear_on_media_end:false,hw_decode:true};
 S.hl=S.hl||[];S.rb=S.rb||{speed:50,len:10,back:true};var RBMAX=30;
 function hlLabel(){var f=S.f,c=S.clock;return {c:S.cur,num:f.numero||S.cur+1,round:c.round,t:fmt(c.len-remain()),r:U(f.r_nombre),b:U(f.b_nombre)}}
 function renderHL(){$('rb_count').textContent=S.hl.length?'('+S.hl.length+')':'';
@@ -579,25 +580,41 @@ async function ensureReplay(install){
   if(cur&&cur<RBMAX){await reqP('StopReplayBuffer',{});await new Promise(function(r){setTimeout(r,1200)});await reqP('SetProfileParameter',{parameterCategory:ct,parameterName:'RecRBTime',parameterValue:String(RBMAX)});await reqP('StartReplayBuffer',{})}}
  // 2) fuente de video en la escena REPLAY (debajo del overlay)
  if(install){var sl=((await reqP('GetSceneList',{})).responseData||{}).scenes||[];if(!sl.some(function(x){return x.sceneName==='REPLAY'}))await reqP('CreateScene',{sceneName:'REPLAY'});
-  var ins=((await reqP('GetInputList',{})).responseData||{}).inputs||[];var set={is_local_file:true,local_file:'',looping:false,restart_on_activate:true,close_when_inactive:true,speed_percent:+S.rb.speed||100};
-  if(!ins.some(function(x){return x.inputName===RBIN}))await reqP('CreateInput',{sceneName:'REPLAY',inputName:RBIN,inputKind:'ffmpeg_source',inputSettings:set,sceneItemEnabled:true});
-  else{var it=((await reqP('GetSceneItemList',{sceneName:'REPLAY'})).responseData||{}).sceneItems||[];if(!it.some(function(x){return x.sourceName===RBIN}))await reqP('CreateSceneItem',{sceneName:'REPLAY',sourceName:RBIN})}
-  var id=((await reqP('GetSceneItemId',{sceneName:'REPLAY',sourceName:RBIN})).responseData||{}).sceneItemId;if(id!=null)await reqP('SetSceneItemIndex',{sceneName:'REPLAY',sceneItemId:id,sceneItemIndex:0})}
+  var ins=((await reqP('GetInputList',{})).responseData||{}).inputs||[];
+  for(var q=0;q<2;q++){var nm=RBINS[q];var set=Object.assign({local_file:''},RBSET);
+   if(!ins.some(function(x){return x.inputName===nm}))await reqP('CreateInput',{sceneName:'REPLAY',inputName:nm,inputKind:'ffmpeg_source',inputSettings:set,sceneItemEnabled:q===0});
+   else{await reqP('SetInputSettings',{inputName:nm,inputSettings:RBSET,overlay:true});var it=((await reqP('GetSceneItemList',{sceneName:'REPLAY'})).responseData||{}).sceneItems||[];if(!it.some(function(x){return x.sourceName===nm}))await reqP('CreateSceneItem',{sceneName:'REPLAY',sourceName:nm,sceneItemEnabled:q===0})}
+   var id=((await reqP('GetSceneItemId',{sceneName:'REPLAY',sourceName:nm})).responseData||{}).sceneItemId;if(id!=null){RB.ids[nm]=id;await reqP('SetSceneItemIndex',{sceneName:'REPLAY',sceneItemId:id,sceneItemIndex:0})}}}
  await rbStatus()}
 function saveClip(){return new Promise(async function(res0){var res=function(v){RB.saving=false;rbBadge();res0(v)};RB.saving=true;rbBadge();if(!WS.ok){toast('Conecta OBS primero');return res(null)}
  if(!RB.active){await ensureReplay(false);if(!RB.active)return res(null)}
  var done=false;RB.waitSave=function(p){if(done)return;done=true;res(p)};
  var r=await reqP('SaveReplayBuffer',{});if(!(r.requestStatus&&r.requestStatus.result)){done=true;toast('OBS no pudo guardar: '+((r.requestStatus||{}).comment||''));return res(null)}
  setTimeout(async function(){if(done)return;var g=await reqP('GetLastReplayBufferReplay',{});done=true;res((g.responseData||{}).savedReplayPath||null)},4000)})}
-async function playClips(list,label){if(!list.length)return;RB.queue=list.slice();RB.back=RB.back||SC.cur;RB.playing=true;rbBadge();
+async function itemId(nm){if(RB.ids[nm]==null){var r=((await reqP('GetSceneItemId',{sceneName:'REPLAY',sourceName:nm})).responseData||{}).sceneItemId;if(r!=null)RB.ids[nm]=r}return RB.ids[nm]}
+function wait(ms){return new Promise(function(r){setTimeout(r,ms)})}
+// carga el clip en un reproductor, lo deja posicionado en los últimos N s y en pausa (sin mostrar negro)
+async function prepare(slot,path){var nm=RBINS[slot];
+ await reqP('SetInputSettings',{inputName:nm,inputSettings:Object.assign({local_file:path,speed_percent:+$('rb_speed').value||100},RBSET)});
+ await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART'});
+ var want=(+$('rb_len').value||10)*1000,st={};
+ for(var k=0;k<20;k++){await wait(100);st=(await reqP('GetMediaInputStatus',{inputName:nm})).responseData||{};if(st.mediaDuration>0)break}
+ if(st.mediaDuration>want+300){await reqP('SetMediaInputCursor',{inputName:nm,mediaCursor:Math.max(0,st.mediaDuration-want)});await wait(160)}
+ await reqP('TriggerMediaInputAction',{inputName:nm,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'});return slot}
+// muestra un reproductor ya preparado y oculta el otro, sin cortes
+async function showSlot(slot){var on=RBINS[slot],off=RBINS[1-slot];
+ var a=await itemId(on),b=await itemId(off);
+ if(a!=null)await reqP('SetSceneItemEnabled',{sceneName:'REPLAY',sceneItemId:a,sceneItemEnabled:true});
+ await reqP('TriggerMediaInputAction',{inputName:on,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY'});
+ await wait(60);if(b!=null)await reqP('SetSceneItemEnabled',{sceneName:'REPLAY',sceneItemId:b,sceneItemEnabled:false});
+ reqP('TriggerMediaInputAction',{inputName:off,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'});RB.slot=slot}
+function prepNext(){var p=RB.queue.shift();if(!p){RB.prep=null;RB.prepSlot=null;return}var sl=1-RB.slot;RB.prepSlot=sl;RB.prep=prepare(sl,p)}
+async function playClips(list,label){if(!list.length)return;RB.loading=true;RB.wasPlaying=RB.playing;RB.queue=list.slice();RB.back=RB.back||SC.cur;RB.playing=true;rbBadge();
  S.rp=label||'REPETICIÓN';push();
- if(SC.cur!=='REPLAY')await reqP('SetCurrentProgramScene',{sceneName:'REPLAY'});nextClip()}
-async function nextClip(){var p=RB.queue.shift();if(!p){return endReplay()}
- await reqP('SetInputSettings',{inputName:RBIN,inputSettings:{is_local_file:true,local_file:p,looping:false,speed_percent:+$('rb_speed').value||100}});
- await reqP('TriggerMediaInputAction',{inputName:RBIN,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART'});
- var want=(+$('rb_len').value||10)*1000;
- for(var k=0;k<8;k++){await new Promise(function(r){setTimeout(r,150)});var st=(await reqP('GetMediaInputStatus',{inputName:RBIN})).responseData||{};
-  if(st.mediaDuration>0){if(st.mediaDuration>want+300)await reqP('SetMediaInputCursor',{inputName:RBIN,mediaCursor:Math.max(0,st.mediaDuration-want)});break}}}
+ RB.prep=null;var first=RB.queue.shift();var sl=(SC.cur==='REPLAY'||RB.wasPlaying)?1-RB.slot:RB.slot;await prepare(sl,first);           // listo y en pausa ANTES de cambiar de escena
+ if(SC.cur!=='REPLAY')await reqP('SetCurrentProgramScene',{sceneName:'REPLAY'});
+ await showSlot(sl);RB.loading=false;prepNext()}                                // el siguiente se prepara en segundo plano
+async function nextClip(){if(RB.loading)return;if(!RB.prep){return endReplay()}var sl=await RB.prep;RB.prep=null;await showSlot(sl);prepNext()}
 async function endReplay(){RB.playing=false;RB.queue=[];rbBadge();S.rp='REPETICIÓN';push();var b=RB.back;RB.back='';var mode=$('rb_after').value;
  if(mode==='estudio'){var sm0=((await reqP('GetStudioModeEnabled',{})).responseData||{}).studioModeEnabled;
   if(sm0){await reqP('SetCurrentPreviewScene',{sceneName:'ESTUDIO'});await reqP('TriggerStudioModeTransition',{})}
@@ -612,7 +629,7 @@ async function endReplay(){RB.playing=false;RB.queue=[];rbBadge();S.rp='REPETICI
 window.onObsEvent=function(t,d){
  if(t==='ReplayBufferSaved'&&RB.waitSave){var f=RB.waitSave;RB.waitSave=null;f(d.savedReplayPath)}
  else if(t==='ReplayBufferStateChanged'){RB.active=!!d.outputActive;rbBadge()}
- else if(t==='MediaInputPlaybackEnded'&&d.inputName===RBIN&&RB.playing)nextClip()};
+ else if(t==='MediaInputPlaybackEnded'&&d.inputName===RBINS[RB.slot]&&RB.playing)nextClip()};
 $('rb_play').onclick=async function(){var b=this;b.disabled=true;var lab=hlLabel();var p=await saveClip();b.disabled=false;if(!p)return;
  lab.path=p;S.hl.push(lab);save();renderHL();RB.back=SC.cur;await playClips([p],'REPETICIÓN')};
 $('rb_save').onclick=async function(){var lab=hlLabel();var p=await saveClip();if(!p)return;lab.path=p;S.hl.push(lab);save();renderHL();toast('Momento guardado ('+S.hl.length+')')};
@@ -621,7 +638,7 @@ $('rb_list').addEventListener('click',function(e){var a=e.target.closest('[data-
  if(d){S.hl.splice(+d.dataset.hd,1);save();renderHL()}});
 $('rb_reel').onclick=function(){var l=S.hl.filter(function(h){return h.c===S.cur}).map(function(h){return h.path});if(!l.length)return toast('No hay momentos de este combate');RB.back=SC.cur;playClips(l,'MEJORES MOMENTOS')};
 $('rb_reelall').onclick=function(){if(!S.hl.length)return toast('No hay momentos guardados');RB.back=SC.cur;playClips(S.hl.map(function(h){return h.path}),'MEJORES MOMENTOS')};
-$('rb_stop').onclick=async function(){await reqP('TriggerMediaInputAction',{inputName:RBIN,mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP'});endReplay()};
+$('rb_stop').onclick=async function(){RB.queue=[];RB.prep=null;await reqP('TriggerMediaInputAction',{inputName:RBINS[RB.slot],mediaAction:'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'});endReplay()};
 $('rb_start').onclick=async function(){if(!WS.ok)return toast('Conecta OBS primero');await ensureReplay(true);toast(RB.active?'Búfer de repetición activo':'No se pudo activar')};
 $('rb_speed').value=String(S.rb.speed);$('rb_len').value=String(S.rb.len);if(S.rbV!==2){S.rb.after='estudio';S.rbV=2;save()}$('rb_after').value=S.rb.after||'estudio';
 ['rb_speed','rb_len','rb_after'].forEach(function(id){$(id).onchange=function(){S.rb={speed:+$('rb_speed').value,len:+$('rb_len').value,after:$('rb_after').value};save()}});
