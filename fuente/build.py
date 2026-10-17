@@ -237,7 +237,7 @@ P['FCC2_Ganador'] = page('FCC 2 Ganador', '''
 <div class="center"><div class="kicker"><span>GANADOR</span></div>
 <div class="name" data-k="nombre" data-fit="w" data-max="220" data-min="80">NOMBRE APELLIDO</div>
 <div class="corner" data-k="esquina">ESQUINA ROJA</div>
-<div class="row"><div><b data-k="metodo">KO / TKO</b><span>MÉTODO</span></div><div><b data-k="round">ROUND 2</b><span>ROUND</span></div><div><b data-k="tiempo">1:45</b><span>TIEMPO</span></div><div><b data-k="disciplina">MMA</b><span>DISCIPLINA</span></div></div></div>
+<div class="row"><div><b data-k="round">ROUND 2</b><span>ROUND</span></div><div><b data-k="tiempo">1:45</b><span>TIEMPO</span></div><div><b data-k="disciplina">MMA</b><span>DISCIPLINA</span></div></div></div>
 <div class="vig"></div>{BAR}</div>''', '''
 // si gana la esquina azul (u otra), todo el panel toma el color de esa esquina
 var SIDE='r';
